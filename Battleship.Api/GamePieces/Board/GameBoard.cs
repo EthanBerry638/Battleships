@@ -1,6 +1,4 @@
-﻿using Battleship.Api.GamePieces.Data;
-
-namespace Battleship.Api.GamePieces.Board
+﻿namespace Battleship.Api.GamePieces.Board
 {
     public class GameBoard
     {

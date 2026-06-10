@@ -1,4 +1,4 @@
-﻿namespace Battleship.Api.GamePieces.Data
+﻿namespace Battleship.Api.GamePieces.Board
 {
     public class Tile
     {
