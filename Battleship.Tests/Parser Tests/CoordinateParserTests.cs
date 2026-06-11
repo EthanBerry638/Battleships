@@ -8,8 +8,8 @@ namespace Battleship.Tests.Parser_Tests
     {
         [Theory]
         [InlineData("A1", 0, 0)]
-        [InlineData("A2", 1, 0)]
-        [InlineData("B1", 0, 1)]
+        [InlineData("A2", 0, 1)]
+        [InlineData("B1", 1, 0)]
         [InlineData("B2", 1, 1)]
         [InlineData("J10", 9, 9)]
         public void StringToCoord_ReturnsCorrectCoordinates_WithValidInputs(string input, int expectedX, int expectedY)
