@@ -53,7 +53,8 @@ namespace Battleship.Tests.Parser_Tests
 
             var action = () => parser.StringToCoord(input);
 
-            action.Should().Throw<InvalidCoordinateException>();
+            action.Should().Throw<InvalidCoordinateException>()
+                .WithMessage($"Invalid coordinate: {input}");
         }
     }
 }
