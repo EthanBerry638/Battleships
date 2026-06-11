@@ -1,5 +1,6 @@
 ﻿using Battleship.Api.Parsers;
 using Battleship.Api.GamePieces.Data;
+using Battleship.Api.Exceptions;
 using FluentAssertions;
 
 namespace Battleship.Tests.Parser_Tests
@@ -52,7 +53,7 @@ namespace Battleship.Tests.Parser_Tests
 
             var action = () => parser.StringToCoord(input);
 
-            action.Should().Throw<Exception>();
+            action.Should().Throw<InvalidCoordinateException>();
         }
     }
 }
