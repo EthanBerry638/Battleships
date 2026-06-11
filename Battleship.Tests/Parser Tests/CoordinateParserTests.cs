@@ -37,5 +37,22 @@ namespace Battleship.Tests.Parser_Tests
 
             result.Should().BeEquivalentTo(expectedCoordinate);
         }
+
+        [Theory]
+        [InlineData("K10")]
+        [InlineData("L5")]
+        [InlineData("Z1")]
+        [InlineData("A11")]
+        [InlineData("E15")]
+        [InlineData("J11")]
+        [InlineData("M20")]
+        public void StringToCoord_ThrowsException_WithCoordinatesOutsideGrid(string input)
+        {
+            var parser = new CoordinateParser();
+
+            var action = () => parser.StringToCoord(input);
+
+            action.Should().Throw<Exception>();
+        }
     }
 }
