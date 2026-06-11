@@ -6,6 +6,8 @@ namespace Battleship.Api.Parsers
     {
         public Coordinate StringToCoord(string input)
         {
+            input = input.ToUpper();
+
             int x = (int)input[0] - (int)'A';
             int y = int.Parse(input[1..]) - 1;
 
