@@ -1,5 +1,4 @@
-﻿using Xunit;
-using Battleship.Api.Parsers;
+﻿using Battleship.Api.Parsers;
 using Battleship.Api.GamePieces.Data;
 using FluentAssertions;
 
@@ -7,16 +6,20 @@ namespace Battleship.Tests.Parser_Tests
 {
     public class CoordinateParserTests
     {
-        [Fact]
-        public void StringToCoord_ReturnsCorrectCoordinates_WhenGivenValidInput()
+        [Theory]
+        [InlineData("A1", 0, 0)]
+        [InlineData("A2", 1, 0)]
+        [InlineData("B1", 0, 1)]
+        [InlineData("B2", 1, 1)]
+        [InlineData("J10", 9, 9)]
+        public void StringToCoord_ReturnsCorrectCoordinates_WithValidInputs(string input, int expectedX, int expectedY)
         {
             var parser = new CoordinateParser();
-            var input = "A1";
-            var expectedCoordinates = new Coordinate(0, 0);
+            var expectedCoordinate = new Coordinate(expectedX, expectedY);
 
             var result = parser.StringToCoord(input);
 
-            result.Should().BeEquivalentTo(expectedCoordinates);
+            result.Should().BeEquivalentTo(expectedCoordinate);
         }
     }
 }
