@@ -6,7 +6,7 @@ namespace Battleship.Api.Parsers
     {
         public Coordinate StringToCoord(string input)
         {
-            return null;
+            return new Coordinate(0, 0);
         }
     }
 }
