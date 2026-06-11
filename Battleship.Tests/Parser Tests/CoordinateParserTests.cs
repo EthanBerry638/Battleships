@@ -21,5 +21,21 @@ namespace Battleship.Tests.Parser_Tests
 
             result.Should().BeEquivalentTo(expectedCoordinate);
         }
+
+        [Theory]
+        [InlineData("a1", 0, 0)]
+        [InlineData("a2", 0, 1)]
+        [InlineData("b1", 1, 0)]
+        [InlineData("b2", 1, 1)]
+        [InlineData("j10", 9, 9)]
+        public void StringToCoord_ReturnsCorrectCoordinates_WithLowercaseLetters(string input, int expectedX, int expectedY)
+        {
+            var parser = new CoordinateParser();
+            var expectedCoordinate = new Coordinate(expectedX, expectedY);
+
+            var result = parser.StringToCoord(input);
+
+            result.Should().BeEquivalentTo(expectedCoordinate);
+        }
     }
 }
