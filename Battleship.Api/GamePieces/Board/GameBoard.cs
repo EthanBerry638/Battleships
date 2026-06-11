@@ -22,7 +22,3 @@ namespace Battleship.Api.GamePieces.Board
         }  
     }
 }
-
-
-// TODO: Add parser class tomorrow to convert from string to coordinate and vice versa. This will be used for the API endpoints.
-// For example, "A1" will be converted to Coordinate(0, 0) and "B2" will be converted to Coordinate(1, 1). This will make it easier for the client to interact with the API.
