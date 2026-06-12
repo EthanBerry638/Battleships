@@ -3,7 +3,7 @@ using Battleship.Api.Exceptions;
 
 namespace Battleship.Api.GamePieces.Board
 {
-    public class GameBoard
+    public class GameBoard : IGameBoard
     {
         private readonly Tile[,] _board = new Tile[10, 10];
 
