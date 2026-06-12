@@ -1,5 +1,6 @@
 ﻿using Battleship.Api.GamePieces.Data;
 using Battleship.Api.Exceptions;    
+using System.Text.RegularExpressions;
 
 namespace Battleship.Api.Parsers
 {
@@ -8,16 +9,17 @@ namespace Battleship.Api.Parsers
         private const char FirstColumn = 'A';
         private const char LastColumn = 'J';
         private const int MaxRow = 10;
+        private static readonly Regex CoordinateRegex = new(@"^[A-J](10|[1-9])$", RegexOptions.IgnoreCase);
 
-        public Coordinate StringToCoord(string input)
+        public static Coordinate StringToCoord(string input)
         {
-            input = input.ToUpper();
-
-            if (input[0] > LastColumn || int.Parse(input[1..]) > MaxRow)
+            if (string.IsNullOrEmpty(input) || !CoordinateRegex.IsMatch(input))
             {
-                throw new InvalidCoordinateException($"Invalid coordinate: {input}");
+                throw new InvalidCoordinateException($"Invalid coordinate: {input}");   
             }
-
+            
+            input = input.ToUpper();
+            
             int x = input[0] - FirstColumn;
             int y = int.Parse(input[1..]) - 1;
 

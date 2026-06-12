@@ -15,10 +15,9 @@ namespace Battleship.Tests.Parser_Tests
         [InlineData("J10", 9, 9)]
         public void StringToCoord_ReturnsCorrectCoordinates_WithValidInputs(string input, int expectedX, int expectedY)
         {
-            var parser = new CoordinateParser();
             var expectedCoordinate = new Coordinate(expectedX, expectedY);
 
-            var result = parser.StringToCoord(input);
+            var result = CoordinateParser.StringToCoord(input);
 
             result.Should().BeEquivalentTo(expectedCoordinate);
         }
@@ -31,10 +30,9 @@ namespace Battleship.Tests.Parser_Tests
         [InlineData("j10", 9, 9)]
         public void StringToCoord_ReturnsCorrectCoordinates_WithLowercaseLetters(string input, int expectedX, int expectedY)
         {
-            var parser = new CoordinateParser();
             var expectedCoordinate = new Coordinate(expectedX, expectedY);
 
-            var result = parser.StringToCoord(input);
+            var result = CoordinateParser.StringToCoord(input);
 
             result.Should().BeEquivalentTo(expectedCoordinate);
         }
@@ -49,9 +47,24 @@ namespace Battleship.Tests.Parser_Tests
         [InlineData("M20")]
         public void StringToCoord_ThrowsException_WithCoordinatesOutsideGrid(string input)
         {
-            var parser = new CoordinateParser();
+            var action = () => CoordinateParser.StringToCoord(input);
 
-            var action = () => parser.StringToCoord(input);
+            action.Should().Throw<InvalidCoordinateException>()
+                .WithMessage($"Invalid coordinate: {input}");
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData(" ")]
+        [InlineData("1A")]
+        [InlineData("AA")]
+        [InlineData("A")]
+        [InlineData("10")]
+        [InlineData("A-1")]
+        [InlineData(null)]
+        public void StringToCoord_ThrowsException_WithMalformedCoordinates(string input)
+        {
+            var action = () => CoordinateParser.StringToCoord(input);
 
             action.Should().Throw<InvalidCoordinateException>()
                 .WithMessage($"Invalid coordinate: {input}");
