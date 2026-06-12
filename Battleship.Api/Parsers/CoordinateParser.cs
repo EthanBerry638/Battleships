@@ -1,27 +1,26 @@
-﻿using Battleship.Api.GamePieces.Data;
+﻿using System.Text.RegularExpressions;
+using Battleship.Api.GamePieces.Data;
 using Battleship.Api.Exceptions;    
-using System.Text.RegularExpressions;
 
 namespace Battleship.Api.Parsers
 {
-    public class CoordinateParser
+    public static class CoordinateParser
     {
-        private const char FirstColumn = 'A';
-        private const char LastColumn = 'J';
-        private const int MaxRow = 10;
+        private const char ColumnOffset = 'A';
+
         private static readonly Regex CoordinateRegex = new(@"^[A-J](10|[1-9])$", RegexOptions.IgnoreCase);
 
         public static Coordinate StringToCoord(string input)
         {
             if (string.IsNullOrEmpty(input) || !CoordinateRegex.IsMatch(input))
             {
-                throw new InvalidCoordinateException($"Invalid coordinate: {input}");   
+                throw new InvalidCoordinateException($"Invalid coordinate: {input}");
             }
-            
-            input = input.ToUpper();
-            
-            int x = input[0] - FirstColumn;
-            int y = int.Parse(input[1..]) - 1;
+        
+            var normalizedInput = input.ToUpperInvariant();
+
+            int x = normalizedInput[0] - ColumnOffset;
+            int y = int.Parse(normalizedInput[1..]) - 1;
 
             return new Coordinate(x, y);
         }
