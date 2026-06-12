@@ -23,11 +23,16 @@ namespace Battleship.Tests.Board_Tests
             result.Should().NotBeNull();
         }           
 
-        [Fact]
-        public void GetTile_ReturnsSameTileInstance_WhenCalledWithSameCoordinate()
+        [Theory]
+        [InlineData(0, 0)]
+        [InlineData(0, 1)]
+        [InlineData(1, 0)]
+        [InlineData(1, 1)]
+        [InlineData(9, 9)]
+        public void GetTile_ReturnsSameTileInstance_WhenCalledWithSameCoordinate(int x, int y)
         {
             var gameBoard = new GameBoard();
-            var coordinate = new Coordinate(0, 0);
+            var coordinate = new Coordinate(x, y);
 
             var firstResult = gameBoard.GetTile(coordinate);
             var secondResult = gameBoard.GetTile(coordinate);
@@ -38,7 +43,7 @@ namespace Battleship.Tests.Board_Tests
         [Theory]
         [InlineData(-1, 0)]
         [InlineData(10, 0)]
-        [InlineData(0, -1)]
+        [InlineData(0, -1)]  
         [InlineData(0, 10)]
         [InlineData(-1, -1)]
         [InlineData(10, 10)]
