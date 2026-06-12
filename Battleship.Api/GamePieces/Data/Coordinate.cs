@@ -1,14 +1,8 @@
 ﻿namespace Battleship.Api.GamePieces.Data
 {
-    public class Coordinate
+    public class Coordinate (int x, int y)
     {
-        public int X { get; }
-        public int Y { get; }
-
-        public Coordinate(int x, int y)
-        {
-            X = x;
-            Y = y;
-        }   
+        public int X { get; } = x;
+        public int Y { get; } = y;
     }
 }
