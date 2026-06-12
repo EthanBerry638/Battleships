@@ -69,5 +69,19 @@ namespace Battleship.Tests.Parser_Tests
             action.Should().Throw<InvalidCoordinateException>()
                 .WithMessage($"Invalid coordinate: {input}");
         }
+        
+        [Theory]
+        [InlineData(" A1")]
+        [InlineData("A1 ")]
+        [InlineData(" A1 ")]
+        [InlineData("\tA1")]
+        [InlineData("A1\t")]
+        public void StringToCoord_ThrowsException_WithCoordinatesContainingWhitespace(string input)
+        {
+            var action = () => CoordinateParser.StringToCoord(input);
+
+            action.Should().Throw<InvalidCoordinateException>()
+                .WithMessage($"Invalid coordinate: {input}");
+        }
     }
 }
