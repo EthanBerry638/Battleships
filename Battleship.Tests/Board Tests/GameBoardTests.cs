@@ -20,6 +20,18 @@ namespace Battleship.Tests.Board_Tests
             var result = gameBoard.GetTile(coordinate);
 
             result.Should().NotBeNull();
+        }           
+
+        [Fact]
+        public void GetTile_ReturnsSameTileInstance_WhenCalledWithSameCoordinate()
+        {
+            var gameBoard = new GameBoard();
+            var coordinate = new Coordinate(0, 0);
+
+            var firstResult = gameBoard.GetTile(coordinate);
+            var secondResult = gameBoard.GetTile(coordinate);
+
+            secondResult.Should().BeSameAs(firstResult);
         }
     }
 }

@@ -19,7 +19,7 @@ namespace Battleship.Api.GamePieces.Board
 
         public Tile GetTile(Coordinate coordinate)
         {
-            return new Tile();
+            return _board[coordinate.X, coordinate.Y];
         }
     }
 }
