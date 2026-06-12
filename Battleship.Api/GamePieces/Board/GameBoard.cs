@@ -15,6 +15,11 @@ namespace Battleship.Api.GamePieces.Board
                     _board[x, y] = new Tile();
                 }
             }
-        }  
+        }
+
+        public Tile GetTile(Coordinate coordinate)
+        {
+            return new Tile();
+        }
     }
 }
