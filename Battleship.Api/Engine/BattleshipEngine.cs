@@ -9,8 +9,14 @@ namespace Battleship.Api.Engine
         
         public ShotResult Shoot(Coordinate coordinate)
         {
-            _gameBoard.GetTile(coordinate);
-            return ShotResult.Hit;
+            var tile = _gameBoard.GetTile(coordinate);
+            
+            if (tile.HasShip)
+            {
+                return ShotResult.Hit;
+            }
+            
+            return ShotResult.Miss;
         }
     }
 }
