@@ -32,16 +32,17 @@ namespace Battleship.Tests.Engine_Tests
             _mockGameBoard.Verify(x => x.GetTile(coordinate), Times.Once);
         }   
         
+        
         [Fact]
-        public void Shoot_ReturnsMiss_WhenTileHasNoShip()
+        public void Shoot_ReturnsSunk_WhenShipIsDestroyed()
         {
             var coordinate = new Coordinate(0, 0);
-            var tile = new Tile { OccupyingShip = null };
+            var tile = new Tile { OccupyingShip = new Ship() }; 
             _mockGameBoard.Setup(x => x.GetTile(coordinate)).Returns(tile);
         
             var result = _battleshipEngine.Shoot(coordinate);
         
-            result.Should().Be(ShotResult.Miss);
+            result.Should().Be(ShotResult.Sunk);
         
             _mockGameBoard.Verify(x => x.GetTile(coordinate), Times.Once);
         }
