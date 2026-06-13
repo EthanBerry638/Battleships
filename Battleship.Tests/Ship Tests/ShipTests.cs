@@ -28,4 +28,19 @@ public class ShipTests
         
         ship.IsSunk().Should().BeFalse();
     }
+
+    [Fact]
+    public void IsSunk_ReturnsTrue_WhenAllCoordinatesAreHit()
+    {
+        var coord1 = new Coordinate(0, 0);
+        var coord2 = new Coordinate(0, 1);
+        var coord3 = new Coordinate(0, 2);
+        var ship = new Ship([coord1, coord2, coord3]);
+        
+        ship.RegisterHit(coord1);
+        ship.RegisterHit(coord2);
+        ship.RegisterHit(coord3);
+        
+        ship.IsSunk().Should().BeTrue();
+    }
 }

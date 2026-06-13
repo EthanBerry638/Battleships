@@ -7,7 +7,7 @@ namespace Battleship.Api.GamePieces.Entities
         public ShipType Type { get; set; }
         public int Size { get; set; }
         public List<Coordinate> Coordinates = coordinates;
-        private readonly List<Coordinate> _hits = new();
+        private readonly List<Coordinate> _hits = [];
 
         public void RegisterHit(Coordinate coordinate)
         {
