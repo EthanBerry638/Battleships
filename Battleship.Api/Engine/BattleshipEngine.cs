@@ -13,7 +13,11 @@ namespace Battleship.Api.Engine
 
             if (tile.HasShip)
             {
-                return ShotResult.Hit;
+                var ship = tile.OccupyingShip!;
+                
+                ship.RegisterHit(coordinate);
+
+                return ship.IsSunk() ? ShotResult.Sunk : ShotResult.Hit;
             }
             
             return ShotResult.Miss;

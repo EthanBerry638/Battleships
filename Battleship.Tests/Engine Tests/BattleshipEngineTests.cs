@@ -22,7 +22,8 @@ namespace Battleship.Tests.Engine_Tests
         public void Shoot_ReturnsHit_WhenTileHasShip()
         {
             var coordinate = new Coordinate(0, 0);
-            var tile = new Tile { OccupyingShip = new Ship([coordinate]) };
+            var ship = new Ship([coordinate, new Coordinate(0, 1)]);
+            var tile = new Tile { OccupyingShip = ship };
             _mockGameBoard.Setup(x => x.GetTile(coordinate)).Returns(tile);
         
             var result = _battleshipEngine.Shoot(coordinate);
