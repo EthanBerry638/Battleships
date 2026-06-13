@@ -22,41 +22,41 @@ namespace Battleship.Tests.Engine_Tests
         public void Shoot_ReturnsHit_WhenTileHasShip()
         {
             var coordinate = new Coordinate(0, 0);
-            var tile = new Tile { OccupyingShip = new Ship() };
+            var tile = new Tile { OccupyingShip = new Ship([coordinate]) };
             _mockGameBoard.Setup(x => x.GetTile(coordinate)).Returns(tile);
-            
+        
             var result = _battleshipEngine.Shoot(coordinate);
-            
+        
             result.Should().Be(ShotResult.Hit);
-            
+        
             _mockGameBoard.Verify(x => x.GetTile(coordinate), Times.Once);
         }   
-        
+    
         [Fact]
         public void Shoot_ReturnsMiss_WhenTileHasNoShip()
         {
             var coordinate = new Coordinate(0, 0);
             var tile = new Tile { OccupyingShip = null };
             _mockGameBoard.Setup(x => x.GetTile(coordinate)).Returns(tile);
-        
+    
             var result = _battleshipEngine.Shoot(coordinate);
-        
+    
             result.Should().Be(ShotResult.Miss);
-        
+    
             _mockGameBoard.Verify(x => x.GetTile(coordinate), Times.Once);
         }
-        
+    
         [Fact]
         public void Shoot_ReturnsSunk_WhenShipIsDestroyed()
         {
             var coordinate = new Coordinate(0, 0);
-            var tile = new Tile { OccupyingShip = new Ship() }; 
+            var tile = new Tile { OccupyingShip = new Ship([coordinate]) }; 
             _mockGameBoard.Setup(x => x.GetTile(coordinate)).Returns(tile);
-        
+    
             var result = _battleshipEngine.Shoot(coordinate);
-        
+    
             result.Should().Be(ShotResult.Sunk);
-        
+    
             _mockGameBoard.Verify(x => x.GetTile(coordinate), Times.Once);
         }
     }
