@@ -28,6 +28,8 @@ namespace Battleship.Tests.Engine_Tests
             var result = _battleshipEngine.Shoot(coordinate);
             
             result.Should().Be(ShotResult.Hit);
+            
+            _mockGameBoard.Verify(x => x.GetTile(coordinate), Times.Once);
         }   
     }
 }
