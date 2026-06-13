@@ -43,4 +43,17 @@ public class ShipTests
         
         ship.IsSunk().Should().BeTrue();
     }
+
+    [Fact]
+    public void IsSunk_ReturnsFalse_WhenSameCoordinateIsHitMultipleTimes()
+    {
+        var coord1 = new Coordinate(0, 0);
+        var coord2 = new Coordinate(0, 1);
+        var ship = new Ship([coord1, coord2]);
+        
+        ship.RegisterHit(coord1);
+        ship.RegisterHit(coord1); 
+        
+        ship.IsSunk().Should().BeFalse();
+    }
 }

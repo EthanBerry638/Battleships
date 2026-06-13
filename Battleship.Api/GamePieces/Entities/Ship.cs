@@ -11,7 +11,7 @@ namespace Battleship.Api.GamePieces.Entities
 
         public void RegisterHit(Coordinate coordinate)
         {
-            if (Coordinates.Contains(coordinate))
+            if (Coordinates.Contains(coordinate) && !_hits.Contains(coordinate))
             {
                 _hits.Add(coordinate);
             }
