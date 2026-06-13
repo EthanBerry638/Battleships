@@ -2,15 +2,24 @@
 
 namespace Battleship.Api.GamePieces.Entities
 {
-    public class Ship (List<Coordinate> coordinates)
+    public class Ship(List<Coordinate> coordinates)
     {
         public ShipType Type { get; set; }
         public int Size { get; set; }
         public List<Coordinate> Coordinates = coordinates;
+        private readonly List<Coordinate> _hits = new();
 
-        public bool IsSunk ()
+        public void RegisterHit(Coordinate coordinate)
         {
-            return true;
+            if (Coordinates.Contains(coordinate))
+            {
+                _hits.Add(coordinate);
+            }
+        }
+
+        public bool IsSunk()
+        {
+            return _hits.Count == Coordinates.Count;
         }
     }
 }
