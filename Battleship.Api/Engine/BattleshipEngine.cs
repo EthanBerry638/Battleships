@@ -10,7 +10,7 @@ namespace Battleship.Api.Engine
         public ShotResult Shoot(Coordinate coordinate)
         {
             var tile = _gameBoard.GetTile(coordinate);
-            
+
             if (tile.HasShip)
             {
                 return ShotResult.Hit;
