@@ -6,5 +6,10 @@ namespace Battleship.Api.GamePieces.Entities
     {
         public ShipType Type { get; set; }
         public int Size { get; set; }
+
+        public bool IsSunk ()
+        {
+            return true;
+        }
     }
 }
