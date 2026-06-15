@@ -1,8 +1,8 @@
-﻿using Battleship.Api.GamePieces.Entities;
-using Battleship.Api.GamePieces.Data;
+﻿using Battleship.Api.GamePieces.Data;
+using Battleship.Api.GamePieces.Entities;
 using FluentAssertions;
 
-namespace Battleship.Tests.Ship_Tests;
+namespace Battleship.Tests.Unit_Tests.Ship_Tests;
 
 public class ShipTests
 {

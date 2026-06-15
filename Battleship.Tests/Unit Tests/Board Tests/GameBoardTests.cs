@@ -3,7 +3,7 @@ using Battleship.Api.GamePieces.Board;
 using Battleship.Api.GamePieces.Data;
 using FluentAssertions;
 
-namespace Battleship.Tests.Board_Tests
+namespace Battleship.Tests.Unit_Tests.Board_Tests
 {
     public class GameBoardTests
     {

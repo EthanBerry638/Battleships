@@ -1,9 +1,9 @@
-﻿using Battleship.Api.Parsers;
+﻿using Battleship.Api.Exceptions;
 using Battleship.Api.GamePieces.Data;
-using Battleship.Api.Exceptions;
+using Battleship.Api.Parsers;
 using FluentAssertions;
 
-namespace Battleship.Tests.Parser_Tests
+namespace Battleship.Tests.Unit_Tests.Parser_Tests
 {
     public class CoordinateParserTests
     {

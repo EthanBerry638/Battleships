@@ -1,11 +1,11 @@
-using Battleship.Api.GamePieces.Board;
-using Moq;
 using Battleship.Api.Engine;
+using Battleship.Api.GamePieces.Board;
 using Battleship.Api.GamePieces.Data;
 using Battleship.Api.GamePieces.Entities;
 using FluentAssertions;
+using Moq;
 
-namespace Battleship.Tests.Engine_Tests
+namespace Battleship.Tests.Unit_Tests.Engine_Tests
 {
     public class BattleshipEngineTests
     {
