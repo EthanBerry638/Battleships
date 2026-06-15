@@ -43,19 +43,22 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
             var coordinate = new Coordinate(0, 0);
             var tile = new Tile { OccupyingShip = null };
             _mockGameBoard.Setup(x => x.GetTile(coordinate)).Returns(tile);
-    
+
             var result = _battleshipEngine.Shoot(coordinate);
-    
+
             result.Should().Be(ShotResult.Miss);
-    
+
             _mockGameBoard.Verify(x => x.GetTile(coordinate), Times.Once);
+            _mockShip.Verify(s => s.RegisterHit(coordinate), Times.Never);
+            _mockShip.Verify(s => s.IsSunk(), Times.Never);
         }
     
         [Fact]
         public void Shoot_ReturnsSunk_WhenShipIsDestroyed()
         {
             var coordinate = new Coordinate(0, 0);
-            var tile = new Tile { OccupyingShip = new Ship([coordinate]) }; 
+            _mockShip.Setup(s => s.IsSunk()).Returns(true);
+            var tile = new Tile { OccupyingShip = _mockShip.Object };
             _mockGameBoard.Setup(x => x.GetTile(coordinate)).Returns(tile);
     
             var result = _battleshipEngine.Shoot(coordinate);
@@ -63,22 +66,27 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
             result.Should().Be(ShotResult.Sunk);
     
             _mockGameBoard.Verify(x => x.GetTile(coordinate), Times.Once);
+            _mockShip.Verify(s => s.RegisterHit(coordinate), Times.Once);
+            _mockShip.Verify(s => s.IsSunk(), Times.Once);
         }
         
         [Fact]
         public void Shoot_ReturnsDuplicate_WhenSameCoordinateIsShotTwice()
         {
             var coordinate = new Coordinate(0, 0);
-            var tile = new Tile { OccupyingShip = null };
+            _mockShip.Setup(s => s.IsSunk()).Returns(false);
+            var tile = new Tile { OccupyingShip = _mockShip.Object };
             _mockGameBoard.Setup(x => x.GetTile(coordinate)).Returns(tile);
-    
+
             var firstResult = _battleshipEngine.Shoot(coordinate);
             var secondResult = _battleshipEngine.Shoot(coordinate);
-    
-            firstResult.Should().Be(ShotResult.Miss);
+
+            firstResult.Should().Be(ShotResult.Hit);
             secondResult.Should().Be(ShotResult.Duplicate);
-    
+
             _mockGameBoard.Verify(x => x.GetTile(coordinate), Times.Once);
+            _mockShip.Verify(s => s.RegisterHit(coordinate), Times.Once);
+            _mockShip.Verify(s => s.IsSunk(), Times.Once);
         }
     }
 }
