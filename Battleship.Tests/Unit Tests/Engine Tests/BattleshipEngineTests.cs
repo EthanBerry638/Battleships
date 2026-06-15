@@ -24,8 +24,8 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
         public void Shoot_ReturnsHit_WhenTileHasShip()
         {
             var coordinate = new Coordinate(0, 0);
-            var ship = new Ship([coordinate, new Coordinate(0, 1)]);
-            var tile = new Tile { OccupyingShip = ship };
+            _mockShip.Setup(s => s.IsSunk()).Returns(false);
+            var tile = new Tile { OccupyingShip = _mockShip.Object };
             _mockGameBoard.Setup(x => x.GetTile(coordinate)).Returns(tile);
         
             var result = _battleshipEngine.Shoot(coordinate);
@@ -33,6 +33,8 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
             result.Should().Be(ShotResult.Hit);
         
             _mockGameBoard.Verify(x => x.GetTile(coordinate), Times.Once);
+            _mockShip.Verify(s => s.RegisterHit(coordinate), Times.Once);
+            _mockShip.Verify(s => s.IsSunk(), Times.Once);
         }   
     
         [Fact]
