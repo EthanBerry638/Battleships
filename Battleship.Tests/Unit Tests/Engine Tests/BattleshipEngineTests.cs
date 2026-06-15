@@ -71,7 +71,7 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
         }
         
         [Fact]
-        public void Shoot_ReturnsDuplicate_WhenSameCoordinateIsShotTwice()
+        public void Shoot_ReturnsDuplicate_WhenSameHitCoordinateIsShotTwice()
         {
             var coordinate = new Coordinate(0, 0);
             _mockShip.Setup(s => s.IsSunk()).Returns(false);
@@ -87,6 +87,22 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
             _mockGameBoard.Verify(x => x.GetTile(coordinate), Times.Once);
             _mockShip.Verify(s => s.RegisterHit(coordinate), Times.Once);
             _mockShip.Verify(s => s.IsSunk(), Times.Once);
+        }
+        
+        [Fact]
+        public void Shoot_ReturnsDuplicate_WhenSameMissCoordinateIsShotTwice()
+        {
+            var coordinate = new Coordinate(0, 0);
+            var tile = new Tile { OccupyingShip = null };
+            _mockGameBoard.Setup(x => x.GetTile(coordinate)).Returns(tile);
+
+            var firstResult = _battleshipEngine.Shoot(coordinate);
+            var secondResult = _battleshipEngine.Shoot(coordinate);
+
+            firstResult.Should().Be(ShotResult.Miss);
+            secondResult.Should().Be(ShotResult.Duplicate);
+
+            _mockGameBoard.Verify(x => x.GetTile(coordinate), Times.Once);
         }
     }
 }
