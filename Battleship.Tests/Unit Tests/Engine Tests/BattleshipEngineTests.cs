@@ -121,6 +121,7 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
 
             _mockGameBoard.Verify(x => x.GetTile(coordinate), Times.Once);
             _mockShip.Verify(s => s.RegisterHit(coordinate), Times.Once);
+            _mockShip.Verify(s => s.IsSunk(), Times.Once);
         }
     }
 }
