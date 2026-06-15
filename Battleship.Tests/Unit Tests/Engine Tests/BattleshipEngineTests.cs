@@ -74,7 +74,7 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
             firstResult.Should().Be(ShotResult.Miss);
             secondResult.Should().Be(ShotResult.Duplicate);
     
-            _mockGameBoard.Verify(x => x.GetTile(coordinate), Times.Once());
+            _mockGameBoard.Verify(x => x.GetTile(coordinate), Times.Once);
         }
     }
 }
