@@ -6,9 +6,10 @@ namespace Battleship.Api.Engine
     public class BattleshipEngine (IGameBoard gameBoard)
     {
         private readonly IGameBoard _gameBoard = gameBoard;
+        private readonly HashSet<ShotHistory> _shotsTaken = [];
         
         public ShotResult Shoot(Coordinate coordinate)
-        {
+        { 
             var tile = _gameBoard.GetTile(coordinate);
 
             if (tile.HasShip)
