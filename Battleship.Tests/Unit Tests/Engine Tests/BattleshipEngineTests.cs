@@ -10,11 +10,13 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
     public class BattleshipEngineTests
     {
         private readonly Mock<IGameBoard> _mockGameBoard;
+        private readonly Mock<IShip> _mockShip;
         private readonly BattleshipEngine _battleshipEngine;
 
         public BattleshipEngineTests()
         {
             _mockGameBoard = new Mock<IGameBoard>();
+            _mockShip = new Mock<IShip>();
             _battleshipEngine = new BattleshipEngine(_mockGameBoard.Object);
         }
 
