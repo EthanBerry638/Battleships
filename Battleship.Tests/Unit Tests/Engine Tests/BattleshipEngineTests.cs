@@ -104,5 +104,23 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
 
             _mockGameBoard.Verify(x => x.GetTile(coordinate), Times.Once);
         }
+        
+        [Fact]
+        public void Shoot_ReturnsDuplicate_WhenAlreadySunkCoordinateIsShotAgain()
+        {
+            var coordinate = new Coordinate(0, 0);
+            _mockShip.Setup(s => s.IsSunk()).Returns(true);
+            var tile = new Tile { OccupyingShip = _mockShip.Object };
+            _mockGameBoard.Setup(x => x.GetTile(coordinate)).Returns(tile);
+
+            var firstResult = _battleshipEngine.Shoot(coordinate);
+            var secondResult = _battleshipEngine.Shoot(coordinate);
+
+            firstResult.Should().Be(ShotResult.Sunk);
+            secondResult.Should().Be(ShotResult.Duplicate);
+
+            _mockGameBoard.Verify(x => x.GetTile(coordinate), Times.Once);
+            _mockShip.Verify(s => s.RegisterHit(coordinate), Times.Once);
+        }
     }
 }
