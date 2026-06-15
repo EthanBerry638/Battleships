@@ -2,7 +2,7 @@
 
 namespace Battleship.Api.GamePieces.Entities
 {
-    public class Ship(List<Coordinate> coordinates)
+    public class Ship(List<Coordinate> coordinates) : IShip
     {
         public ShipType Type { get; set; }
         public int Size { get; set; }
