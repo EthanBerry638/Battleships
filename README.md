@@ -33,9 +33,9 @@ Ensure you have the .NET SDK installed.
 Navigate to the Battleship.Api directory.  
 Run the following command:
 
-`bash
+```bash
 dotnet run
-`
+```
 
 ---
 
@@ -43,6 +43,6 @@ dotnet run
 
 To run the test suite, navigate to the repository root directory and execute:
 
-`bash
+```bash
 dotnet test
-`
+```
