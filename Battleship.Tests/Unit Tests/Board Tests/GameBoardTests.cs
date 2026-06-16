@@ -109,5 +109,22 @@ namespace Battleship.Tests.Unit_Tests.Board_Tests
             gameBoard.GetTile(new Coordinate(0, 3)).OccupyingShip.Should().BeNull();
             gameBoard.GetTile(new Coordinate(1, 0)).OccupyingShip.Should().BeNull();
         }
+        
+        [Fact]
+        public void PlaceShip_DoesNotPartiallyPlaceShip_WhenPlacementFails()
+        {
+            var gameBoard = new GameBoard();
+            var existingShipCoordinates = new List<Coordinate> { new(0, 2) };
+            var existingShip = new Ship(existingShipCoordinates);
+            gameBoard.PlaceShip(existingShip);
+            var newShipCoordinates = new List<Coordinate> { new(0, 0), new(0, 1), new(0, 2) };
+            var newShip = new Ship(newShipCoordinates);
+            
+            gameBoard.PlaceShip(newShip);
+            
+            gameBoard.GetTile(new Coordinate(0, 0)).OccupyingShip.Should().BeNull();
+            gameBoard.GetTile(new Coordinate(0, 1)).OccupyingShip.Should().BeNull();
+            gameBoard.GetTile(new Coordinate(0, 2)).OccupyingShip.Should().Be(existingShip);
+        }
     }
 }
