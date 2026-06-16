@@ -1,12 +1,16 @@
 ﻿using Battleship.Api.Exceptions;
 using Battleship.Api.GamePieces.Board;
 using Battleship.Api.GamePieces.Data;
+using Battleship.Api.GamePieces.Entities;
+using Moq;
 using FluentAssertions;
 
 namespace Battleship.Tests.Unit_Tests.Board_Tests
 {
     public class GameBoardTests
     {
+        private readonly Mock<IShip> _mockShip = new Mock<IShip>();
+        
         [Theory]
         [InlineData(0, 0)]
         [InlineData(0, 1)]
