@@ -1,5 +1,6 @@
 ﻿using Battleship.Api.GamePieces.Data;
 using Battleship.Api.Exceptions;
+using Battleship.Api.GamePieces.Entities;
 
 namespace Battleship.Api.GamePieces.Board
 {
@@ -26,6 +27,11 @@ namespace Battleship.Api.GamePieces.Board
             }
             
             return _board[coordinate.X, coordinate.Y];
+        }
+
+        public PlacementResult PlaceShip(IShip ship)
+        {
+            return new PlacementResult(false);
         }
     }
 }
