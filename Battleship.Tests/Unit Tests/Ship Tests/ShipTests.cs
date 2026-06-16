@@ -56,4 +56,12 @@ public class ShipTests
         
         ship.IsSunk().Should().BeFalse();
     }
+    
+    [Fact]
+    public void ShipConstructor_ThrowsException_WhenCoordinatesAreNull()
+    {
+        var action = () => new Ship(null!);
+
+        action.Should().Throw<ArgumentNullException>();
+    }
 }

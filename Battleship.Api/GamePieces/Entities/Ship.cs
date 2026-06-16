@@ -2,12 +2,19 @@
 
 namespace Battleship.Api.GamePieces.Entities
 {
-    public class Ship(List<Coordinate> coordinates) : IShip
+    public class Ship : IShip
     {
         public ShipType Type { get; set; }
         public int Size { get; set; }
-        public List<Coordinate> Coordinates = coordinates;
+        public List<Coordinate> Coordinates { get; }
         private readonly List<Coordinate> _hits = [];
+
+        public Ship(List<Coordinate> coordinates)
+        {
+            ArgumentNullException.ThrowIfNull(coordinates);
+            
+            Coordinates = coordinates;
+        }
 
         public void RegisterHit(Coordinate coordinate)
         {
