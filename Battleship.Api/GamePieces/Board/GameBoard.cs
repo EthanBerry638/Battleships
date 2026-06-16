@@ -33,7 +33,14 @@ namespace Battleship.Api.GamePieces.Board
         {
             foreach (var tile in _board)
             {
-                tile.OccupyingShip = ship;
+                if (tile.OccupyingShip == null)
+                {
+                    tile.OccupyingShip = ship;
+                }
+                else
+                {
+                    return new PlacementResult(false);
+                }
             }
             
             return new PlacementResult(true);
