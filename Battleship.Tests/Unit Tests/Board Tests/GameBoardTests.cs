@@ -126,5 +126,22 @@ namespace Battleship.Tests.Unit_Tests.Board_Tests
             gameBoard.GetTile(new Coordinate(0, 1)).OccupyingShip.Should().BeNull();
             gameBoard.GetTile(new Coordinate(0, 2)).OccupyingShip.Should().Be(existingShip);
         }
+        
+        [Theory]
+        [InlineData(-1, 0)]
+        [InlineData(10, 0)]
+        [InlineData(0, -1)]
+        [InlineData(0, 10)]
+        public void PlaceShip_DoesNotPartiallyPlaceShip_WhenCoordinateIsOutOfBounds(int invalidX, int invalidY)
+        {
+            var gameBoard = new GameBoard();
+            var coordinates = new List<Coordinate> { new(0, 0), new(invalidX, invalidY) };
+            var ship = new Ship(coordinates);
+
+            var action = () => gameBoard.PlaceShip(ship);
+
+            action.Should().Throw<InvalidCoordinateException>(); // Thrown through GetTile
+            gameBoard.GetTile(new Coordinate(0, 0)).OccupyingShip.Should().BeNull();
+        }
     }
 }
