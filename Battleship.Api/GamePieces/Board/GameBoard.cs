@@ -31,18 +31,16 @@ namespace Battleship.Api.GamePieces.Board
 
         public PlacementResult PlaceShip(Ship ship)
         {
-            foreach (var tile in _board)
+            foreach (var coordinate in ship.Coordinates)
             {
-                if (tile.OccupyingShip == null)
-                {
-                    tile.OccupyingShip = ship;
-                }
-                else
+                if (GetTile(coordinate).OccupyingShip != null)
                 {
                     return new PlacementResult(false);
                 }
+                
+                GetTile(coordinate).OccupyingShip = ship;
             }
-            
+
             return new PlacementResult(true);
         }
     }
