@@ -59,5 +59,20 @@ namespace Battleship.Tests.Unit_Tests.Board_Tests
             action.Should().Throw<InvalidCoordinateException>()
                 .WithMessage($"Invalid coordinate: {coordinate}");
         }
+        
+        [Fact]
+        public void PlaceShip_ReturnsSuccess_WhenTilesAreEmpty()
+        {
+            var gameBoard = new GameBoard();
+            var coordinates = new List<Coordinate> { new(0, 0), new(0, 1), new(0, 2) };
+            var ship = new Ship(coordinates);
+            
+            var result = gameBoard.PlaceShip(ship);
+
+            result.IsSuccessful.Should().BeTrue();
+            gameBoard.GetTile(new Coordinate(0, 0)).OccupyingShip.Should().Be(ship);
+            gameBoard.GetTile(new Coordinate(0, 1)).OccupyingShip.Should().Be(ship);
+            gameBoard.GetTile(new Coordinate(0, 2)).OccupyingShip.Should().Be(ship);
+        }
     }
 }
