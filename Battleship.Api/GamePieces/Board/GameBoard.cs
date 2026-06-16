@@ -29,9 +29,14 @@ namespace Battleship.Api.GamePieces.Board
             return _board[coordinate.X, coordinate.Y];
         }
 
-        public PlacementResult PlaceShip(IShip ship)
+        public PlacementResult PlaceShip(Ship ship)
         {
-            return new PlacementResult(false);
+            foreach (var tile in _board)
+            {
+                tile.OccupyingShip = ship;
+            }
+            
+            return new PlacementResult(true);
         }
     }
 }
