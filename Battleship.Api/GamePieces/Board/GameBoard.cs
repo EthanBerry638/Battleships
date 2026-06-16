@@ -37,8 +37,11 @@ namespace Battleship.Api.GamePieces.Board
                 {
                     return new PlacementResult(false);
                 }
-                
-                GetTile(coordinate).OccupyingShip = ship;
+            }
+
+            foreach (var coordinate in ship.Coordinates)
+            {
+                _board[coordinate.X, coordinate.Y].OccupyingShip = ship;
             }
 
             return new PlacementResult(true);
