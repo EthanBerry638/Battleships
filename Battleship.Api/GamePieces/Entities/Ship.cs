@@ -35,9 +35,18 @@ namespace Battleship.Api.GamePieces.Entities
         {
             if (coordinates.Count <= 1) return;
             
-            if (coordinates[0] == new Coordinate(0, 0) && coordinates[1] == new Coordinate(0, 2))
+            for (int i  = 0; i < coordinates.Count - 1; i++)
             {
-                throw new InvalidShipException("Coordinates must be adjacent.");
+                var currentCoordinate = coordinates[i];
+                var nextCoordinate = coordinates[i + 1];
+
+                var result = Math.Abs(currentCoordinate.X - nextCoordinate.X);
+                var result2 = Math.Abs((currentCoordinate.Y - nextCoordinate.Y));
+                
+                if (result != 1 && result2 != 1)
+                {
+                    throw new InvalidShipException("Coordinates must be adjacent.");
+                }
             }
         }
     }
