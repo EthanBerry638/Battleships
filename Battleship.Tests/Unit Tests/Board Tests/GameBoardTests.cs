@@ -128,14 +128,14 @@ namespace Battleship.Tests.Unit_Tests.Board_Tests
         }
         
         [Theory]
-        [InlineData(-1, 0)]
-        [InlineData(10, 0)]
-        [InlineData(0, -1)]
-        [InlineData(0, 10)]
-        public void PlaceShip_DoesNotPartiallyPlaceShip_WhenCoordinateIsOutOfBounds(int invalidX, int invalidY)
+        [InlineData(0, 0, -1, 0)]
+        [InlineData(9, 0, 10, 0)]
+        [InlineData(0, 0, 0, -1)]
+        [InlineData(0, 9, 0, 10)]
+        public void PlaceShip_DoesNotPartiallyPlaceShip_WhenCoordinateIsOutOfBounds(int startX, int startY, int invalidX, int invalidY)
         {
             var gameBoard = new GameBoard();
-            List<Coordinate> coordinates = [new(0, 0), new(invalidX, invalidY)];
+            List<Coordinate> coordinates = [new(startX, startY), new(invalidX, invalidY)];
             var ship = new Ship(coordinates);
 
             var action = () => gameBoard.PlaceShip(ship);
