@@ -46,3 +46,18 @@ To run the test suite, navigate to the repository root directory and execute:
 ```bash
 dotnet test
 ```
+
+---
+
+## MVP Scope
+The objective of this MVP is to deliver a fully functional, browser based single player experience against an AI:
+- **Interactive Grid:** Enable ship placement and shooting via a web-based grid interface
+- **AI Opponent:** Implement a basic AI capable of playing a standard game of Battleships
+- **Core Logic:** Utilize the existing, test-verified backend engine to handle game rules and state  
+
+---
+
+## Roadmap
+- **Real-time Functionality:** Integrate SignalR to enable real-time communication for multiplayer capabilities
+- **Front End:** Develop a modern, responsive user interface using React
+- **Data Persistence:** Transition to a PostgreSQL database to manage persistent game states and user data
