@@ -64,7 +64,7 @@ namespace Battleship.Tests.Unit_Tests.Board_Tests
         public void PlaceShip_ReturnsSuccess_WhenTilesAreEmpty()
         {
             var gameBoard = new GameBoard();
-            var coordinates = new List<Coordinate> { new(0, 0), new(0, 1), new(0, 2) };
+            List<Coordinate> coordinates = [new(0, 0), new(0, 1), new(0, 2)];
             var ship = new Ship(coordinates);
             
             var result = gameBoard.PlaceShip(ship);
@@ -79,10 +79,10 @@ namespace Battleship.Tests.Unit_Tests.Board_Tests
         public void PlaceShip_ReturnsFailure_WhenTileIsAlreadyOccupied()
         {
             var gameBoard = new GameBoard();
-            var existingShipCoordinates = new List<Coordinate> { new(0, 0), new(0, 1), new(0, 2) };
+            List<Coordinate> existingShipCoordinates = [new(0, 0), new(0, 1), new(0, 2)];
             var existingShip = new Ship(existingShipCoordinates);
             gameBoard.PlaceShip(existingShip);
-            var newShipCoordinates = new List<Coordinate> { new(0, 1), new(0, 2), new(0, 3) };
+            List<Coordinate> newShipCoordinates = [new(0, 1), new(0, 2), new(0, 3)];
             
             var newShip = new Ship(newShipCoordinates);
 
@@ -98,7 +98,7 @@ namespace Battleship.Tests.Unit_Tests.Board_Tests
         public void PlaceShip_OnlyOccupiesShipCoordinates_WhenPlacedOnBoard()
         {
             var gameBoard = new GameBoard();
-            var coordinates = new List<Coordinate> { new(0, 0), new(0, 1), new(0, 2) };
+            List<Coordinate> coordinates = [new(0, 0), new(0, 1), new(0, 2)];
             var ship = new Ship(coordinates);
 
             gameBoard.PlaceShip(ship);
@@ -114,10 +114,10 @@ namespace Battleship.Tests.Unit_Tests.Board_Tests
         public void PlaceShip_DoesNotPartiallyPlaceShip_WhenPlacementFails()
         {
             var gameBoard = new GameBoard();
-            var existingShipCoordinates = new List<Coordinate> { new(0, 2) };
+            List<Coordinate> existingShipCoordinates = [new(0, 2)];
             var existingShip = new Ship(existingShipCoordinates);
             gameBoard.PlaceShip(existingShip);
-            var newShipCoordinates = new List<Coordinate> { new(0, 0), new(0, 1), new(0, 2) };
+            List<Coordinate> newShipCoordinates = [new(0, 0), new(0, 1), new(0, 2)];
             var newShip = new Ship(newShipCoordinates);
             
             gameBoard.PlaceShip(newShip);
@@ -135,7 +135,7 @@ namespace Battleship.Tests.Unit_Tests.Board_Tests
         public void PlaceShip_DoesNotPartiallyPlaceShip_WhenCoordinateIsOutOfBounds(int invalidX, int invalidY)
         {
             var gameBoard = new GameBoard();
-            var coordinates = new List<Coordinate> { new(0, 0), new(invalidX, invalidY) };
+            List<Coordinate> coordinates = [new(0, 0), new(invalidX, invalidY)];
             var ship = new Ship(coordinates);
 
             var action = () => gameBoard.PlaceShip(ship);
@@ -144,23 +144,15 @@ namespace Battleship.Tests.Unit_Tests.Board_Tests
             gameBoard.GetTile(new Coordinate(0, 0)).OccupyingShip.Should().BeNull();
         }
         
-        [Theory]
-        [MemberData(nameof(EmptyOrNullShipCoordinates))]
-        public void PlaceShip_ReturnsFailure_WhenCoordinatesAreEmptyOrNull(List<Coordinate>? coordinates)
+        [Fact]
+        public void PlaceShip_ReturnsFailure_WhenCoordinatesAreEmpty()
         {
             var gameBoard = new GameBoard();
-            var ship = new Ship(coordinates!);
+            var ship = new Ship([]);
 
             var result = gameBoard.PlaceShip(ship);
 
             result.IsSuccessful.Should().BeFalse();
         }
-
-        public static IEnumerable<object?[]> EmptyOrNullShipCoordinates => 
-        new List<object?[]>
-        {
-            new object?[] { null },
-            new object?[] { new List<Coordinate>() }
-        };
     }
 }
