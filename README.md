@@ -1,16 +1,16 @@
-# Battleships
+# Battleships 🚢
 
 A backend implementation of the classic Battleship game, structured with clean architecture principles.
 
 ---
 
-## Project Overview
+## Project Overview 📋
 
 This project provides an engine to manage Battleship game logic. Including ship state management, input parsing for coordinates and the ability to shoot at a coordinate on the board.
 
 ---
 
-## Project Structure
+## Project Structure 🏗️
 
 The solution is organized into the following components:
 
@@ -27,7 +27,7 @@ Core Components
 
 ---
 
-## How to Run
+## How to Run 💻
 
 Ensure you have the .NET SDK installed.  
 Navigate to the Battleship.Api directory.  
@@ -39,7 +39,7 @@ dotnet run
 
 ---
 
-## Testing
+## Testing 🧪
 
 To run the test suite, navigate to the repository root directory and execute:
 
@@ -49,7 +49,7 @@ dotnet test
 
 ---
 
-## MVP Scope
+## MVP Scope 🎯
 The objective of this MVP is to deliver a fully functional, browser based single player experience against an AI:
 - **Interactive Grid:** Enable ship placement and shooting via a web-based grid interface
 - **AI Opponent:** Implement a basic AI capable of playing a standard game of Battleships
@@ -57,7 +57,7 @@ The objective of this MVP is to deliver a fully functional, browser based single
 
 ---
 
-## Roadmap
+## Roadmap 🛣️
 - **Real-time Functionality:** Integrate SignalR to enable real-time communication for multiplayer capabilities
 - **Front End:** Develop a modern, responsive user interface using React
 - **Data Persistence:** Transition to a PostgreSQL database to manage persistent game states and user data
