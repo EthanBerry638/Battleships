@@ -1,5 +1,6 @@
 ﻿using Battleship.Api.GamePieces.Data;
 using Battleship.Api.GamePieces.Entities;
+using Battleship.Api.Exceptions;
 using FluentAssertions;
 
 namespace Battleship.Tests.Unit_Tests.Ship_Tests;
