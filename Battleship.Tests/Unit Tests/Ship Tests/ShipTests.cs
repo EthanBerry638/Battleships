@@ -64,4 +64,15 @@ public class ShipTests
 
         action.Should().Throw<ArgumentNullException>();
     }
+    
+    [Fact]
+    public void ShipConstructor_ThrowsException_WhenCoordinatesAreNotValid()
+    {
+        List<Coordinate> coordinates = [new(0, 0), new(0, 2)];
+            
+        var action = () => new Ship(coordinates);
+
+        action.Should().Throw<InvalidShipException>()
+            .WithMessage("Coordinates must be adjacent.");
+    }
 }
