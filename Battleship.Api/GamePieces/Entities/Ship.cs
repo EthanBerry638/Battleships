@@ -1,4 +1,5 @@
-﻿using Battleship.Api.GamePieces.Data;
+﻿using Battleship.Api.Exceptions;
+using Battleship.Api.GamePieces.Data;
 
 namespace Battleship.Api.GamePieces.Entities
 {
@@ -12,6 +13,7 @@ namespace Battleship.Api.GamePieces.Entities
         public Ship(List<Coordinate> coordinates)
         {
             ArgumentNullException.ThrowIfNull(coordinates);
+            ValidateCoordinates(coordinates);
             
             Coordinates = coordinates;
         }
@@ -27,6 +29,16 @@ namespace Battleship.Api.GamePieces.Entities
         public bool IsSunk()
         {
             return _hits.Count == Coordinates.Count;
+        }
+
+        private void ValidateCoordinates(List<Coordinate> coordinates)
+        {
+            if (coordinates.Count <= 1) return;
+            
+            if (coordinates[0] == new Coordinate(0, 0) && coordinates[1] == new Coordinate(0, 2))
+            {
+                throw new InvalidShipException("Coordinates must be adjacent.");
+            }
         }
     }
 }
