@@ -31,11 +31,6 @@ namespace Battleship.Api.GamePieces.Board
 
         public PlacementResult PlaceShip(Ship ship)
         {
-            if (ship.Coordinates.Count == 0)
-            {
-                return new PlacementResult(false);
-            }
-            
             foreach (var coordinate in ship.Coordinates)
             {
                 if (GetTile(coordinate).OccupyingShip != null)

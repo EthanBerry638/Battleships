@@ -143,16 +143,5 @@ namespace Battleship.Tests.Unit_Tests.Board_Tests
             action.Should().Throw<InvalidCoordinateException>(); // Thrown through GetTile
             gameBoard.GetTile(new Coordinate(0, 0)).OccupyingShip.Should().BeNull();
         }
-        
-        [Fact]
-        public void PlaceShip_ReturnsFailure_WhenCoordinatesAreEmpty()
-        {
-            var gameBoard = new GameBoard();
-            var ship = new Ship([]);
-
-            var result = gameBoard.PlaceShip(ship);
-
-            result.IsSuccessful.Should().BeFalse();
-        }
     }
 }
