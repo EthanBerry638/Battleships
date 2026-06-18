@@ -82,4 +82,14 @@ public class ShipTests
         yield return [new List<Coordinate> { new(0, 0), new(2, 0) }];
         yield return [new List<Coordinate> { new(1, 1), new(3, 1) }];
     }
+    
+    [Fact]
+    public void ShipConstructor_ThrowsException_WhenCoordinatesAreDiagonal()
+    {
+        var coordinates = new List<Coordinate> { new(0, 0), new(1, 1) };
+        var action = () => new Ship(coordinates);
+
+        action.Should().Throw<InvalidShipException>()
+            .WithMessage("Coordinates must be in a straight line.");
+    }
 }
