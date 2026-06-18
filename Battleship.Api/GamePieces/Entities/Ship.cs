@@ -35,11 +35,20 @@ namespace Battleship.Api.GamePieces.Entities
         {
             if (coordinates.Count <= 1) return;
             
-            for (int i  = 0; i < coordinates.Count - 1; i++)
+            var first = coordinates[0];
+            bool isHorizontal = coordinates.All(c => c.Y == first.Y);
+            bool isVertical = coordinates.All(c => c.X == first.X);
+
+            if (!isHorizontal && !isVertical)
+            {
+                throw new InvalidShipException("Coordinates must be in a straight line.");
+            }
+
+            for (int i = 0; i < coordinates.Count - 1; i++)
             {
                 var currentCoordinate = coordinates[i];
                 var nextCoordinate = coordinates[i + 1];
-
+                
                 var result = Math.Abs(currentCoordinate.X - nextCoordinate.X);
                 var result2 = Math.Abs((currentCoordinate.Y - nextCoordinate.Y));
                 
