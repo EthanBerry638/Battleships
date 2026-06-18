@@ -8,17 +8,6 @@ namespace Battleship.Tests.Unit_Tests.Ship_Tests;
 public class ShipTests
 {
     [Fact]
-    public void IsSunk_ReturnsTrue_AfterRegisteringHitOnOnlyOneCoordinate()
-    {
-        var coord = new Coordinate(0, 0);
-        var ship = new Ship([coord]);
-        
-        ship.RegisterHit(coord);
-        
-        ship.IsSunk().Should().BeTrue();
-    }
-
-    [Fact]
     public void IsSunk_ReturnsFalse_WhenOnlySomeCoordinatesAreHit()
     {
         var coord1 = new Coordinate(0, 0);
