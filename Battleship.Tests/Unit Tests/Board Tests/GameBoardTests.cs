@@ -114,7 +114,7 @@ namespace Battleship.Tests.Unit_Tests.Board_Tests
         public void PlaceShip_DoesNotPartiallyPlaceShip_WhenPlacementFails()
         {
             var gameBoard = new GameBoard();
-            List<Coordinate> existingShipCoordinates = [new(0, 2)];
+            List<Coordinate> existingShipCoordinates = [new(0, 2), new(0, 3)];
             var existingShip = new Ship(existingShipCoordinates);
             gameBoard.PlaceShip(existingShip);
             List<Coordinate> newShipCoordinates = [new(0, 0), new(0, 1), new(0, 2)];
