@@ -92,4 +92,20 @@ public class ShipTests
         action.Should().Throw<InvalidShipException>()
             .WithMessage("Coordinates must be in a straight line.");
     }
+    
+    [Theory]
+    [MemberData(nameof(GetTooSmallCoordinates))]
+    public void ShipConstructor_ThrowsException_WhenCoordinateCountIsTooSmall(List<Coordinate> coordinates)
+    {
+        var action = () => new Ship(coordinates);
+
+        action.Should().Throw<InvalidShipException>()
+            .WithMessage("A ship must occupy at least 2 coordinates.");
+    }
+
+    public static IEnumerable<object[]> GetTooSmallCoordinates()
+    {
+        yield return [new List<Coordinate>()]; 
+        yield return [new List<Coordinate> { new(0, 0) }]; 
+    }
 }
