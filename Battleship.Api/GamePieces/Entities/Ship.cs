@@ -33,7 +33,7 @@ namespace Battleship.Api.GamePieces.Entities
 
         private void ValidateCoordinates(List<Coordinate> coordinates)
         {
-            if (coordinates.Count <= 1) return;
+            if (coordinates.Count <= 1) throw new InvalidShipException("A ship must occupy at least 2 coordinates.");
             
             var first = coordinates[0];
             bool isHorizontal = coordinates.All(c => c.Y == first.Y);
