@@ -13,6 +13,10 @@ namespace Battleship.Api.GamePieces.Entities
         {
             ArgumentNullException.ThrowIfNull(coordinates);
             ValidateCoordinates(coordinates);
+            if (!IsValidShipType(type, coordinates.Count))
+            {
+                throw new InvalidShipException($"Invalid ship type: {type} for ship of size {coordinates.Count}.");
+            }
 
             Coordinates = coordinates.OrderBy(c => c.X).ThenBy(c => c.Y).ToList();
         }
@@ -65,7 +69,15 @@ namespace Battleship.Api.GamePieces.Entities
 
         private bool IsValidShipType(ShipType shipType, int size)
         {
-            return true;
+            return shipType switch 
+            {
+                ShipType.Carrier => size == 5,
+                ShipType.Battleship => size == 4,
+                ShipType.Destroyer => size == 3,
+                ShipType.Submarine => size == 3,
+                ShipType.PatrolBoat => size == 2,
+                _ => false
+            };
         }
     }
 }
