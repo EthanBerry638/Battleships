@@ -12,7 +12,7 @@ public class ShipTests
     {
         var coord1 = new Coordinate(0, 0);
         var coord2 = new Coordinate(0, 1);
-        var ship = new Ship([coord1, coord2]);
+        var ship = new Ship(ShipType.PatrolBoat, [coord1, coord2]);
         
         ship.RegisterHit(coord1);
         
@@ -25,7 +25,7 @@ public class ShipTests
         var coord1 = new Coordinate(0, 0);
         var coord2 = new Coordinate(0, 1);
         var coord3 = new Coordinate(0, 2);
-        var ship = new Ship([coord1, coord2, coord3]);
+        var ship = new Ship(ShipType.Destroyer, [coord1, coord2, coord3]);
         
         ship.RegisterHit(coord1);
         ship.RegisterHit(coord2);
@@ -39,7 +39,7 @@ public class ShipTests
     {
         var coord1 = new Coordinate(0, 0);
         var coord2 = new Coordinate(0, 1);
-        var ship = new Ship([coord1, coord2]);
+        var ship = new Ship(ShipType.PatrolBoat, [coord1, coord2]);
         
         ship.RegisterHit(coord1);
         ship.RegisterHit(coord1); 
@@ -50,7 +50,7 @@ public class ShipTests
     [Fact]
     public void ShipConstructor_ThrowsException_WhenCoordinatesAreNull()
     {
-        var action = () => new Ship(null!);
+        var action = () => new Ship(ShipType.PatrolBoat, null!);
 
         action.Should().Throw<ArgumentNullException>();
     }
@@ -59,7 +59,7 @@ public class ShipTests
     [MemberData(nameof(GetInvalidCoordinates))]
     public void ShipConstructor_ThrowsException_WhenCoordinatesAreNotAdjacent(List<Coordinate> coordinates)
     {
-        var action = () => new Ship(coordinates);
+        var action = () => new Ship(ShipType.PatrolBoat, coordinates);
 
         action.Should().Throw<InvalidShipException>()
             .WithMessage("Coordinates must be adjacent.");
@@ -76,7 +76,7 @@ public class ShipTests
     public void ShipConstructor_ThrowsException_WhenCoordinatesAreDiagonal()
     {
         var coordinates = new List<Coordinate> { new(0, 0), new(1, 1) };
-        var action = () => new Ship(coordinates);
+        var action = () => new Ship(ShipType.PatrolBoat, coordinates);
 
         action.Should().Throw<InvalidShipException>()
             .WithMessage("Coordinates must be in a straight line.");
@@ -86,7 +86,7 @@ public class ShipTests
     [MemberData(nameof(GetTooSmallCoordinates))]
     public void ShipConstructor_ThrowsException_WhenCoordinateCountIsTooSmall(List<Coordinate> coordinates)
     {
-        var action = () => new Ship(coordinates);
+        var action = () => new Ship(ShipType.PatrolBoat, coordinates);
 
         action.Should().Throw<InvalidShipException>()
             .WithMessage("A ship must occupy at least 2 coordinates.");
@@ -102,7 +102,7 @@ public class ShipTests
     public void ShipConstructor_ThrowsException_WhenCoordinatesContainDuplicates()
     {
         var coordinates = new List<Coordinate> { new(0, 0), new(0, 1), new(0, 0) };
-        var action = () => new Ship(coordinates);
+        var action = () => new Ship(ShipType.Destroyer, coordinates);
 
         action.Should().Throw<InvalidShipException>()
             .WithMessage("Coordinates must be unique.");
@@ -113,7 +113,7 @@ public class ShipTests
     {
         var coordinates = new List<Coordinate> { new(0, 0), new(0, 2), new(0, 1) };
             
-        var action = () => new Ship(coordinates);
+        var action = () => new Ship(ShipType.Destroyer, coordinates);
 
         action.Should().NotThrow();
     }

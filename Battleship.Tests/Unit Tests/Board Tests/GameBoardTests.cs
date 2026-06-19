@@ -65,7 +65,7 @@ namespace Battleship.Tests.Unit_Tests.Board_Tests
         {
             var gameBoard = new GameBoard();
             List<Coordinate> coordinates = [new(0, 0), new(0, 1), new(0, 2)];
-            var ship = new Ship(coordinates);
+            var ship = new Ship(ShipType.Destroyer, coordinates);
             
             var result = gameBoard.PlaceShip(ship);
 
@@ -80,11 +80,11 @@ namespace Battleship.Tests.Unit_Tests.Board_Tests
         {
             var gameBoard = new GameBoard();
             List<Coordinate> existingShipCoordinates = [new(0, 0), new(0, 1), new(0, 2)];
-            var existingShip = new Ship(existingShipCoordinates);
+            var existingShip = new Ship(ShipType.Destroyer, existingShipCoordinates);
             gameBoard.PlaceShip(existingShip);
             List<Coordinate> newShipCoordinates = [new(0, 1), new(0, 2), new(0, 3)];
             
-            var newShip = new Ship(newShipCoordinates);
+            var newShip = new Ship(ShipType.Destroyer, newShipCoordinates);
 
             var result = gameBoard.PlaceShip(newShip);
 
@@ -99,7 +99,7 @@ namespace Battleship.Tests.Unit_Tests.Board_Tests
         {
             var gameBoard = new GameBoard();
             List<Coordinate> coordinates = [new(0, 0), new(0, 1), new(0, 2)];
-            var ship = new Ship(coordinates);
+            var ship = new Ship(ShipType.Destroyer, coordinates);
 
             gameBoard.PlaceShip(ship);
 
@@ -115,10 +115,10 @@ namespace Battleship.Tests.Unit_Tests.Board_Tests
         {
             var gameBoard = new GameBoard();
             List<Coordinate> existingShipCoordinates = [new(0, 2), new(0, 3)];
-            var existingShip = new Ship(existingShipCoordinates);
+            var existingShip = new Ship(ShipType.PatrolBoat, existingShipCoordinates);
             gameBoard.PlaceShip(existingShip);
             List<Coordinate> newShipCoordinates = [new(0, 0), new(0, 1), new(0, 2)];
-            var newShip = new Ship(newShipCoordinates);
+            var newShip = new Ship(ShipType.Destroyer, newShipCoordinates);
             
             gameBoard.PlaceShip(newShip);
             
@@ -136,7 +136,7 @@ namespace Battleship.Tests.Unit_Tests.Board_Tests
         {
             var gameBoard = new GameBoard();
             List<Coordinate> coordinates = [new(startX, startY), new(invalidX, invalidY)];
-            var ship = new Ship(coordinates);
+            var ship = new Ship(ShipType.PatrolBoat, coordinates);
 
             var action = () => gameBoard.PlaceShip(ship);
 

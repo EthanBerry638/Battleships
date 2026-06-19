@@ -9,7 +9,7 @@ namespace Battleship.Api.GamePieces.Entities
         public List<Coordinate> Coordinates { get; }
         private readonly List<Coordinate> _hits = [];
 
-        public Ship(List<Coordinate> coordinates)
+        public Ship(ShipType type, List<Coordinate> coordinates)
         {
             ArgumentNullException.ThrowIfNull(coordinates);
             ValidateCoordinates(coordinates);
