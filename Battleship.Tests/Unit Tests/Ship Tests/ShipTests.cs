@@ -136,4 +136,23 @@ public class ShipTests
         
         action.Should().NotThrow();
     }
+    
+    [Theory]
+    [InlineData(ShipType.Carrier, 4)]
+    [InlineData(ShipType.Battleship, 5)]
+    [InlineData(ShipType.Destroyer, 2)]
+    [InlineData(ShipType.Submarine, 4)]
+    [InlineData(ShipType.PatrolBoat, 3)]
+    public void ShipConstructor_ThrowsException_WhenSizeIsInvalidForShipType(ShipType type, int size)
+    {
+        var coordinates = new List<Coordinate>();
+        for (int i = 0; i < size; i++)
+        {
+            coordinates.Add(new Coordinate(0, i));
+        }
+
+        var action = () => new Ship(type, coordinates);
+
+        action.Should().Throw<InvalidShipException>();
+    }
 }
