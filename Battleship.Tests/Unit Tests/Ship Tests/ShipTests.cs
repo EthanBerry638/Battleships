@@ -107,4 +107,14 @@ public class ShipTests
         action.Should().Throw<InvalidShipException>()
             .WithMessage("Coordinates must be unique.");
     }
+    
+    [Fact]
+    public void ShipConstructor_AllowsUnorderedCoordinates_WhenTheyFormAValidLine()
+    {
+        var coordinates = new List<Coordinate> { new(0, 0), new(0, 2), new(0, 1) };
+            
+        var action = () => new Ship(coordinates);
+
+        action.Should().NotThrow();
+    }
 }
