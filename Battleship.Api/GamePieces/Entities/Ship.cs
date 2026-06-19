@@ -30,14 +30,16 @@ namespace Battleship.Api.GamePieces.Entities
         {
             return _hits.Count == Coordinates.Count;
         }
-
+        
+        //TODO: Add validation for ship size against the ship type
+        
         private void ValidateCoordinates(List<Coordinate> coordinates)
         {
             if (coordinates.Count <= 1) throw new InvalidShipException("A ship must occupy at least 2 coordinates.");
             
-            var first = coordinates[0];
-            bool isHorizontal = coordinates.All(c => c.Y == first.Y);
-            bool isVertical = coordinates.All(c => c.X == first.X);
+            var firstCoord = coordinates[0];
+            bool isHorizontal = coordinates.All(c => c.Y == firstCoord.Y);
+            bool isVertical = coordinates.All(c => c.X == firstCoord.X);
 
             if (!isHorizontal && !isVertical)
             {
@@ -49,10 +51,10 @@ namespace Battleship.Api.GamePieces.Entities
                 var currentCoordinate = coordinates[i];
                 var nextCoordinate = coordinates[i + 1];
                 
-                var result = Math.Abs(currentCoordinate.X - nextCoordinate.X);
-                var result2 = Math.Abs((currentCoordinate.Y - nextCoordinate.Y));
+                var xDifference = Math.Abs(currentCoordinate.X - nextCoordinate.X);
+                var yDifference = Math.Abs((currentCoordinate.Y - nextCoordinate.Y));
                 
-                if (result != 1 && result2 != 1)
+                if (xDifference != 1 && yDifference != 1)
                 {
                     throw new InvalidShipException("Coordinates must be adjacent.");
                 }
