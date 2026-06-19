@@ -97,4 +97,14 @@ public class ShipTests
         yield return [new List<Coordinate>()]; 
         yield return [new List<Coordinate> { new(0, 0) }]; 
     }
+    
+    [Fact]
+    public void ShipConstructor_ThrowsException_WhenCoordinatesContainDuplicates()
+    {
+        var coordinates = new List<Coordinate> { new(0, 0), new(0, 1), new(0, 0) };
+        var action = () => new Ship(coordinates);
+
+        action.Should().Throw<InvalidShipException>()
+            .WithMessage("Coordinates must be unique.");
+    }
 }
