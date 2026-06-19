@@ -117,4 +117,23 @@ public class ShipTests
 
         action.Should().NotThrow();
     }
+    
+    [Theory]
+    [InlineData(ShipType.Carrier, 5)]
+    [InlineData(ShipType.Battleship, 4)]
+    [InlineData(ShipType.Destroyer, 3)]
+    [InlineData(ShipType.Submarine, 3)]
+    [InlineData(ShipType.PatrolBoat, 2)] 
+    public void ShipConstructor_ShouldNotThrow_WhenShipTypeMatchesSize(ShipType type, int size)
+    {
+        var coordinates = new List<Coordinate>();
+        for (int i = 0; i < size; i++)
+        {
+            coordinates.Add(new Coordinate(0, i));
+        }
+        
+        var action = () => new Ship(type, coordinates);
+        
+        action.Should().NotThrow();
+    }
 }

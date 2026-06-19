@@ -6,6 +6,6 @@
         Battleship,
         Destroyer,
         Submarine,
-        Cruiser
+        PatrolBoat
     }
 }
