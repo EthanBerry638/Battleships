@@ -63,7 +63,7 @@ namespace Battleship.Api.GamePieces.Entities
             }
         }
 
-        private bool IsValidShip(ShipType shipType, int size)
+        private bool IsValidShipType(ShipType shipType, int size)
         {
             return true;
         }
