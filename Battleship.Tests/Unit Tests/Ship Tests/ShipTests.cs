@@ -153,6 +153,7 @@ public class ShipTests
 
         var action = () => new Ship(type, coordinates);
 
-        action.Should().Throw<InvalidShipException>();
+        action.Should().Throw<InvalidShipException>()
+            .WithMessage($"Invalid ship type: {type} for ship of size {size}.");
     }
 }
