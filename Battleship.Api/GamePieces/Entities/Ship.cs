@@ -40,7 +40,10 @@ namespace Battleship.Api.GamePieces.Entities
             var firstCoord = coordinates[0];
             bool isHorizontal = coordinates.All(c => c.Y == firstCoord.Y);
             bool isVertical = coordinates.All(c => c.X == firstCoord.X);
+            bool isDuplicated = coordinates.Distinct().Count() != coordinates.Count;
 
+            if (isDuplicated) throw new InvalidShipException("Coordinates must be unique.");
+            
             if (!isHorizontal && !isVertical)
             {
                 throw new InvalidShipException("Coordinates must be in a straight line.");
