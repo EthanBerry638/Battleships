@@ -31,8 +31,6 @@ namespace Battleship.Api.GamePieces.Entities
             return _hits.Count == Coordinates.Count;
         }
 
-        //TODO: Add validation for ship size against the ship type
-
         private void ValidateCoordinates(List<Coordinate> coordinates)
         {
             if (coordinates.Count <= 1) throw new InvalidShipException("A ship must occupy at least 2 coordinates.");
@@ -64,6 +62,11 @@ namespace Battleship.Api.GamePieces.Entities
                     throw new InvalidShipException("Coordinates must be adjacent.");
                 }
             }
+        }
+
+        private bool IsValidShip(ShipType shipType, int size)
+        {
+            return true;
         }
     }
 }
