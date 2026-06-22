@@ -3,7 +3,7 @@
 public record PlacementResult(
     bool IsSuccessful, 
     PlacementResultReason Reason,
-    List<Coordinate>? Coordinates = null);
+    List<Coordinate>? InvalidCoordinates = null);
 
 public enum PlacementResultReason
 {
