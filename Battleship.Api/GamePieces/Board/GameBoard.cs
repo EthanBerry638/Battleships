@@ -31,12 +31,21 @@ namespace Battleship.Api.GamePieces.Board
 
         public PlacementResult PlaceShip(Ship ship)
         {
+            List<Coordinate> invalidCoordinates = [];
+            
             foreach (var coordinate in ship.Coordinates)
             {
-                if (GetTile(coordinate).OccupyingShip != null)
+                if (GetTile(coordinate).OccupyingShip == null)
                 {
-                    return new PlacementResult(false);
+                    continue;
                 }
+                
+                invalidCoordinates.Add(coordinate);
+            }
+            
+            if (invalidCoordinates.Count != 0)
+            {
+                return new PlacementResult(false, invalidCoordinates);
             }
 
             foreach (var coordinate in ship.Coordinates)
