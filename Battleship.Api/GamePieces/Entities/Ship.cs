@@ -18,6 +18,7 @@ namespace Battleship.Api.GamePieces.Entities
                 throw new InvalidShipException($"Invalid ship type: {type} for ship of size {coordinates.Count}.");
             }
 
+            Type = type;
             Coordinates = coordinates.OrderBy(c => c.X).ThenBy(c => c.Y).ToList();
         }
 
