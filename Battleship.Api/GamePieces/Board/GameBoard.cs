@@ -1,6 +1,7 @@
 ﻿using Battleship.Api.GamePieces.Data;
 using Battleship.Api.Exceptions;
 using Battleship.Api.GamePieces.Entities;
+using System.Linq; // Added this line for the LINQ functionality
 
 namespace Battleship.Api.GamePieces.Board
 {
@@ -31,18 +32,10 @@ namespace Battleship.Api.GamePieces.Board
 
         public PlacementResult PlaceShip(Ship ship)
         {
-            List<Coordinate> invalidCoordinates = [];
-            
-            foreach (var coordinate in ship.Coordinates)
-            {
-                if (GetTile(coordinate).OccupyingShip == null)
-                {
-                    continue;
-                }
-                
-                invalidCoordinates.Add(coordinate);
-            }
-            
+            var invalidCoordinates = ship.Coordinates
+                .Where(c => GetTile(c).OccupyingShip != null)
+                .ToList();
+
             if (invalidCoordinates.Count != 0)
             {
                 return new PlacementResult(false, invalidCoordinates);
