@@ -5,7 +5,7 @@ namespace Battleship.Api.GamePieces.Entities
 {
     public class Ship : IShip
     {
-        public ShipType Type { get; set; }
+        public ShipType Type { get; }
         public List<Coordinate> Coordinates { get; }
         private readonly List<Coordinate> _hits = [];
 
