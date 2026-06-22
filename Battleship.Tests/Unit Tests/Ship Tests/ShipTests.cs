@@ -124,7 +124,7 @@ public class ShipTests
     [InlineData(ShipType.Destroyer, 3)]
     [InlineData(ShipType.Submarine, 3)]
     [InlineData(ShipType.PatrolBoat, 2)] 
-    public void ShipConstructor_ShouldNotThrow_WhenShipTypeMatchesSize(ShipType type, int size)
+    public void ShipConstructor_ShouldNotThrowAndAssignTypeCorrectly_WhenShipTypeMatchesSize(ShipType type, int size)
     {
         var coordinates = new List<Coordinate>();
         for (int i = 0; i < size; i++)
@@ -133,8 +133,10 @@ public class ShipTests
         }
         
         var action = () => new Ship(type, coordinates);
-        
-        action.Should().NotThrow();
+
+        var ship = action.Should().NotThrow().Subject;
+        ship.Type.Should().Be(type);
+        ship.Coordinates.Should().HaveCount(size);
     }
     
     [Theory]
