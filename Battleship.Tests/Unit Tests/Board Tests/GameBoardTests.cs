@@ -66,15 +66,16 @@ namespace Battleship.Tests.Unit_Tests.Board_Tests
             var gameBoard = new GameBoard();
             List<Coordinate> coordinates = [new(0, 0), new(0, 1), new(0, 2)];
             var ship = new Ship(ShipType.Destroyer, coordinates);
-            
+        
             var result = gameBoard.PlaceShip(ship);
 
             result.IsSuccessful.Should().BeTrue();
+            result.InvalidCoordinates.Should().BeNull();
             gameBoard.GetTile(new Coordinate(0, 0)).OccupyingShip.Should().Be(ship);
             gameBoard.GetTile(new Coordinate(0, 1)).OccupyingShip.Should().Be(ship);
             gameBoard.GetTile(new Coordinate(0, 2)).OccupyingShip.Should().Be(ship);
         }
-        
+    
         [Fact]
         public void PlaceShip_ReturnsFailure_WhenTileIsAlreadyOccupied()
         {
@@ -83,17 +84,18 @@ namespace Battleship.Tests.Unit_Tests.Board_Tests
             var existingShip = new Ship(ShipType.Destroyer, existingShipCoordinates);
             gameBoard.PlaceShip(existingShip);
             List<Coordinate> newShipCoordinates = [new(0, 1), new(0, 2), new(0, 3)];
-            
+        
             var newShip = new Ship(ShipType.Destroyer, newShipCoordinates);
 
             var result = gameBoard.PlaceShip(newShip);
 
             result.IsSuccessful.Should().BeFalse();
+            result.InvalidCoordinates.Should().BeEquivalentTo([new Coordinate(0, 1), new Coordinate(0, 2)]);
             gameBoard.GetTile(new Coordinate(0, 0)).OccupyingShip.Should().Be(existingShip);
             gameBoard.GetTile(new Coordinate(0, 1)).OccupyingShip.Should().Be(existingShip);
             gameBoard.GetTile(new Coordinate(0, 2)).OccupyingShip.Should().Be(existingShip);
         }
-        
+    
         [Fact]
         public void PlaceShip_OnlyOccupiesShipCoordinates_WhenPlacedOnBoard()
         {
@@ -101,15 +103,17 @@ namespace Battleship.Tests.Unit_Tests.Board_Tests
             List<Coordinate> coordinates = [new(0, 0), new(0, 1), new(0, 2)];
             var ship = new Ship(ShipType.Destroyer, coordinates);
 
-            gameBoard.PlaceShip(ship);
+            var result = gameBoard.PlaceShip(ship);
 
+            result.IsSuccessful.Should().BeTrue();
+            result.InvalidCoordinates.Should().BeNull();
             gameBoard.GetTile(new Coordinate(0, 0)).OccupyingShip.Should().Be(ship);
             gameBoard.GetTile(new Coordinate(0, 1)).OccupyingShip.Should().Be(ship);
             gameBoard.GetTile(new Coordinate(0, 2)).OccupyingShip.Should().Be(ship);
             gameBoard.GetTile(new Coordinate(0, 3)).OccupyingShip.Should().BeNull();
             gameBoard.GetTile(new Coordinate(1, 0)).OccupyingShip.Should().BeNull();
         }
-        
+    
         [Fact]
         public void PlaceShip_DoesNotPartiallyPlaceShip_WhenPlacementFails()
         {
@@ -119,9 +123,11 @@ namespace Battleship.Tests.Unit_Tests.Board_Tests
             gameBoard.PlaceShip(existingShip);
             List<Coordinate> newShipCoordinates = [new(0, 0), new(0, 1), new(0, 2)];
             var newShip = new Ship(ShipType.Destroyer, newShipCoordinates);
-            
-            gameBoard.PlaceShip(newShip);
-            
+        
+            var result = gameBoard.PlaceShip(newShip);
+        
+            result.IsSuccessful.Should().BeFalse();
+            result.InvalidCoordinates.Should().BeEquivalentTo([new Coordinate(0, 2)]);
             gameBoard.GetTile(new Coordinate(0, 0)).OccupyingShip.Should().BeNull();
             gameBoard.GetTile(new Coordinate(0, 1)).OccupyingShip.Should().BeNull();
             gameBoard.GetTile(new Coordinate(0, 2)).OccupyingShip.Should().Be(existingShip);
