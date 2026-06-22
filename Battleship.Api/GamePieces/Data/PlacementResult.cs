@@ -2,12 +2,4 @@
 
 public record PlacementResult(
     bool IsSuccessful, 
-    PlacementResultReason Reason,
     List<Coordinate>? InvalidCoordinates = null);
-
-public enum PlacementResultReason
-{
-    Success,
-    Collision,
-    OutOfBounds
-}
