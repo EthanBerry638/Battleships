@@ -186,4 +186,18 @@ public class ShipTests
         action.Should().Throw<InvalidShipException>()
             .WithMessage($"Invalid ship type: {type} for ship of size {size}.");
     }
+
+    [Fact]
+    public void ShipConstructor_StoresCoordinatesInOrder_WhenCoordinatesAreUnordered()
+    {
+        var coordinates = new List<Coordinate> { new(0, 2), new(0, 0), new(0, 1) };
+
+        var ship = new Ship(ShipType.Destroyer, coordinates);
+
+        ship.Coordinates.Should().ContainInOrder(
+            new Coordinate(0, 0),
+            new Coordinate(0, 1),
+            new Coordinate(0, 2)
+        );
+    }
 }
