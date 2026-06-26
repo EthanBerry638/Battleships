@@ -48,6 +48,34 @@ public class ShipTests
     }
     
     [Fact]
+    public void RegisterHit_DoesNotRegisterHit_WhenCoordinateIsNotOnShip()
+    {
+        var coord1 = new Coordinate(0, 0);
+        var coord2 = new Coordinate(0, 1);
+        var ship = new Ship(ShipType.PatrolBoat, [coord1, coord2]);
+        var offShipCoord = new Coordinate(5, 5);
+
+        ship.RegisterHit(offShipCoord);
+
+        ship.IsSunk().Should().BeFalse();
+    }
+
+    [Fact]
+    public void RegisterHit_DoesNotCountDuplicateHit_WhenSameCoordinateHitAfterSunk()
+    {
+        var coord1 = new Coordinate(0, 0);
+        var coord2 = new Coordinate(0, 1);
+        var ship = new Ship(ShipType.PatrolBoat, [coord1, coord2]);
+
+        ship.RegisterHit(coord1);
+        ship.RegisterHit(coord2);
+        ship.IsSunk().Should().BeTrue();
+
+        ship.RegisterHit(coord1);
+        ship.IsSunk().Should().BeTrue();
+    }
+    
+    [Fact]
     public void ShipConstructor_ThrowsException_WhenCoordinatesAreNull()
     {
         var action = () => new Ship(ShipType.PatrolBoat, null!);
