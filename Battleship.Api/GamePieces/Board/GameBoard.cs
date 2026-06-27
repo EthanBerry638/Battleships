@@ -51,7 +51,7 @@ namespace Battleship.Api.GamePieces.Board
 
         public bool CheckAllShips()
         {
-            return true;
+            return false;
         }
     }
 }
