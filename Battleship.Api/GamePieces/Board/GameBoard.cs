@@ -49,14 +49,19 @@ namespace Battleship.Api.GamePieces.Board
 
         public bool AreAllShipsSunk()
         {
+            var ships = new HashSet<IShip>();
+
             foreach (var tile in _board)
             {
-                if (!tile.HasShip) continue;
-
-                tile.OccupyingShip!.IsSunk();
+                if (tile.HasShip)
+                {
+                    ships.Add(tile.OccupyingShip!);
+                }
             }
-            
-            return false;
+
+            if (ships.Count == 0) return false;
+
+            return ships.All(s => s.IsSunk());
         }
     }
 }
