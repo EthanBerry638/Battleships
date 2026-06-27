@@ -6,4 +6,5 @@ public interface IShip
 {
     void RegisterHit(Coordinate coordinate);
     bool IsSunk();
+    List<Coordinate> Coordinates { get; }
 }

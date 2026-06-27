@@ -28,7 +28,7 @@ namespace Battleship.Api.GamePieces.Board
             return _board[coordinate.X, coordinate.Y];
         }
 
-        public PlacementResult PlaceShip(Ship ship)
+        public PlacementResult PlaceShip(IShip ship)
         {
             var invalidCoordinates = ship.Coordinates
                 .Where(c => GetTile(c).OccupyingShip != null)

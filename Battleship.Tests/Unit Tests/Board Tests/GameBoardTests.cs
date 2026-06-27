@@ -3,6 +3,7 @@ using Battleship.Api.GamePieces.Board;
 using Battleship.Api.GamePieces.Data;
 using Battleship.Api.GamePieces.Entities;
 using FluentAssertions;
+using Moq;
 
 namespace Battleship.Tests.Unit_Tests.Board_Tests
 {
@@ -63,7 +64,7 @@ namespace Battleship.Tests.Unit_Tests.Board_Tests
         public void PlaceShip_ReturnsSuccess_WhenTilesAreEmpty()
         {
             var gameBoard = new GameBoard();
-            List<Coordinate> coordinates = [new(0, 0), new(0, 1), new(0, 2)];
+            List<Coordinate> coordinates = [new Coordinate(0, 0), new Coordinate(0, 1), new Coordinate(0, 2)];
             var ship = new Ship(ShipType.Destroyer, coordinates);
         
             var result = gameBoard.PlaceShip(ship);
@@ -79,10 +80,10 @@ namespace Battleship.Tests.Unit_Tests.Board_Tests
         public void PlaceShip_ReturnsFailure_WhenTileIsAlreadyOccupied()
         {
             var gameBoard = new GameBoard();
-            List<Coordinate> existingShipCoordinates = [new(0, 0), new(0, 1), new(0, 2)];
+            List<Coordinate> existingShipCoordinates = [new Coordinate(0, 0), new Coordinate(0, 1), new Coordinate(0, 2)];
             var existingShip = new Ship(ShipType.Destroyer, existingShipCoordinates);
             gameBoard.PlaceShip(existingShip);
-            List<Coordinate> newShipCoordinates = [new(0, 1), new(0, 2), new(0, 3)];
+            List<Coordinate> newShipCoordinates = [new Coordinate(0, 1), new Coordinate(0, 2), new Coordinate(0, 3)];
         
             var newShip = new Ship(ShipType.Destroyer, newShipCoordinates);
 
@@ -99,7 +100,7 @@ namespace Battleship.Tests.Unit_Tests.Board_Tests
         public void PlaceShip_OnlyOccupiesShipCoordinates_WhenPlacedOnBoard()
         {
             var gameBoard = new GameBoard();
-            List<Coordinate> coordinates = [new(0, 0), new(0, 1), new(0, 2)];
+            List<Coordinate> coordinates = [new Coordinate(0, 0), new Coordinate(0, 1), new Coordinate(0, 2)];
             var ship = new Ship(ShipType.Destroyer, coordinates);
 
             var result = gameBoard.PlaceShip(ship);
@@ -117,10 +118,10 @@ namespace Battleship.Tests.Unit_Tests.Board_Tests
         public void PlaceShip_DoesNotPartiallyPlaceShip_WhenPlacementFails()
         {
             var gameBoard = new GameBoard();
-            List<Coordinate> existingShipCoordinates = [new(0, 2), new(0, 3)];
+            List<Coordinate> existingShipCoordinates = [new Coordinate(0, 2), new Coordinate(0, 3)];
             var existingShip = new Ship(ShipType.PatrolBoat, existingShipCoordinates);
             gameBoard.PlaceShip(existingShip);
-            List<Coordinate> newShipCoordinates = [new(0, 0), new(0, 1), new(0, 2)];
+            List<Coordinate> newShipCoordinates = [new Coordinate(0, 0), new Coordinate(0, 1), new Coordinate(0, 2)];
             var newShip = new Ship(ShipType.Destroyer, newShipCoordinates);
         
             var result = gameBoard.PlaceShip(newShip);
@@ -140,7 +141,7 @@ namespace Battleship.Tests.Unit_Tests.Board_Tests
         public void PlaceShip_DoesNotPartiallyPlaceShip_WhenCoordinateIsOutOfBounds(int startX, int startY, int invalidX, int invalidY)
         {
             var gameBoard = new GameBoard();
-            List<Coordinate> coordinates = [new(startX, startY), new(invalidX, invalidY)];
+            List<Coordinate> coordinates = [new Coordinate(startX, startY), new Coordinate(invalidX, invalidY)];
             var ship = new Ship(ShipType.PatrolBoat, coordinates);
 
             var action = () => gameBoard.PlaceShip(ship);
@@ -157,6 +158,37 @@ namespace Battleship.Tests.Unit_Tests.Board_Tests
             var result = gameBoard.AreAllShipsSunk();
             
             result.Should().BeFalse();
+        }
+        
+        [Fact]
+        public void AreAllShipsSunk_ShouldReturnFalse_WhenShipsArePlacedAndNoneAreSunk()
+        {
+            var gameBoard = new GameBoard();
+            var ships = new List<Mock<IShip>>
+            {
+                new(),
+                new(),
+                new(),
+                new(),
+                new(),
+            };
+
+            var coordinateCounter = 0;
+            foreach (var ship in ships)
+            {
+                ship.Setup(s => s.IsSunk()).Returns(false);
+                ship.Setup(s => s.Coordinates).Returns([new Coordinate(coordinateCounter++, 0)]);
+                gameBoard.PlaceShip(ship.Object);
+            }
+
+            var result = gameBoard.AreAllShipsSunk();
+
+            result.Should().BeFalse();
+
+            foreach (var ship in ships)
+            {
+                ship.Verify(s => s.IsSunk(), Times.Once);
+            }
         }
     }
 }
