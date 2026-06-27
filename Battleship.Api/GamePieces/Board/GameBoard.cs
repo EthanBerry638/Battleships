@@ -1,8 +1,6 @@
 ﻿using Battleship.Api.GamePieces.Data;
 using Battleship.Api.Exceptions;
 using Battleship.Api.GamePieces.Entities;
-using System.Linq; // Added this line for the LINQ functionality
-
 namespace Battleship.Api.GamePieces.Board
 {
     public class GameBoard : IGameBoard
@@ -49,7 +47,7 @@ namespace Battleship.Api.GamePieces.Board
             return new PlacementResult(true);
         }
 
-        public bool CheckAllShips()
+        public bool AreAllShipsSunk()
         {
             return false;
         }

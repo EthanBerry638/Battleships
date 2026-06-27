@@ -2,7 +2,6 @@
 using Battleship.Api.GamePieces.Board;
 using Battleship.Api.GamePieces.Data;
 using Battleship.Api.GamePieces.Entities;
-using Moq;
 using FluentAssertions;
 
 namespace Battleship.Tests.Unit_Tests.Board_Tests
@@ -151,11 +150,11 @@ namespace Battleship.Tests.Unit_Tests.Board_Tests
         }
 
         [Fact]
-        public void CheckAllShips_ShouldReturnFalse_WhenNoShipsArePlaced()
+        public void AreAllShipsSunk_ShouldReturnFalse_WhenNoShipsArePlaced()
         {
             var gameBoard = new GameBoard();
 
-            var result = gameBoard.CheckAllShips();
+            var result = gameBoard.AreAllShipsSunk();
             
             result.Should().BeFalse();
         }
