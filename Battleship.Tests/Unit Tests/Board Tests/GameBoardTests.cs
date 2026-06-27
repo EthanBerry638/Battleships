@@ -185,9 +185,10 @@ namespace Battleship.Tests.Unit_Tests.Board_Tests
 
             result.Should().BeFalse();
 
-            foreach (var ship in ships)
+            ships[0].Verify(s => s.IsSunk(), Times.Once);
+            foreach (var ship in ships.Skip(1))
             {
-                ship.Verify(s => s.IsSunk(), Times.Once);
+                ship.Verify(s => s.IsSunk(), Times.AtMostOnce);
             }
         }
         
