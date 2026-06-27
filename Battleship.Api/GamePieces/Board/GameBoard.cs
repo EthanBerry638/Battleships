@@ -49,6 +49,13 @@ namespace Battleship.Api.GamePieces.Board
 
         public bool AreAllShipsSunk()
         {
+            foreach (var tile in _board)
+            {
+                if (!tile.HasShip) continue;
+
+                tile.OccupyingShip!.IsSunk();
+            }
+            
             return false;
         }
     }
