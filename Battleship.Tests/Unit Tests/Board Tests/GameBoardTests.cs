@@ -190,5 +190,36 @@ namespace Battleship.Tests.Unit_Tests.Board_Tests
                 ship.Verify(s => s.IsSunk(), Times.Once);
             }
         }
+        
+        [Fact]
+        public void AreAllShipsSunk_ShouldReturnTrue_WhenShipsArePlacedAndAllAreSunk()
+        {
+            var gameBoard = new GameBoard();
+            var ships = new List<Mock<IShip>>
+            {
+                new(),
+                new(),
+                new(),
+                new(),
+                new(),
+            };
+
+            var coordinateCounter = 0;
+            foreach (var ship in ships)
+            {
+                ship.Setup(s => s.IsSunk()).Returns(true);
+                ship.Setup(s => s.Coordinates).Returns([new Coordinate(coordinateCounter++, 0)]);
+                gameBoard.PlaceShip(ship.Object);
+            }
+
+            var result = gameBoard.AreAllShipsSunk();
+
+            result.Should().BeTrue();
+
+            foreach (var ship in ships)
+            {
+                ship.Verify(s => s.IsSunk(), Times.Once);
+            }
+        }
     }
 }
