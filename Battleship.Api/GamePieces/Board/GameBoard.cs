@@ -48,5 +48,10 @@ namespace Battleship.Api.GamePieces.Board
 
             return new PlacementResult(true);
         }
+
+        public bool CheckAllShips()
+        {
+            return true;
+        }
     }
 }
