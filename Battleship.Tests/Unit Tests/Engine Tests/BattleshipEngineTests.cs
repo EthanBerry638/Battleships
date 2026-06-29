@@ -11,6 +11,8 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
     {
         private readonly Mock<IGameBoard> _mockGameBoard1;
         private readonly Mock<IGameBoard> _mockGameBoard2;
+        private readonly Mock<IPlayer> _mockPLayer1;
+        private readonly Mock<IPlayer> _mockPLayer2;
         private readonly Mock<IShip> _mockShip;
         private readonly BattleshipEngine _battleshipEngine;
 
@@ -18,8 +20,10 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
         {
             _mockGameBoard1 = new Mock<IGameBoard>();
             _mockGameBoard2 = new Mock<IGameBoard>();
+            _mockPLayer1 = new Mock<IPlayer>();
+            _mockPLayer2 = new Mock<IPlayer>();
             _mockShip = new Mock<IShip>();
-            _battleshipEngine = new BattleshipEngine(_mockGameBoard1.Object, _mockGameBoard2.Object);
+            _battleshipEngine = new BattleshipEngine(_mockGameBoard1.Object, _mockGameBoard2.Object, _mockPLayer1.Object, _mockPLayer2.Object);
         }
 
         [Fact]
