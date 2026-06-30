@@ -11,8 +11,8 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
     {
         private readonly Mock<IGameBoard> _mockGameBoard1;
         private readonly Mock<IGameBoard> _mockGameBoard2;
-        private readonly Mock<IPlayer> _mockPLayer1;
-        private readonly Mock<IPlayer> _mockPLayer2;
+        private readonly Mock<IPlayer> _mockPlayer1;
+        private readonly Mock<IPlayer> _mockPlayer2;
         private readonly Mock<IShip> _mockShip;
         private readonly BattleshipEngine _battleshipEngine;
 
@@ -20,10 +20,10 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
         {
             _mockGameBoard1 = new();
             _mockGameBoard2 = new();
-            _mockPLayer1 = new();
-            _mockPLayer2 = new();
+            _mockPlayer1 = new();
+            _mockPlayer2 = new();
             _mockShip = new();
-            _battleshipEngine = new(_mockGameBoard1.Object, _mockGameBoard2.Object, _mockPLayer1.Object, _mockPLayer2.Object);
+            _battleshipEngine = new(_mockGameBoard1.Object, _mockGameBoard2.Object, _mockPlayer1.Object, _mockPlayer2.Object);
         }
 
         // START OF SINGLE BOARD/PLAYER TESTS
@@ -137,7 +137,7 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
         // START OF MULTI BOARD/PLAYER TESTS
 
         [Fact]
-        public void Shoot_OnlyAffectsPlayer1sBoard_WhenShootIsCalledOnceAndIsSuccessful()
+        public void Shoot_OnlyAffectsPlayer2sBoard_WhenShootIsCalledOnceByPlayer1AndIsSuccessful()
         {
             var coordinate = new Coordinate(0, 0);
             _mockShip.Setup(s => s.IsSunk()).Returns(true);
