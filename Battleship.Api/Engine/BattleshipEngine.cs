@@ -32,5 +32,10 @@ namespace Battleship.Api.Engine
             
             return ShotResult.Miss;
         }
+
+        public void SwitchTurns()
+        {
+            _currentPlayerIndex = (_currentPlayerIndex + 1) % 2;
+        }
     }
 }
