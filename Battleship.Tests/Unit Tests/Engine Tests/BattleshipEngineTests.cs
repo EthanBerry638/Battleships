@@ -18,12 +18,12 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
 
         public BattleshipEngineTests()
         {
-            _mockGameBoard1 = new Mock<IGameBoard>();
-            _mockGameBoard2 = new Mock<IGameBoard>();
-            _mockPLayer1 = new Mock<IPlayer>();
-            _mockPLayer2 = new Mock<IPlayer>();
-            _mockShip = new Mock<IShip>();
-            _battleshipEngine = new BattleshipEngine(_mockGameBoard1.Object, _mockGameBoard2.Object, _mockPLayer1.Object, _mockPLayer2.Object);
+            _mockGameBoard1 = new();
+            _mockGameBoard2 = new();
+            _mockPLayer1 = new();
+            _mockPLayer2 = new();
+            _mockShip = new();
+            _battleshipEngine = new(_mockGameBoard1.Object, _mockGameBoard2.Object, _mockPLayer1.Object, _mockPLayer2.Object);
         }
 
         // START OF SINGLE BOARD/PLAYER TESTS
@@ -133,5 +133,28 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
         }
         
         // END OF SINGLE BOARD/PLAYER TESTS
+        
+        // START OF MULTI BOARD/PLAYER TESTS
+
+        [Fact]
+        public void Shoot_OnlyAffectsPlayer1sBoard_WhenShootIsCalledOnceAndIsSuccessful()
+        {
+            var coordinate = new Coordinate(0, 0);
+            _mockShip.Setup(s => s.IsSunk()).Returns(true);
+            var tile = new Tile { OccupyingShip = _mockShip.Object };
+            _mockGameBoard1.Setup(x => x.GetTile(coordinate)).Returns(tile);
+            _mockGameBoard2.Setup(x => x.GetTile(coordinate)).Returns(new Tile());
+
+            var firstResult = _battleshipEngine.Shoot(coordinate);
+
+            firstResult.Should().Be(ShotResult.Sunk);
+            
+            _mockGameBoard1.Verify(x => x.GetTile(coordinate), Times.Once);
+            _mockGameBoard2.Verify(x => x.GetTile(coordinate), Times.Never);
+            _mockShip.Verify(s => s.RegisterHit(coordinate), Times.Once);
+            _mockShip.Verify(s => s.IsSunk(), Times.Once);
+        }
+        
+        // END OF MULTI BOARD/PLAYER TESTS
     }
 }
