@@ -1,12 +1,16 @@
 ﻿using Battleship.Api.GamePieces.Board;
 using Battleship.Api.GamePieces.Data;
+using Battleship.Api.GamePieces.Entities;
 
 namespace Battleship.Api.Engine
 {
-    public class BattleshipEngine (IGameBoard gameBoard)
+    public class BattleshipEngine (IGameBoard playerOneBoard, IGameBoard playerTwoBoard, IPlayer playerOne, IPlayer playerTwo)
     {
-        private readonly IGameBoard _gameBoard = gameBoard;
+        private readonly IGameBoard[] _gameBoards = [playerOneBoard, playerTwoBoard];
+        private readonly IPlayer[] _players = [playerOne, playerTwo];
         private readonly HashSet<Coordinate> _shotsTaken = [];
+        private int _currentPlayerIndex;
+        private bool _isGameOver = false;
         
         public ShotResult Shoot(Coordinate coordinate)
         {
@@ -15,7 +19,7 @@ namespace Battleship.Api.Engine
                 return ShotResult.Duplicate;
             }
             
-            var tile = _gameBoard.GetTile(coordinate);
+            var tile = _gameBoards[0].GetTile(coordinate);
 
             if (tile.HasShip)
             {
