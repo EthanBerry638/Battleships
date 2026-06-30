@@ -26,6 +26,8 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
             _battleshipEngine = new BattleshipEngine(_mockGameBoard1.Object, _mockGameBoard2.Object, _mockPLayer1.Object, _mockPLayer2.Object);
         }
 
+        // START OF SINGLE BOARD/PLAYER TESTS
+        
         [Fact]
         public void Shoot_ReturnsHit_WhenTileHasShip()
         {
@@ -129,5 +131,7 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
             _mockShip.Verify(s => s.RegisterHit(coordinate), Times.Once);
             _mockShip.Verify(s => s.IsSunk(), Times.Once);
         }
+        
+        // END OF SINGLE BOARD/PLAYER TESTS
     }
 }
