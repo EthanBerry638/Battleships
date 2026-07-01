@@ -18,8 +18,8 @@ namespace Battleship.Api.Engine
             {
                 return ShotResult.Duplicate;
             }
-            
-            var tile = _gameBoards[0].GetTile(coordinate);
+
+            var tile = _gameBoards[1].GetTile(coordinate);
 
             if (tile.HasShip)
             {
