@@ -153,6 +153,24 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
             _mockShip.Verify(s => s.RegisterHit(coordinate), Times.Once);
             _mockShip.Verify(s => s.IsSunk(), Times.Once);
         }
+
+        [Fact]
+        public void ShootOnlyAffectsPlayer1sBoard_WhenShootIsCalledByPlayer2AndIsSuccessful()
+        {
+            var coordinate = new Coordinate(0, 0);
+            var tile = new  Tile { OccupyingShip = _mockShip.Object };
+            _mockShip.Setup(s => s.IsSunk()).Returns(true);
+            _mockGameBoard1.Setup(x => x.GetTile(coordinate)).Returns(tile);
+            
+            var result = _battleshipEngine.Shoot(coordinate);
+            
+            result.Should().Be(ShotResult.Sunk);
+            
+            _mockGameBoard1.Verify(x => x.GetTile(coordinate), Times.Once);
+            _mockGameBoard2.Verify(x => x.GetTile(coordinate), Times.Never);
+            _mockShip.Verify(s => s.RegisterHit(coordinate), Times.Once);
+            _mockShip.Verify(s => s.IsSunk(), Times.Once);
+        }
          
         // END OF MULTI BOARD/PLAYER TESTS
     }
