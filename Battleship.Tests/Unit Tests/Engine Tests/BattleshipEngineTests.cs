@@ -155,7 +155,7 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
         }
 
         [Fact]
-        public void ShootOnlyAffectsPlayer1sBoard_WhenShootIsCalledByPlayer2AndIsSuccessful()
+        public void Shoot_OnlyAffectsPlayer1sBoard_WhenShootIsCalledByPlayer2AndIsSuccessful()
         {
             var coordinate = new Coordinate(0, 0);
             var tile = new  Tile { OccupyingShip = _mockShip.Object };
