@@ -157,18 +157,21 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
         [Fact]
         public void Shoot_OnlyAffectsPlayer1sBoard_WhenShootIsCalledByPlayer2AndIsSuccessful()
         {
-            var coordinate = new Coordinate(0, 0);
-            var tile = new  Tile { OccupyingShip = _mockShip.Object };
+            var player1Coordinate = new Coordinate(1, 1);
+            var player2Coordinate = new Coordinate(0, 0);
+            var tile = new Tile { OccupyingShip = _mockShip.Object };
             _mockShip.Setup(s => s.IsSunk()).Returns(true);
-            _mockGameBoard1.Setup(x => x.GetTile(coordinate)).Returns(tile);
-            
-            var result = _battleshipEngine.Shoot(coordinate);
-            
+            _mockGameBoard2.Setup(x => x.GetTile(player1Coordinate)).Returns(new Tile { OccupyingShip = null });
+            _mockGameBoard1.Setup(x => x.GetTile(player2Coordinate)).Returns(tile);
+
+            _battleshipEngine.Shoot(player1Coordinate); // Player 1 shoots (miss), advances turn to player 2
+            var result = _battleshipEngine.Shoot(player2Coordinate); // Player 2 shoots
+
             result.Should().Be(ShotResult.Sunk);
-            
-            _mockGameBoard1.Verify(x => x.GetTile(coordinate), Times.Once);
-            _mockGameBoard2.Verify(x => x.GetTile(coordinate), Times.Never);
-            _mockShip.Verify(s => s.RegisterHit(coordinate), Times.Once);
+
+            _mockGameBoard1.Verify(x => x.GetTile(player2Coordinate), Times.Once);
+            _mockGameBoard2.Verify(x => x.GetTile(player2Coordinate), Times.Never);
+            _mockShip.Verify(s => s.RegisterHit(player2Coordinate), Times.Once);
             _mockShip.Verify(s => s.IsSunk(), Times.Once);
         }
          
