@@ -14,12 +14,14 @@ namespace Battleship.Api.Engine
         
         public ShotResult Shoot(Coordinate coordinate)
         {
+            var opponentBoardIndex = (_currentPlayerIndex + 1) % 2;
+            
             if (!_shotsTaken.Add(coordinate))
             {
                 return ShotResult.Duplicate;
             }
 
-            var tile = _gameBoards[_currentPlayerIndex].GetTile(coordinate);
+            var tile = _gameBoards[opponentBoardIndex].GetTile(coordinate);
 
             if (tile.HasShip)
             {
