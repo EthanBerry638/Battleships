@@ -174,7 +174,34 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
             _mockShip.Verify(s => s.RegisterHit(player2Coordinate), Times.Once);
             _mockShip.Verify(s => s.IsSunk(), Times.Once);
         }
-         
+        
+        [Fact]
+        public void Shoot_DoesNotSwitchTurn_WhenDuplicateShotIsFired()
+        {
+            var player1FirstCoordinate = new Coordinate(0, 0);
+            var player2Coordinate = new Coordinate(1, 1);
+            var player1SecondCoordinate = new Coordinate(2, 2);
+            var tile = new Tile { OccupyingShip = null };
+            _mockGameBoard2.Setup(x => x.GetTile(player1FirstCoordinate)).Returns(tile);
+            _mockGameBoard1.Setup(x => x.GetTile(player2Coordinate)).Returns(tile);
+            _mockGameBoard2.Setup(x => x.GetTile(player1SecondCoordinate)).Returns(tile);
+            
+            var player1FirstMiss = _battleshipEngine.Shoot(player1FirstCoordinate);   // Player 1 shoots, turn switches to player 2
+            var player2Miss = _battleshipEngine.Shoot(player2Coordinate);             // Player 2 shoots, turn switches to player 1
+            var player1Duplicate = _battleshipEngine.Shoot(player1FirstCoordinate);   // Player 1 shoots duplicate, turn should NOT switch
+            var player1SecondMiss = _battleshipEngine.Shoot(player1SecondCoordinate); // Still player 1's turn
+            
+            player1FirstMiss.Should().Be(ShotResult.Miss);
+            player2Miss.Should().Be(ShotResult.Miss);
+            player1Duplicate.Should().Be(ShotResult.Duplicate);
+            player1SecondMiss.Should().Be(ShotResult.Miss);
+
+            _mockGameBoard2.Verify(x => x.GetTile(player1FirstCoordinate), Times.Once);
+            _mockGameBoard2.Verify(x => x.GetTile(player1SecondCoordinate), Times.Once);
+            _mockGameBoard1.Verify(x => x.GetTile(player2Coordinate), Times.Once);
+            _mockGameBoard1.Verify(x => x.GetTile(player1SecondCoordinate), Times.Never);
+            _mockGameBoard1.Verify(x => x.GetTile(player1FirstCoordinate), Times.Never);
+        }
         // END OF MULTI BOARD/PLAYER TESTS
     }
 }
