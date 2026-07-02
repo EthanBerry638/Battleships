@@ -202,6 +202,29 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
             _mockGameBoard1.Verify(x => x.GetTile(player1SecondCoordinate), Times.Never);
             _mockGameBoard1.Verify(x => x.GetTile(player1FirstCoordinate), Times.Never);
         }
+
+        [Fact]
+        public void Shoot_ShouldTrackDuplicatesSeparately_WhenPlayer1And2TakeDuplicateShots()
+        {
+            var coordinate = new Coordinate(0, 0);
+            var tile = new Tile { OccupyingShip = null };
+            _mockGameBoard1.Setup(x => x.GetTile(coordinate)).Returns(tile);
+            _mockGameBoard2.Setup(x => x.GetTile(coordinate)).Returns(tile);
+            
+            var player1Miss = _battleshipEngine.Shoot(coordinate);
+            var player2Miss = _battleshipEngine.Shoot(coordinate);
+            var player1Duplicate = _battleshipEngine.Shoot(coordinate);
+            var player2Duplicate = _battleshipEngine.Shoot(coordinate);
+            
+            player1Miss.Should().Be(ShotResult.Miss);
+            player2Miss.Should().Be(ShotResult.Miss);
+            player1Duplicate.Should().Be(ShotResult.Duplicate);
+            player2Duplicate.Should().Be(ShotResult.Duplicate);
+            
+            _mockGameBoard1.Verify(x => x.GetTile(coordinate), Times.Once);
+            _mockGameBoard2.Verify(x => x.GetTile(coordinate), Times.Once);
+        }
+        
         // END OF MULTI BOARD/PLAYER TESTS
     }
 }
