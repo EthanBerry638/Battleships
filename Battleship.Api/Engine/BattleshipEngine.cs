@@ -8,7 +8,7 @@ namespace Battleship.Api.Engine
     {
         private readonly IGameBoard[] _gameBoards = [playerOneBoard, playerTwoBoard];
         private readonly IPlayer[] _players = [playerOne, playerTwo];
-        private readonly HashSet<Coordinate> _shotsTaken = [];
+        private readonly HashSet<Coordinate>[] _shotsTaken = { [], [] };
         private int _currentPlayerIndex;
         
         public ShotResult Shoot(Coordinate coordinate)
@@ -16,7 +16,7 @@ namespace Battleship.Api.Engine
             var opponentBoardIndex = (_currentPlayerIndex + 1) % 2;
             ShotResult shotResult;
             
-            if (!_shotsTaken.Add(coordinate))
+            if (!_shotsTaken[_currentPlayerIndex].Add(coordinate))
             {
                 return ShotResult.Duplicate;
             }
