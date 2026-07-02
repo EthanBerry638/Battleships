@@ -28,10 +28,12 @@ namespace Battleship.Api.Engine
                 var ship = tile.OccupyingShip!;
                 
                 ship.RegisterHit(coordinate);
-
+                SwitchTurns();
+                
                 return ship.IsSunk() ? ShotResult.Sunk : ShotResult.Hit;
             }
             
+            SwitchTurns();
             return ShotResult.Miss;
         }
 
