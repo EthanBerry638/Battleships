@@ -170,8 +170,8 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
             _mockGameBoard2.Setup(x => x.GetTile(player1Coordinate)).Returns(new Tile { OccupyingShip = null });
             _mockGameBoard1.Setup(x => x.GetTile(player2Coordinate)).Returns(tile);
 
-            _battleshipEngine.Shoot(player1Coordinate); // Player 1 shoots (miss), advances turn to player 2
-            var result = _battleshipEngine.Shoot(player2Coordinate); // Player 2 shoots
+            _battleshipEngine.Shoot(player1Coordinate); // Player 1 pass-through shot
+            var result = _battleshipEngine.Shoot(player2Coordinate); 
 
             result.Should().Be(ShotResult.Sunk);
 
@@ -192,10 +192,10 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
             _mockGameBoard1.Setup(x => x.GetTile(player2Coordinate)).Returns(tile);
             _mockGameBoard2.Setup(x => x.GetTile(player1SecondCoordinate)).Returns(tile);
             
-            var player1FirstMiss = _battleshipEngine.Shoot(player1FirstCoordinate);   // Player 1 shoots, turn switches to player 2
-            var player2Miss = _battleshipEngine.Shoot(player2Coordinate);             // Player 2 shoots, turn switches to player 1
-            var player1Duplicate = _battleshipEngine.Shoot(player1FirstCoordinate);   // Player 1 shoots duplicate, turn should NOT switch
-            var player1SecondMiss = _battleshipEngine.Shoot(player1SecondCoordinate); // Still player 1's turn
+            var player1FirstMiss = _battleshipEngine.Shoot(player1FirstCoordinate);   
+            var player2Miss = _battleshipEngine.Shoot(player2Coordinate);             
+            var player1Duplicate = _battleshipEngine.Shoot(player1FirstCoordinate);  
+            var player1SecondMiss = _battleshipEngine.Shoot(player1SecondCoordinate); 
             
             player1FirstMiss.Should().Be(ShotResult.Miss);
             player2Miss.Should().Be(ShotResult.Miss);
