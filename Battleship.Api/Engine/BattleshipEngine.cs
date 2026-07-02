@@ -10,7 +10,6 @@ namespace Battleship.Api.Engine
         private readonly IPlayer[] _players = [playerOne, playerTwo];
         private readonly HashSet<Coordinate> _shotsTaken = [];
         private int _currentPlayerIndex;
-        private bool _isGameOver = false;
         
         public ShotResult Shoot(Coordinate coordinate)
         {
