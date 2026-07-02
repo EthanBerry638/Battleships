@@ -34,13 +34,13 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
             var coordinate = new Coordinate(0, 0);
             _mockShip.Setup(s => s.IsSunk()).Returns(false);
             var tile = new Tile { OccupyingShip = _mockShip.Object };
-            _mockGameBoard1.Setup(x => x.GetTile(coordinate)).Returns(tile);
+            _mockGameBoard2.Setup(x => x.GetTile(coordinate)).Returns(tile);
         
             var result = _battleshipEngine.Shoot(coordinate);
         
             result.Should().Be(ShotResult.Hit);
         
-            _mockGameBoard1.Verify(x => x.GetTile(coordinate), Times.Once);
+            _mockGameBoard2.Verify(x => x.GetTile(coordinate), Times.Once);
             _mockShip.Verify(s => s.RegisterHit(coordinate), Times.Once);
             _mockShip.Verify(s => s.IsSunk(), Times.Once);
         }   
@@ -50,13 +50,13 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
         {
             var coordinate = new Coordinate(0, 0);
             var tile = new Tile { OccupyingShip = null };
-            _mockGameBoard1.Setup(x => x.GetTile(coordinate)).Returns(tile);
-
+            _mockGameBoard2.Setup(x => x.GetTile(coordinate)).Returns(tile);
+    
             var result = _battleshipEngine.Shoot(coordinate);
 
             result.Should().Be(ShotResult.Miss);
 
-            _mockGameBoard1.Verify(x => x.GetTile(coordinate), Times.Once);
+            _mockGameBoard2.Verify(x => x.GetTile(coordinate), Times.Once);
             _mockShip.Verify(s => s.RegisterHit(coordinate), Times.Never);
             _mockShip.Verify(s => s.IsSunk(), Times.Never);
         }
@@ -67,13 +67,13 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
             var coordinate = new Coordinate(0, 0);
             _mockShip.Setup(s => s.IsSunk()).Returns(true);
             var tile = new Tile { OccupyingShip = _mockShip.Object };
-            _mockGameBoard1.Setup(x => x.GetTile(coordinate)).Returns(tile);
+            _mockGameBoard2.Setup(x => x.GetTile(coordinate)).Returns(tile);
     
             var result = _battleshipEngine.Shoot(coordinate);
     
             result.Should().Be(ShotResult.Sunk);
     
-            _mockGameBoard1.Verify(x => x.GetTile(coordinate), Times.Once);
+            _mockGameBoard2.Verify(x => x.GetTile(coordinate), Times.Once);
             _mockShip.Verify(s => s.RegisterHit(coordinate), Times.Once);
             _mockShip.Verify(s => s.IsSunk(), Times.Once);
         }
@@ -84,7 +84,7 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
             var coordinate = new Coordinate(0, 0);
             _mockShip.Setup(s => s.IsSunk()).Returns(false);
             var tile = new Tile { OccupyingShip = _mockShip.Object };
-            _mockGameBoard1.Setup(x => x.GetTile(coordinate)).Returns(tile);
+            _mockGameBoard2.Setup(x => x.GetTile(coordinate)).Returns(tile);
 
             var firstResult = _battleshipEngine.Shoot(coordinate);
             var secondResult = _battleshipEngine.Shoot(coordinate);
@@ -92,7 +92,7 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
             firstResult.Should().Be(ShotResult.Hit);
             secondResult.Should().Be(ShotResult.Duplicate);
 
-            _mockGameBoard1.Verify(x => x.GetTile(coordinate), Times.Once);
+            _mockGameBoard2.Verify(x => x.GetTile(coordinate), Times.Once);
             _mockShip.Verify(s => s.RegisterHit(coordinate), Times.Once);
             _mockShip.Verify(s => s.IsSunk(), Times.Once);
         }
@@ -102,7 +102,7 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
         {
             var coordinate = new Coordinate(0, 0);
             var tile = new Tile { OccupyingShip = null };
-            _mockGameBoard1.Setup(x => x.GetTile(coordinate)).Returns(tile);
+            _mockGameBoard2.Setup(x => x.GetTile(coordinate)).Returns(tile);
 
             var firstResult = _battleshipEngine.Shoot(coordinate);
             var secondResult = _battleshipEngine.Shoot(coordinate);
@@ -110,7 +110,7 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
             firstResult.Should().Be(ShotResult.Miss);
             secondResult.Should().Be(ShotResult.Duplicate);
 
-            _mockGameBoard1.Verify(x => x.GetTile(coordinate), Times.Once);
+            _mockGameBoard2.Verify(x => x.GetTile(coordinate), Times.Once);
         }
         
         [Fact]
@@ -119,7 +119,7 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
             var coordinate = new Coordinate(0, 0);
             _mockShip.Setup(s => s.IsSunk()).Returns(true);
             var tile = new Tile { OccupyingShip = _mockShip.Object };
-            _mockGameBoard1.Setup(x => x.GetTile(coordinate)).Returns(tile);
+            _mockGameBoard2.Setup(x => x.GetTile(coordinate)).Returns(tile);
 
             var firstResult = _battleshipEngine.Shoot(coordinate);
             var secondResult = _battleshipEngine.Shoot(coordinate);
@@ -127,7 +127,7 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
             firstResult.Should().Be(ShotResult.Sunk);
             secondResult.Should().Be(ShotResult.Duplicate);
 
-            _mockGameBoard1.Verify(x => x.GetTile(coordinate), Times.Once);
+            _mockGameBoard2.Verify(x => x.GetTile(coordinate), Times.Once);
             _mockShip.Verify(s => s.RegisterHit(coordinate), Times.Once);
             _mockShip.Verify(s => s.IsSunk(), Times.Once);
         }
