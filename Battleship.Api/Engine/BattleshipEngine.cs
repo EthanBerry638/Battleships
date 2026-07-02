@@ -14,6 +14,7 @@ namespace Battleship.Api.Engine
         public ShotResult Shoot(Coordinate coordinate)
         {
             var opponentBoardIndex = (_currentPlayerIndex + 1) % 2;
+            ShotResult shotResult;
             
             if (!_shotsTaken.Add(coordinate))
             {
@@ -25,15 +26,18 @@ namespace Battleship.Api.Engine
             if (tile.HasShip)
             {
                 var ship = tile.OccupyingShip!;
-                
+
                 ship.RegisterHit(coordinate);
-                SwitchTurns();
-                
-                return ship.IsSunk() ? ShotResult.Sunk : ShotResult.Hit;
+
+                shotResult = ship.IsSunk() ? ShotResult.Sunk : ShotResult.Hit;
+            }
+            else
+            {
+                shotResult = ShotResult.Miss;
             }
             
             SwitchTurns();
-            return ShotResult.Miss;
+            return shotResult;
         }
 
         private void SwitchTurns()
