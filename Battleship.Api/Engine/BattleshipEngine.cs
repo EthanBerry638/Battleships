@@ -30,6 +30,11 @@ namespace Battleship.Api.Engine
                 throw new GameOverException($"Cannot shoot. Player 2 has sunk all of Player 1's ships.");
             }
             
+            if (_gameBoards[1].AreAllShipsSunk())
+            {
+                throw new GameOverException($"Cannot shoot. Player 1 has sunk all of Player 2's ships.");
+            }
+            
             var shotResult = GetShotResult(coordinate);
             SwitchTurns();
             return shotResult;

@@ -261,7 +261,20 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
                 .Throw<GameOverException>()
                 .WithMessage("Cannot shoot. Player 2 has sunk all of Player 1's ships.");
             _mockGameBoard1.Verify(x => x.AreAllShipsSunk(), Times.Once);
-            _mockGameBoard2.Verify(x => x.AreAllShipsSunk(), Times.Never);
+        }
+
+        [Fact]
+        public void Shoot_ShouldThrowGameOverException_WhenAllOfPLayer2sShipsAreSunk()
+        {
+            _mockGameBoard1.Setup(x => x.AreAllShipsSunk()).Returns(false);
+            _mockGameBoard2.Setup(x => x.AreAllShipsSunk()).Returns(true);
+
+            var act = () => _battleshipEngine.Shoot(new Coordinate(0, 0));
+
+            act.Should()
+                .Throw<GameOverException>()
+                .WithMessage("Cannot shoot. Player 1 has sunk all of Player 2's ships.");
+            _mockGameBoard2.Verify(x => x.AreAllShipsSunk(), Times.Once);
         }
     }
 }
