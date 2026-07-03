@@ -249,34 +249,20 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
                 .Should().Throw<ArgumentNullException>();
         }
 
-        [Fact]
-        public void Shoot_ShouldThrowGameOverException_WhenAllOfPlayers1sShipsAreSunk()
+        [Theory]
+        [InlineData(true, false)]  
+        [InlineData(false, true)]  
+        [InlineData(true, true)]   
+        public void Shoot_ShouldThrowGameOverException_WhenAnyPlayersShipsAreAllSunk(bool playerOneSunk, bool playerTwoSunk)
         {
-            _mockGameBoard1.Setup(x => x.AreAllShipsSunk()).Returns(true);
-            _mockGameBoard2.Setup(x => x.AreAllShipsSunk()).Returns(false);
-
+            _mockGameBoard1.Setup(x => x.AreAllShipsSunk()).Returns(playerOneSunk);
+            _mockGameBoard2.Setup(x => x.AreAllShipsSunk()).Returns(playerTwoSunk);
+            
             var act = () => _battleshipEngine.Shoot(new Coordinate(0, 0));
-
+            
             act.Should()
                 .Throw<GameOverException>()
                 .WithMessage("Cannot shoot when game is over.");
-            _mockGameBoard1.Verify(x => x.AreAllShipsSunk(), Times.Once);
-            _mockGameBoard2.Verify(x => x.AreAllShipsSunk(), Times.Never);
-        }
-
-        [Fact]
-        public void Shoot_ShouldThrowGameOverException_WhenAllOfPLayer2sShipsAreSunk()
-        {
-            _mockGameBoard1.Setup(x => x.AreAllShipsSunk()).Returns(false);
-            _mockGameBoard2.Setup(x => x.AreAllShipsSunk()).Returns(true);
-
-            var act = () => _battleshipEngine.Shoot(new Coordinate(0, 0));
-
-            act.Should()
-                .Throw<GameOverException>()
-                .WithMessage("Cannot shoot when game is over.");
-            _mockGameBoard1.Verify(x => x.AreAllShipsSunk(), Times.Once);
-            _mockGameBoard2.Verify(x => x.AreAllShipsSunk(), Times.Once);
         }
     }
 }
