@@ -1,6 +1,7 @@
 ﻿using Battleship.Api.GamePieces.Board;
 using Battleship.Api.GamePieces.Data;
 using Battleship.Api.GamePieces.Entities;
+using Battleship.Api.Exceptions;
 
 namespace Battleship.Api.Engine
 {
@@ -24,6 +25,11 @@ namespace Battleship.Api.Engine
         
         public ShotResult Shoot(Coordinate coordinate)
         {
+            if (_gameBoards[0].AreAllShipsSunk())
+            {
+                throw new GameOverException($"Cannot shoot. Player 2 has sunk all of Player 1's ships.");
+            }
+            
             var shotResult = GetShotResult(coordinate);
             SwitchTurns();
             return shotResult;

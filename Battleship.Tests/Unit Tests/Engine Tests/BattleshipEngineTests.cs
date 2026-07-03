@@ -248,5 +248,20 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
             FluentActions.Invoking(() => new BattleshipEngine(board, board, player, null!))
                 .Should().Throw<ArgumentNullException>();
         }
+
+        [Fact]
+        public void Shoot_ShouldThrowGameOverException_WhenAllOfPlayers1sShipsAreSunk()
+        {
+            _mockGameBoard1.Setup(x => x.AreAllShipsSunk()).Returns(true);
+            _mockGameBoard2.Setup(x => x.AreAllShipsSunk()).Returns(false);
+
+            var act = () => _battleshipEngine.Shoot(new Coordinate(0, 0));
+
+            act.Should()
+                .Throw<GameOverException>()
+                .WithMessage("Cannot shoot. Player 2 has sunk all of Player 1's ships.");
+            _mockGameBoard1.Verify(x => x.AreAllShipsSunk(), Times.Once);
+            _mockGameBoard2.Verify(x => x.AreAllShipsSunk(), Times.Never);
+        }
     }
 }
