@@ -179,21 +179,24 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
         {
             var player1FirstCoordinate = new Coordinate(0, 0);
             var player2FirstCoordinate = new Coordinate(1, 1);
+            var player2SecondCoordinate = new Coordinate(1, 2);
             var tile = new Tile { OccupyingShip = null };
             _mockGameBoard1.Setup(x => x.GetTile(player2FirstCoordinate)).Returns(tile);
+            _mockGameBoard1.Setup(x => x.GetTile(player2SecondCoordinate)).Returns(tile);
             _mockGameBoard2.Setup(x => x.GetTile(player1FirstCoordinate)).Returns(tile);
             
             var player1FirstMiss= _battleshipEngine.Shoot(player1FirstCoordinate);
             var player2FirstMiss = _battleshipEngine.Shoot(player2FirstCoordinate);
             var player1SecondDuplicateShot = _battleshipEngine.Shoot(player1FirstCoordinate);
-            var player2SecondMiss = _battleshipEngine.Shoot(player2FirstCoordinate);
+            var player2SecondMiss = _battleshipEngine.Shoot(player2SecondCoordinate);
             
             player1FirstMiss.Should().Be(ShotResult.Miss);
             player2FirstMiss.Should().Be(ShotResult.Miss);
             player1SecondDuplicateShot.Should().Be(ShotResult.Duplicate);
             player2SecondMiss.Should().Be(ShotResult.Miss);
-            _mockGameBoard1.Verify(x => x.GetTile(player1FirstCoordinate), Times.Exactly(2));
-            _mockGameBoard2.Verify(x => x.GetTile(player2FirstCoordinate), Times.Once);
+            _mockGameBoard1.Verify(x => x.GetTile(player2FirstCoordinate), Times.Once);
+            _mockGameBoard1.Verify(x => x.GetTile(player2SecondCoordinate), Times.Once);
+            _mockGameBoard2.Verify(x => x.GetTile(player1FirstCoordinate), Times.Once);
         }
 
         [Fact]
