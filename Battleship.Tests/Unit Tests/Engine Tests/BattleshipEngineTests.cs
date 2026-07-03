@@ -239,5 +239,21 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
 
             act.Should().Throw<InvalidCoordinateException>().WithMessage($"Invalid coordinate: {coordinate}");
         }
+        
+        [Fact]
+        public void BattleShipEngineConstructor_ShouldThrowArgumentNullException_WhenAnyArgumentIsNull()
+        {
+            var board = new Mock<IGameBoard>().Object;
+            var player = new Mock<IPlayer>().Object;
+
+            FluentActions.Invoking(() => new BattleshipEngine(null!, board, player, player))
+                .Should().Throw<ArgumentNullException>();
+            FluentActions.Invoking(() => new BattleshipEngine(board, null!, player, player))
+                .Should().Throw<ArgumentNullException>();
+            FluentActions.Invoking(() => new BattleshipEngine(board, board, null!, player))
+                .Should().Throw<ArgumentNullException>();
+            FluentActions.Invoking(() => new BattleshipEngine(board, board, player, null!))
+                .Should().Throw<ArgumentNullException>();
+        }
     }
 }
