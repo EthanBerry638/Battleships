@@ -175,30 +175,25 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
         }
         
         [Fact]
-        public void Shoot_DoesNotSwitchTurn_WhenDuplicateShotIsFired()
+        public void Shoot_SwitchesTurn_WhenDuplicateShotIsFired()
         {
             var player1FirstCoordinate = new Coordinate(0, 0);
-            var player2Coordinate = new Coordinate(1, 1);
-            var player1SecondCoordinate = new Coordinate(2, 2);
+            var player2FirstCoordinate = new Coordinate(1, 1);
             var tile = new Tile { OccupyingShip = null };
+            _mockGameBoard1.Setup(x => x.GetTile(player2FirstCoordinate)).Returns(tile);
             _mockGameBoard2.Setup(x => x.GetTile(player1FirstCoordinate)).Returns(tile);
-            _mockGameBoard1.Setup(x => x.GetTile(player2Coordinate)).Returns(tile);
-            _mockGameBoard2.Setup(x => x.GetTile(player1SecondCoordinate)).Returns(tile);
             
-            var player1FirstMiss = _battleshipEngine.Shoot(player1FirstCoordinate);   
-            var player2Miss = _battleshipEngine.Shoot(player2Coordinate);             
-            var player1Duplicate = _battleshipEngine.Shoot(player1FirstCoordinate);  
-            var player1SecondMiss = _battleshipEngine.Shoot(player1SecondCoordinate); 
+            var player1FirstMiss= _battleshipEngine.Shoot(player1FirstCoordinate);
+            var player2FirstMiss = _battleshipEngine.Shoot(player2FirstCoordinate);
+            var player1SecondDuplicateShot = _battleshipEngine.Shoot(player1FirstCoordinate);
+            var player2SecondMiss = _battleshipEngine.Shoot(player2FirstCoordinate);
             
             player1FirstMiss.Should().Be(ShotResult.Miss);
-            player2Miss.Should().Be(ShotResult.Miss);
-            player1Duplicate.Should().Be(ShotResult.Duplicate);
-            player1SecondMiss.Should().Be(ShotResult.Miss);
-            _mockGameBoard2.Verify(x => x.GetTile(player1FirstCoordinate), Times.Once);
-            _mockGameBoard2.Verify(x => x.GetTile(player1SecondCoordinate), Times.Once);
-            _mockGameBoard1.Verify(x => x.GetTile(player2Coordinate), Times.Once);
-            _mockGameBoard1.Verify(x => x.GetTile(player1SecondCoordinate), Times.Never);
-            _mockGameBoard1.Verify(x => x.GetTile(player1FirstCoordinate), Times.Never);
+            player2FirstMiss.Should().Be(ShotResult.Miss);
+            player1SecondDuplicateShot.Should().Be(ShotResult.Duplicate);
+            player2SecondMiss.Should().Be(ShotResult.Miss);
+            _mockGameBoard1.Verify(x => x.GetTile(player1FirstCoordinate), Times.Exactly(2));
+            _mockGameBoard2.Verify(x => x.GetTile(player2FirstCoordinate), Times.Once);
         }
 
         [Fact]
