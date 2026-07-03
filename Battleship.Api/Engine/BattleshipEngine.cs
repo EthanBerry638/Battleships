@@ -1,4 +1,5 @@
-﻿using Battleship.Api.GamePieces.Board;
+﻿using System.Diagnostics;
+using Battleship.Api.GamePieces.Board;
 using Battleship.Api.GamePieces.Data;
 using Battleship.Api.GamePieces.Entities;
 
@@ -29,6 +30,7 @@ namespace Battleship.Api.Engine
             
             if (!_shotsTaken[_currentPlayerIndex].Add(coordinate))
             {
+                SwitchTurns();
                 return ShotResult.Duplicate;
             }
 
