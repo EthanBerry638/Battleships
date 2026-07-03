@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using Battleship.Api.GamePieces.Board;
+﻿using Battleship.Api.GamePieces.Board;
 using Battleship.Api.GamePieces.Data;
 using Battleship.Api.GamePieces.Entities;
 
@@ -25,34 +24,29 @@ namespace Battleship.Api.Engine
         
         public ShotResult Shoot(Coordinate coordinate)
         {
-            var opponentBoardIndex = (_currentPlayerIndex + 1) % 2;
-            ShotResult shotResult;
-            
-            if (!_shotsTaken[_currentPlayerIndex].Add(coordinate))
-            {
-                SwitchTurns();
-                return ShotResult.Duplicate;
-            }
-
-            var tile = _gameBoards[opponentBoardIndex].GetTile(coordinate);
-
-            if (tile.HasShip)
-            {
-                var ship = tile.OccupyingShip!;
-
-                ship.RegisterHit(coordinate);
-
-                shotResult = ship.IsSunk() ? ShotResult.Sunk : ShotResult.Hit;
-            }
-            else
-            {
-                shotResult = ShotResult.Miss;
-            }
-            
+            var shotResult = GetShotResult(coordinate);
             SwitchTurns();
             return shotResult;
         }
 
+        private ShotResult GetShotResult(Coordinate coordinate)
+        {
+            if (!_shotsTaken[_currentPlayerIndex].Add(coordinate))
+            {
+                return ShotResult.Duplicate;
+            }
+            
+            var opponentIndex = (_currentPlayerIndex + 1) % 2;
+            var opponentBoard = _gameBoards[opponentIndex];
+            
+            var tile = opponentBoard.GetTile(coordinate);
+
+            if (!tile.HasShip) return ShotResult.Miss;
+            
+            tile.OccupyingShip!.RegisterHit(coordinate);
+            return tile.OccupyingShip.IsSunk() ? ShotResult.Sunk : ShotResult.Hit;
+        }
+        
         private void SwitchTurns()
         {
             _currentPlayerIndex = (_currentPlayerIndex + 1) % 2;
