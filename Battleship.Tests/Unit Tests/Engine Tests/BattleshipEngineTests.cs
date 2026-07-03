@@ -4,6 +4,7 @@ using Battleship.Api.GamePieces.Data;
 using Battleship.Api.GamePieces.Entities;
 using FluentAssertions;
 using Moq;
+using Battleship.Api.Exceptions;
 
 namespace Battleship.Tests.Unit_Tests.Engine_Tests
 {
@@ -224,6 +225,19 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
             _mockGameBoard1.Verify(x => x.GetTile(firstCoordinate), Times.Once);
             _mockGameBoard2.Verify(x => x.GetTile(passThroughCoordinate), Times.Once);
             _mockGameBoard2.Verify(x => x.GetTile(firstCoordinate), Times.Once);
+        }
+        
+        [Fact]
+        public void Shoot_PropagatesInvalidCoordinateException_WhenBoardThrowsIt()
+        {
+            var coordinate = new Coordinate(-1, 5);
+            _mockGameBoard2
+                .Setup(x => x.GetTile(coordinate))
+                .Throws(new InvalidCoordinateException($"Invalid coordinate: {coordinate}"));
+
+            var act = () => _battleshipEngine.Shoot(coordinate);
+
+            act.Should().Throw<InvalidCoordinateException>().WithMessage($"Invalid coordinate: {coordinate}");
         }
     }
 }
