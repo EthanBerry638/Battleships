@@ -1,36 +1,62 @@
 ﻿using Battleship.Api.GamePieces.Board;
 using Battleship.Api.GamePieces.Data;
 using Battleship.Api.GamePieces.Entities;
+using Battleship.Api.Exceptions;
 
 namespace Battleship.Api.Engine
 {
-    public class BattleshipEngine (IGameBoard playerOneBoard, IGameBoard playerTwoBoard, IPlayer playerOne, IPlayer playerTwo)
+    public class BattleshipEngine 
     {
-        private readonly IGameBoard[] _gameBoards = [playerOneBoard, playerTwoBoard];
-        private readonly IPlayer[] _players = [playerOne, playerTwo];
-        private readonly HashSet<Coordinate> _shotsTaken = [];
+        private readonly IGameBoard[] _gameBoards;
+        private readonly IPlayer[] _players;
+        private readonly HashSet<Coordinate>[] _shotsTaken = [ [], [] ];
         private int _currentPlayerIndex;
-        private bool _isGameOver = false;
+        
+        public BattleshipEngine(IGameBoard playerOneBoard, IGameBoard playerTwoBoard, IPlayer playerOne, IPlayer playerTwo)
+        {
+            ArgumentNullException.ThrowIfNull(playerOneBoard);
+            ArgumentNullException.ThrowIfNull(playerTwoBoard);
+            ArgumentNullException.ThrowIfNull(playerOne);
+            ArgumentNullException.ThrowIfNull(playerTwo);
+            
+            _gameBoards = [playerOneBoard, playerTwoBoard];
+            _players = [playerOne, playerTwo];
+        }
         
         public ShotResult Shoot(Coordinate coordinate)
         {
-            if (!_shotsTaken.Add(coordinate))
+            if (IsGameOver()) throw new GameOverException("Cannot shoot when game is over.");
+            var shotResult = GetShotResult(coordinate);
+            SwitchTurns();
+            return shotResult;
+        }
+
+        private ShotResult GetShotResult(Coordinate coordinate)
+        {
+            if (!_shotsTaken[_currentPlayerIndex].Add(coordinate))
             {
                 return ShotResult.Duplicate;
             }
             
-            var tile = _gameBoards[0].GetTile(coordinate);
-
-            if (tile.HasShip)
-            {
-                var ship = tile.OccupyingShip!;
-                
-                ship.RegisterHit(coordinate);
-
-                return ship.IsSunk() ? ShotResult.Sunk : ShotResult.Hit;
-            }
+            var opponentIndex = (_currentPlayerIndex + 1) % 2;
+            var opponentBoard = _gameBoards[opponentIndex];
             
-            return ShotResult.Miss;
+            var tile = opponentBoard.GetTile(coordinate);
+
+            if (!tile.HasShip) return ShotResult.Miss;
+            
+            tile.OccupyingShip!.RegisterHit(coordinate);
+            return tile.OccupyingShip.IsSunk() ? ShotResult.Sunk : ShotResult.Hit;
+        }
+        
+        private void SwitchTurns()
+        {
+            _currentPlayerIndex = (_currentPlayerIndex + 1) % 2;
+        }
+        
+        private bool IsGameOver()
+        {
+            return _gameBoards[0].AreAllShipsSunk() || _gameBoards[1].AreAllShipsSunk();
         }
     }
 }
