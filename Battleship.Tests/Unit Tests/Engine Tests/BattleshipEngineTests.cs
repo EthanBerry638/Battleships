@@ -259,7 +259,7 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
 
             act.Should()
                 .Throw<GameOverException>()
-                .WithMessage("Cannot shoot. Player 2 has sunk all of Player 1's ships.");
+                .WithMessage("Cannot shoot when game is over.");
             _mockGameBoard1.Verify(x => x.AreAllShipsSunk(), Times.Once);
         }
 
@@ -273,7 +273,7 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
 
             act.Should()
                 .Throw<GameOverException>()
-                .WithMessage("Cannot shoot. Player 1 has sunk all of Player 2's ships.");
+                .WithMessage("Cannot shoot when game is over.");
             _mockGameBoard2.Verify(x => x.AreAllShipsSunk(), Times.Once);
         }
     }

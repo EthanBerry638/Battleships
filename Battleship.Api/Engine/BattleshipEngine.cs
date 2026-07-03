@@ -25,16 +25,7 @@ namespace Battleship.Api.Engine
         
         public ShotResult Shoot(Coordinate coordinate)
         {
-            if (_gameBoards[0].AreAllShipsSunk())
-            {
-                throw new GameOverException($"Cannot shoot. Player 2 has sunk all of Player 1's ships.");
-            }
-            
-            if (_gameBoards[1].AreAllShipsSunk())
-            {
-                throw new GameOverException($"Cannot shoot. Player 1 has sunk all of Player 2's ships.");
-            }
-            
+            if (IsGameOver()) throw new GameOverException("Cannot shoot when game is over.");
             var shotResult = GetShotResult(coordinate);
             SwitchTurns();
             return shotResult;
@@ -61,6 +52,11 @@ namespace Battleship.Api.Engine
         private void SwitchTurns()
         {
             _currentPlayerIndex = (_currentPlayerIndex + 1) % 2;
+        }
+        
+        private bool IsGameOver()
+        {
+            return _gameBoards[0].AreAllShipsSunk() || _gameBoards[1].AreAllShipsSunk();
         }
     }
 }
