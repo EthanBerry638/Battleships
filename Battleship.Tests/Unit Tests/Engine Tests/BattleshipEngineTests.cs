@@ -212,23 +212,27 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
         [Fact]
         public void Shoot_ShouldTrackDuplicatesSeparately_WhenPlayer1And2TakeDuplicateShots()
         {
-            var coordinate = new Coordinate(0, 0);
+            var firstCoordinate = new Coordinate(0, 0);
+            var passThroughCoordinate = new Coordinate(1, 1);
             var tile = new Tile { OccupyingShip = null };
-            _mockGameBoard1.Setup(x => x.GetTile(coordinate)).Returns(tile);
-            _mockGameBoard2.Setup(x => x.GetTile(coordinate)).Returns(tile);
+            _mockGameBoard1.Setup(x => x.GetTile(firstCoordinate)).Returns(tile);
+            _mockGameBoard2.Setup(x => x.GetTile(passThroughCoordinate)).Returns(tile);
+            _mockGameBoard2.Setup(x => x.GetTile(firstCoordinate)).Returns(tile);
             
-            var player1Miss = _battleshipEngine.Shoot(coordinate);
-            var player2Miss = _battleshipEngine.Shoot(coordinate);
-            var player1Duplicate = _battleshipEngine.Shoot(coordinate);
-            var player2Duplicate = _battleshipEngine.Shoot(coordinate);
+            var player1Miss = _battleshipEngine.Shoot(firstCoordinate);
+            var player2Miss = _battleshipEngine.Shoot(firstCoordinate);
+            var player1Duplicate = _battleshipEngine.Shoot(firstCoordinate);
+            var player1PassThroughMiss = _battleshipEngine.Shoot(passThroughCoordinate);
+            var player2Duplicate = _battleshipEngine.Shoot(firstCoordinate);
             
             player1Miss.Should().Be(ShotResult.Miss);
             player2Miss.Should().Be(ShotResult.Miss);
             player1Duplicate.Should().Be(ShotResult.Duplicate);
+            player1PassThroughMiss.Should().Be(ShotResult.Miss);
             player2Duplicate.Should().Be(ShotResult.Duplicate);
-            
-            _mockGameBoard1.Verify(x => x.GetTile(coordinate), Times.Once);
-            _mockGameBoard2.Verify(x => x.GetTile(coordinate), Times.Once);
+            _mockGameBoard1.Verify(x => x.GetTile(firstCoordinate), Times.Once);
+            _mockGameBoard2.Verify(x => x.GetTile(passThroughCoordinate), Times.Once);
+            _mockGameBoard2.Verify(x => x.GetTile(firstCoordinate), Times.Once);
         }
     }
 }
