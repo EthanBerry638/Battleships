@@ -4,12 +4,23 @@ using Battleship.Api.GamePieces.Entities;
 
 namespace Battleship.Api.Engine
 {
-    public class BattleshipEngine (IGameBoard playerOneBoard, IGameBoard playerTwoBoard, IPlayer playerOne, IPlayer playerTwo)
+    public class BattleshipEngine 
     {
-        private readonly IGameBoard[] _gameBoards = [playerOneBoard, playerTwoBoard];
-        private readonly IPlayer[] _players = [playerOne, playerTwo];
-        private readonly HashSet<Coordinate>[] _shotsTaken = { [], [] };
+        private readonly IGameBoard[] _gameBoards;
+        private readonly IPlayer[] _players;
+        private readonly HashSet<Coordinate>[] _shotsTaken = [ [], [] ];
         private int _currentPlayerIndex;
+        
+        public BattleshipEngine(IGameBoard playerOneBoard, IGameBoard playerTwoBoard, IPlayer playerOne, IPlayer playerTwo)
+        {
+            ArgumentNullException.ThrowIfNull(playerOneBoard);
+            ArgumentNullException.ThrowIfNull(playerTwoBoard);
+            ArgumentNullException.ThrowIfNull(playerOne);
+            ArgumentNullException.ThrowIfNull(playerTwo);
+            
+            _gameBoards = [playerOneBoard, playerTwoBoard];
+            _players = [playerOne, playerTwo];
+        }
         
         public ShotResult Shoot(Coordinate coordinate)
         {
