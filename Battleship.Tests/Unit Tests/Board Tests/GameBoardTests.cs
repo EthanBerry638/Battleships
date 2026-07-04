@@ -222,5 +222,49 @@ namespace Battleship.Tests.Unit_Tests.Board_Tests
                 ship.Verify(s => s.IsSunk(), Times.Once);
             }
         }
+
+        [Theory]
+        [MemberData(nameof(MissingShipTestData))]
+        public void ValidateFleet_ShouldReturnFailureWithListOfShips_WhenFleetIsMissingShips(List<ShipType> presentShipTypes, ShipType missingShipType)
+        {
+            var gameBoard = new GameBoard();
+            var ships = presentShipTypes.Select((type, index) =>
+            {
+                var ship = new Mock<IShip>();
+                ship.Setup(s => s.Type).Returns(type);
+                ship.Setup(s => s.Coordinates).Returns([new Coordinate(index, 0)]);
+                return ship.Object;
+            }).ToList();
+            foreach (var ship in ships)
+            {
+                gameBoard.PlaceShip(ship);
+            }
+
+            var result = gameBoard.ValidateFleet();
+            
+            result.IsValid.Should().BeFalse();
+            result.MissingShips.Count.Should().Be(1);
+            result.MissingShips[0].Should().Be(missingShipType);
+            result.ExtraShips.Should().BeEmpty();
+        }
+        
+        public static IEnumerable<object[]> MissingShipTestData()
+        {
+            var allShipTypes = new[]
+            {
+                ShipType.Carrier,
+                ShipType.Battleship,
+                ShipType.Destroyer,
+                ShipType.Submarine,
+                ShipType.PatrolBoat
+            };
+
+            foreach (var missingType in allShipTypes)
+            {
+                yield return [allShipTypes.
+                    Where(t => t != missingType)
+                    .ToList(), missingType];
+            }
+        }
     }
 }
