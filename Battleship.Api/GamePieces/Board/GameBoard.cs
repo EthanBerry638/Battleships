@@ -63,5 +63,10 @@ namespace Battleship.Api.GamePieces.Board
 
             return ships.All(s => s.IsSunk());
         }
+
+        public FleetValidationResult ValidateFleet()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
