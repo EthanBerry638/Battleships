@@ -98,7 +98,7 @@ namespace Battleship.Api.GamePieces.Board
 
             return new FleetValidationResult
             (
-                false,
+                extraShips.Count == 0 && missingShips.Count == 0,
                 missingShips,
                 extraShips
             );

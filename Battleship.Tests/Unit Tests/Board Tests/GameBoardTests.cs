@@ -308,5 +308,39 @@ namespace Battleship.Tests.Unit_Tests.Board_Tests
                 yield return [allShipTypes.Concat([extraType]).ToList(), extraType];
             }
         }
+
+        [Fact]
+        public void ValidateFleet_ShouldReturnSuccess_WhenFleetHasExactlyAllShips()
+        {
+            var gameBoard = new GameBoard();
+            var expectedFleet = new List<ShipType>
+            {
+                ShipType.Carrier,
+                ShipType.Battleship,
+                ShipType.Destroyer,
+                ShipType.Submarine,
+                ShipType.PatrolBoat
+            };
+            var ships = new List<Mock<IShip>>
+            {
+                new (),
+                new (),
+                new (),
+                new (),
+                new ()
+            };
+            for (int i  = 0; i < ships.Count; i++)
+            {
+                ships[i].Setup(s => s.Type).Returns(expectedFleet[i]);
+                ships[i].Setup(s => s.Coordinates).Returns([new Coordinate(i, 0)]);
+                gameBoard.PlaceShip(ships[i].Object);
+            }
+
+            var result = gameBoard.ValidateFleet();
+
+            result.IsValid.Should().BeTrue();
+            result.ExtraShips.Should().BeEmpty();
+            result.MissingShips.Should().BeEmpty();
+        }
     }
 }
