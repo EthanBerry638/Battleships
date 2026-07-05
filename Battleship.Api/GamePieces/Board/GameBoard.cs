@@ -66,7 +66,34 @@ namespace Battleship.Api.GamePieces.Board
 
         public FleetValidationResult ValidateFleet()
         {
-            throw new NotImplementedException();
+            var ships = new HashSet<IShip>();
+            
+            var requiredFleet = new List<ShipType>
+            {
+                ShipType.Carrier,
+                ShipType.Battleship,
+                ShipType.Destroyer,
+                ShipType.Submarine,
+                ShipType.PatrolBoat
+            };
+
+            foreach (var tile in _board)
+            {
+                if (tile.HasShip)
+                {
+                    ships.Add(tile.OccupyingShip!);
+                }
+            }
+
+            var placedTypes = ships.Select(s => s.Type).ToList();
+            var missingShips = requiredFleet.Except(placedTypes).ToList();
+
+            return new FleetValidationResult
+            (
+                false,
+                missingShips,
+                []
+            );
         }
     }
 }
