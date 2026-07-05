@@ -1,4 +1,5 @@
-﻿using Battleship.Api.GamePieces.Data;
+﻿using System.Diagnostics.CodeAnalysis;
+using Battleship.Api.GamePieces.Data;
 using Battleship.Api.Exceptions;
 using Battleship.Api.GamePieces.Entities;
 namespace Battleship.Api.GamePieces.Board
@@ -82,12 +83,24 @@ namespace Battleship.Api.GamePieces.Board
                 .ToHashSet();
             var placedTypes = ships.Select(s => s.Type).ToList();
             var missingShips = RequiredFleet.Except(placedTypes).ToList();
+            var expectedFleetCount = RequiredFleet
+                .GroupBy(type => type)
+                .ToDictionary(g => g.Key, g => g.Count());
+            var actualFleetCount = placedTypes
+                .GroupBy(type => type)
+                .ToDictionary(g => g.Key, g => g.Count());
+            var extraShips = actualFleetCount.SelectMany(placedShipGroup =>
+                {
+                    int extraCount = placedShipGroup.Value - expectedFleetCount[placedShipGroup.Key];
+                    
+                    return Enumerable.Repeat(placedShipGroup.Key, extraCount);
+                }).ToList();
 
             return new FleetValidationResult
             (
                 false,
                 missingShips,
-                []
+                extraShips
             );
         }
     }
