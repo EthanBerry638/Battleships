@@ -342,5 +342,29 @@ namespace Battleship.Tests.Unit_Tests.Board_Tests
             result.ExtraShips.Should().BeEmpty();
             result.MissingShips.Should().BeEmpty();
         }
+        
+        [Fact]
+        public void ValidateFleet_ShouldNotDuplicateCount_WhenShipOccupiesMultipleTiles()
+        {
+            var gameBoard = new GameBoard();
+            var multiTileShip = new Mock<IShip>();
+    
+            multiTileShip.Setup(s => s.Type).Returns(ShipType.Carrier);
+            multiTileShip.Setup(s => s.Coordinates).Returns([
+                new Coordinate(0, 0), 
+                new Coordinate(1, 0), 
+                new Coordinate(2, 0), 
+                new Coordinate(3, 0), 
+                new Coordinate(4, 0)
+            ]);
+
+            gameBoard.PlaceShip(multiTileShip.Object);
+
+            var result = gameBoard.ValidateFleet();
+
+            result.ExtraShips.Should().NotContain(ShipType.Carrier);
+            result.MissingShips.Should().NotContain(ShipType.Carrier);
+            result.MissingShips.Count.Should().Be(4); 
+        }
     }
 }
