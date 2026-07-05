@@ -6,6 +6,15 @@ namespace Battleship.Api.GamePieces.Board
     public class GameBoard : IGameBoard
     {
         private readonly Tile[,] _board = new Tile[10, 10];
+        
+        private static readonly List<ShipType> RequiredFleet =
+        [
+            ShipType.Carrier,
+            ShipType.Battleship,
+            ShipType.Destroyer,
+            ShipType.Submarine,
+            ShipType.PatrolBoat
+        ];
 
         public GameBoard()
         {   
@@ -66,27 +75,13 @@ namespace Battleship.Api.GamePieces.Board
 
         public FleetValidationResult ValidateFleet()
         {
-            var ships = new HashSet<IShip>();
-            
-            var requiredFleet = new List<ShipType>
-            {
-                ShipType.Carrier,
-                ShipType.Battleship,
-                ShipType.Destroyer,
-                ShipType.Submarine,
-                ShipType.PatrolBoat
-            };
-
-            foreach (var tile in _board)
-            {
-                if (tile.HasShip)
-                {
-                    ships.Add(tile.OccupyingShip!);
-                }
-            }
-
+            var ships = _board
+                .Cast<Tile>()
+                .Where(t => t.HasShip)
+                .Select(t => t.OccupyingShip!)
+                .ToHashSet();
             var placedTypes = ships.Select(s => s.Type).ToList();
-            var missingShips = requiredFleet.Except(placedTypes).ToList();
+            var missingShips = RequiredFleet.Except(placedTypes).ToList();
 
             return new FleetValidationResult
             (
