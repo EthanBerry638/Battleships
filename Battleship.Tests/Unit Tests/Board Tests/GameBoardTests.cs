@@ -266,5 +266,47 @@ namespace Battleship.Tests.Unit_Tests.Board_Tests
                     .ToList(), missingType];
             }
         }
+        
+        [Theory]
+        [MemberData(nameof(ExtraShipTestData))]
+        public void ValidateFleet_ShouldReturnFailureWithListOfExtraShips_WhenFleetHasExtraShips(List<ShipType> presentShipTypes, ShipType extraShipType)
+        {
+            var gameBoard = new GameBoard();
+            var ships = presentShipTypes.Select((type, index) =>
+            {
+                var ship = new Mock<IShip>();
+                ship.Setup(s => s.Type).Returns(type);
+                ship.Setup(s => s.Coordinates).Returns([new Coordinate(index, 0)]);
+                return ship.Object;
+            }).ToList();
+            foreach (var ship in ships)
+            {
+                gameBoard.PlaceShip(ship);
+            }
+
+            var result = gameBoard.ValidateFleet();
+
+            result.IsValid.Should().BeFalse();
+            result.ExtraShips.Count.Should().Be(1);
+            result.ExtraShips[0].Should().Be(extraShipType);
+            result.MissingShips.Should().BeEmpty();
+        }
+
+        public static IEnumerable<object[]> ExtraShipTestData()
+        {
+            var allShipTypes = new[]
+            {
+                ShipType.Carrier,
+                ShipType.Battleship,
+                ShipType.Destroyer,
+                ShipType.Submarine,
+                ShipType.PatrolBoat
+            };
+
+            foreach (var extraType in allShipTypes)
+            {
+                yield return [allShipTypes.Concat([extraType]).ToList(), extraType];
+            }
+        }
     }
 }
