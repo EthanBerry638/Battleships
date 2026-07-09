@@ -12,6 +12,7 @@ namespace Battleship.Api.Engine
         private readonly HashSet<Coordinate>[] _shotsTaken = [ [], [] ];
         private int _currentPlayerIndex;
         private GameState _gameState;
+        public GameState GameState => _gameState;
         
         public BattleshipEngine(IGameBoard playerOneBoard, IGameBoard playerTwoBoard, IPlayer playerOne, IPlayer playerTwo)
         {
