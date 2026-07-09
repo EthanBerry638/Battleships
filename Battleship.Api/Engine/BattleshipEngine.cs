@@ -29,19 +29,10 @@ namespace Battleship.Api.Engine
         
         public ShotResult Shoot(Player player, Coordinate coordinate)
         {
-            if (player != CurrentPlayer)
-                throw new NotYourTurnException("Cannot shoot when it is not your turn.");
-            
-            switch (_gameState)
-            {
-                case GameState.Setup:
-                    throw new GameNotStartedException("Cannot shoot when game is not started.");
-                case GameState.Finished:
-                    throw new GameOverException("Cannot shoot when game is over.");
-            }
+            ValidateShotPreconditions(player);
 
             var shotResult = GetShotResult(coordinate);
-            
+    
             CheckGameState();
 
             if (_gameState is not GameState.Finished)
@@ -50,6 +41,18 @@ namespace Battleship.Api.Engine
             }
 
             return shotResult;
+        }
+
+        private void ValidateShotPreconditions(Player player)
+        {
+            if (player != CurrentPlayer)
+                throw new NotYourTurnException("Cannot shoot when it is not your turn.");
+
+            if (_gameState is GameState.Setup)
+                throw new GameNotStartedException("Cannot shoot when game is not started.");
+
+            if (_gameState is GameState.Finished)
+                throw new GameOverException("Cannot shoot when game is over.");
         }
 
         private ShotResult GetShotResult(Coordinate coordinate)
