@@ -81,10 +81,6 @@ namespace Battleship.Api.Engine
                 _gameState = GameState.Finished;
                 _winner = _players[0];
             }
-            else
-            {
-                _gameState = GameState.Playing;
-            }
         }
 
         public GameStartResult TryStartGame()
