@@ -12,6 +12,7 @@ namespace Battleship.Api.Engine
         private readonly HashSet<Coordinate>[] _shotsTaken = [ [], [] ];
         private int _currentPlayerIndex;
         private GameState _gameState;
+        private Player? _winner;
         public GameState GameState => _gameState;
         public Player CurrentPlayer => _players[_currentPlayerIndex];
         
@@ -60,8 +61,20 @@ namespace Battleship.Api.Engine
         
         private void CheckGameState()
         {
-            _gameState = _gameBoards[0].AreAllShipsSunk() || _gameBoards[1].AreAllShipsSunk() 
-                ? GameState.Finished : GameState.Playing;
+            if (_gameBoards[0].AreAllShipsSunk())
+            {
+                _gameState = GameState.Finished;
+                _winner = _players[1];
+            }
+            else if (_gameBoards[1].AreAllShipsSunk())
+            {
+                _gameState = GameState.Finished;
+                _winner = _players[0];
+            }
+            else
+            {
+                _gameState = GameState.Playing;
+            }
         }
 
         public GameStartResult TryStartGame()
@@ -82,9 +95,9 @@ namespace Battleship.Api.Engine
 
         public Player? GetWinner()
         {
-            if (_gameState is not GameState.Finished) return null;
-
-            return new Player("placeholder");
+            CheckGameState();
+            
+            return _gameState is not GameState.Finished ? null : _winner;
         }
     }
 }

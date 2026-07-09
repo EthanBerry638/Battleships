@@ -345,7 +345,7 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
             result.Should().Be(_player2);
             _battleshipEngine.GameState.Should().Be(GameState.Finished);
             _mockGameBoard1.Verify(x => x.AreAllShipsSunk(), Times.Once);
-            _mockGameBoard2.Verify(x => x.AreAllShipsSunk(), Times.Once);
+            _mockGameBoard2.Verify(x => x.AreAllShipsSunk(), Times.Never);
         }
         
         [Fact]
