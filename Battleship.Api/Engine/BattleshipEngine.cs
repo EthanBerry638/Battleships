@@ -29,7 +29,7 @@ namespace Battleship.Api.Engine
         public ShotResult Shoot(Coordinate coordinate)
         {
             CheckGameState();
-            if (_gameState == GameState.Finished) throw new GameOverException("Cannot shoot when game is over.");
+            if (_gameState is GameState.Finished) throw new GameOverException("Cannot shoot when game is over.");
             var shotResult = GetShotResult(coordinate);
             SwitchTurns();
             return shotResult;
@@ -66,7 +66,7 @@ namespace Battleship.Api.Engine
 
         public GameStartResult TryStartGame()
         {
-            if (_gameState == GameState.Playing) return GameStartResult.AlreadyStarted();
+            if (_gameState is GameState.Playing) return GameStartResult.AlreadyStarted();
             
             var board1Check = _gameBoards[0].ValidateFleet();
             var board2Check = _gameBoards[1].ValidateFleet();
@@ -82,7 +82,9 @@ namespace Battleship.Api.Engine
 
         public Player? GetWinner()
         {
-            return null;
+            if (_gameState is not GameState.Finished) return null;
+
+            return new Player("placeholder");
         }
     }
 }
