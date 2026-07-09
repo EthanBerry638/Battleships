@@ -251,22 +251,6 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
             act.Should().Throw<InvalidCoordinateException>().WithMessage($"Invalid coordinate: {coordinate}");
         }
         
-        [Fact]
-        public void BattleShipEngineConstructor_ShouldThrowArgumentNullException_WhenAnyArgumentIsNull()
-        {
-            var board = new Mock<IGameBoard>().Object;
-            var player = new Player("Test Player");
-
-            FluentActions.Invoking(() => new BattleshipEngine(null!, board, player, player))
-                .Should().Throw<ArgumentNullException>();
-            FluentActions.Invoking(() => new BattleshipEngine(board, null!, player, player))
-                .Should().Throw<ArgumentNullException>();
-            FluentActions.Invoking(() => new BattleshipEngine(board, board, null!, player))
-                .Should().Throw<ArgumentNullException>();
-            FluentActions.Invoking(() => new BattleshipEngine(board, board, player, null!))
-                .Should().Throw<ArgumentNullException>();
-        }
-
         [Theory]
         [InlineData(true, false)]  
         [InlineData(false, true)]  
@@ -290,7 +274,7 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
         }
         
         [Fact]
-        public void Shoot_ThrowsException_WhenGameIsInSetupPhase()
+        public void Shoot_ShouldThrowGameNotStartedException_WhenGameIsInSetupPhase()
         {
             var act = () => _battleshipEngine.Shoot(_player1, It.IsAny<Coordinate>());
             
@@ -298,6 +282,34 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
             act.Should()
                 .Throw<GameNotStartedException>()
                 .WithMessage("Cannot shoot when game is not started.");
+        }
+        
+        [Fact]
+        public void Shoot_ShouldThrowNotYourTurnException_WhenAPlayerTriesToShootOutOfTurn()
+        {
+            StartGame();
+            
+            var act = () => _battleshipEngine.Shoot(_player2, It.IsAny<Coordinate>());
+
+            act.Should()
+                .Throw<NotYourTurnException>()
+                .WithMessage("Cannot shoot when it is not your turn.");
+        }
+        
+        [Fact]
+        public void BattleShipEngineConstructor_ShouldThrowArgumentNullException_WhenAnyArgumentIsNull()
+        {
+            var board = new Mock<IGameBoard>().Object;
+            var player = new Player("Test Player");
+
+            FluentActions.Invoking(() => new BattleshipEngine(null!, board, player, player))
+                .Should().Throw<ArgumentNullException>();
+            FluentActions.Invoking(() => new BattleshipEngine(board, null!, player, player))
+                .Should().Throw<ArgumentNullException>();
+            FluentActions.Invoking(() => new BattleshipEngine(board, board, null!, player))
+                .Should().Throw<ArgumentNullException>();
+            FluentActions.Invoking(() => new BattleshipEngine(board, board, player, null!))
+                .Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
