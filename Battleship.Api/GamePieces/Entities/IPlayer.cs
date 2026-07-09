@@ -4,5 +4,5 @@ namespace Battleship.Api.GamePieces.Entities;
 
 public interface IPlayer
 {
-    ShotResult Shoot(Coordinate coordinate);
+    string Name { get; }    
 }

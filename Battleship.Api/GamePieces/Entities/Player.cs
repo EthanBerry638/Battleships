@@ -2,10 +2,13 @@
 
 namespace Battleship.Api.GamePieces.Entities;
 
-public class Player : IPlayer
+public record Player : IPlayer
 {
-    public ShotResult Shoot(Coordinate coordinate)
+    public string Name { get; }
+
+    public Player(string name)
     {
-        throw new NotImplementedException();
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        Name = name;
     }
-}
+}       
