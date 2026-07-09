@@ -264,5 +264,14 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
                 .Throw<GameOverException>()
                 .WithMessage("Cannot shoot when game is over.");
         }
+
+        [Fact]
+        public void TryStartGame_ShouldReturnFalse_WhenGameIsAlreadyStarted()
+        {
+            var result = _battleshipEngine.TryStartGame();
+            
+            result.Should().BeFalse();
+            _battleshipEngine.GameState.Should().Be(GameState.Setup);
+        }
     }
 }
