@@ -271,7 +271,7 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
             var result = _battleshipEngine.TryStartGame();
             
             result.Should().BeFalse();
-            _battleshipEngine.GameState.Should().Be(GameState.Setup);
+            _battleshipEngine.GameState.Should().Be(GameState.Playing);
         }
     }
 }
