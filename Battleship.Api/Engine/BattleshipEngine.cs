@@ -11,7 +11,7 @@ namespace Battleship.Api.Engine
         private readonly IPlayer[] _players;
         private readonly HashSet<Coordinate>[] _shotsTaken = [ [], [] ];
         private int _currentPlayerIndex;
-        public GameState GameState;
+        private GameState _gameState;
         
         public BattleshipEngine(IGameBoard playerOneBoard, IGameBoard playerTwoBoard, IPlayer playerOne, IPlayer playerTwo)
         {
@@ -27,7 +27,7 @@ namespace Battleship.Api.Engine
         public ShotResult Shoot(Coordinate coordinate)
         {
             CheckGameState();
-            if (GameState == GameState.Finished) throw new GameOverException("Cannot shoot when game is over.");
+            if (_gameState == GameState.Finished) throw new GameOverException("Cannot shoot when game is over.");
             var shotResult = GetShotResult(coordinate);
             SwitchTurns();
             return shotResult;
@@ -58,8 +58,13 @@ namespace Battleship.Api.Engine
         
         private void CheckGameState()
         {
-            GameState = _gameBoards[0].AreAllShipsSunk() || _gameBoards[1].AreAllShipsSunk() 
+            _gameState = _gameBoards[0].AreAllShipsSunk() || _gameBoards[1].AreAllShipsSunk() 
                 ? GameState.Finished : GameState.Playing;
+        }
+
+        public bool TryStartGame()
+        {
+            return true;
         }
     }
 }
