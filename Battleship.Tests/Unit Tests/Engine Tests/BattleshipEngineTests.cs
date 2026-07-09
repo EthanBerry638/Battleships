@@ -204,7 +204,7 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
             var player1FirstMiss= _battleshipEngine.Shoot(_player1, player1FirstCoordinate);
             var player2FirstMiss = _battleshipEngine.Shoot(_player2, player2FirstCoordinate);
             var player1SecondDuplicateShot = _battleshipEngine.Shoot(_player1, player1FirstCoordinate);
-            var player2SecondMiss = _battleshipEngine.Shoot(_player1, player2SecondCoordinate);
+            var player2SecondMiss = _battleshipEngine.Shoot(_player2, player2SecondCoordinate);
             
             player1FirstMiss.Should().Be(ShotResult.Miss);
             player2FirstMiss.Should().Be(ShotResult.Miss);
@@ -227,7 +227,7 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
             var player1Miss = _battleshipEngine.Shoot(_player1, firstCoordinate);
             var player2Miss = _battleshipEngine.Shoot(_player2, firstCoordinate);
             var player1Duplicate = _battleshipEngine.Shoot(_player1, firstCoordinate);
-            var player2Duplicate = _battleshipEngine.Shoot(_player1, firstCoordinate);
+            var player2Duplicate = _battleshipEngine.Shoot(_player2, firstCoordinate);
             
             player1Miss.Should().Be(ShotResult.Miss);
             player2Miss.Should().Be(ShotResult.Miss);
@@ -266,7 +266,7 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
             _mockGameBoard2.Setup(x => x.AreAllShipsSunk()).Returns(playerTwoSunk);
             
             _battleshipEngine.Shoot(_player1, validCoordinate);
-            var act = () => _battleshipEngine.Shoot(_player2, new Coordinate(1, 1));
+            var act = () => _battleshipEngine.Shoot(_player1, new Coordinate(1, 1));
     
             act.Should()
                 .Throw<GameOverException>()
