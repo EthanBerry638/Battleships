@@ -27,9 +27,17 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
             _battleshipEngine = new(_mockGameBoard1.Object, _mockGameBoard2.Object, _player1, _player2);
         }
         
+        private void StartGame()
+        {
+            _mockGameBoard1.Setup(x => x.ValidateFleet()).Returns(new FleetValidationResult(true, [], []));
+            _mockGameBoard2.Setup(x => x.ValidateFleet()).Returns(new FleetValidationResult(true, [], []));
+            _battleshipEngine.TryStartGame();
+        }
+        
         [Fact]
         public void Shoot_ReturnsHit_WhenTileHasShip()
         {
+            StartGame();
             var coordinate = new Coordinate(0, 0);
             _mockShip.Setup(s => s.IsSunk()).Returns(false);
             var tile = new Tile { OccupyingShip = _mockShip.Object };
@@ -46,6 +54,7 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
         [Fact]
         public void Shoot_ReturnsMiss_WhenTileHasNoShip()
         {
+            StartGame();
             var coordinate = new Coordinate(0, 0);
             var tile = new Tile { OccupyingShip = null };
             _mockGameBoard2.Setup(x => x.GetTile(coordinate)).Returns(tile);
@@ -61,6 +70,7 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
         [Fact]
         public void Shoot_ReturnsSunk_WhenShipIsDestroyed()
         {
+            StartGame();
             var coordinate = new Coordinate(0, 0);
             _mockShip.Setup(s => s.IsSunk()).Returns(true);
             var tile = new Tile { OccupyingShip = _mockShip.Object };
@@ -77,6 +87,7 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
         [Fact]
         public void Shoot_ReturnsDuplicate_WhenSameHitCoordinateIsShotTwice()
         {
+            StartGame();
             var coordinate = new Coordinate(0, 0);
             var player2Coordinate = new Coordinate(1, 1);
             _mockShip.Setup(s => s.IsSunk()).Returns(false);
@@ -99,6 +110,7 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
         [Fact]
         public void Shoot_ReturnsDuplicate_WhenSameMissCoordinateIsShotTwice()
         {
+            StartGame();
             var coordinate = new Coordinate(0, 0);
             var player2Coordinate = new Coordinate(1, 1);
             var tile = new Tile { OccupyingShip = null };
@@ -118,6 +130,7 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
         [Fact]
         public void Shoot_ReturnsDuplicate_WhenAlreadySunkCoordinateIsShotAgain()
         {
+            StartGame();
             var coordinate = new Coordinate(0, 0);
             var player2Coordinate = new Coordinate(1, 1);
             _mockShip.Setup(s => s.IsSunk()).Returns(true);
@@ -140,6 +153,7 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
         [Fact]
         public void Shoot_OnlyAffectsPlayer2sBoard_WhenShootIsCalledOnceByPlayer1AndIsSuccessful()
         {
+            StartGame();
             var coordinate = new Coordinate(0, 0);
             var tile = new  Tile { OccupyingShip = _mockShip.Object };
             _mockShip.Setup(s => s.IsSunk()).Returns(true);
@@ -157,6 +171,7 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
         [Fact]
         public void Shoot_OnlyAffectsPlayer1sBoard_WhenShootIsCalledByPlayer2AndIsSuccessful()
         {
+            StartGame();
             var player1Coordinate = new Coordinate(1, 1);
             var player2Coordinate = new Coordinate(0, 0);
             var tile = new Tile { OccupyingShip = _mockShip.Object };
@@ -177,6 +192,7 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
         [Fact]
         public void Shoot_SwitchesTurn_WhenDuplicateShotIsFired()
         {
+            StartGame();
             var player1FirstCoordinate = new Coordinate(0, 0);
             var player2FirstCoordinate = new Coordinate(1, 1);
             var player2SecondCoordinate = new Coordinate(1, 2);
@@ -202,6 +218,7 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
         [Fact]
         public void Shoot_ShouldTrackDuplicatesSeparately_WhenPlayer1And2TakeDuplicateShots()
         {
+            StartGame();
             var firstCoordinate = new Coordinate(0, 0);
             var tile = new Tile { OccupyingShip = null };
             _mockGameBoard1.Setup(x => x.GetTile(firstCoordinate)).Returns(tile);
@@ -223,6 +240,7 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
         [Fact]
         public void Shoot_PropagatesInvalidCoordinateException_WhenBoardThrowsIt()
         {
+            StartGame();
             var coordinate = new Coordinate(-1, 5);
             _mockGameBoard2
                 .Setup(x => x.GetTile(coordinate))
@@ -255,6 +273,7 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
         [InlineData(true, true)]   
         public void Shoot_ShouldThrowGameOverException_WhenAnyPlayersShipsAreAllSunk(bool playerOneSunk, bool playerTwoSunk)
         {
+            StartGame();
             _mockGameBoard1.Setup(x => x.AreAllShipsSunk()).Returns(playerOneSunk);
             _mockGameBoard2.Setup(x => x.AreAllShipsSunk()).Returns(playerTwoSunk);
             
@@ -349,6 +368,7 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
         [MemberData(nameof(WinnerTestData))]
         public void GetWinner_ShouldReturnCorrectPlayer_WhenGameIsOver(bool board1Sunk, bool board2Sunk, Player expectedWinner)
         {
+            StartGame();
             _mockGameBoard1.Setup(x => x.AreAllShipsSunk()).Returns(board1Sunk);
             _mockGameBoard2.Setup(x => x.AreAllShipsSunk()).Returns(board2Sunk);
 
