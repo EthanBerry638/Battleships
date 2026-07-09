@@ -13,6 +13,7 @@ namespace Battleship.Api.Engine
         private int _currentPlayerIndex;
         private GameState _gameState;
         public GameState GameState => _gameState;
+        public IPlayer CurrentPlayer => _players[_currentPlayerIndex];
         
         public BattleshipEngine(IGameBoard playerOneBoard, IGameBoard playerTwoBoard, IPlayer playerOne, IPlayer playerTwo)
         {
