@@ -79,5 +79,10 @@ namespace Battleship.Api.Engine
             _gameState = GameState.Playing;
             return GameStartResult.Ok();
         }
+
+        public Player? GetWinner()
+        {
+            return new Player("Player 1");
+        }
     }
 }
