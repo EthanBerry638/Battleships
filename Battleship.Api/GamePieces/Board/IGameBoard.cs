@@ -6,6 +6,7 @@ namespace Battleship.Api.GamePieces.Board;
 public interface IGameBoard
 {
     Tile GetTile(Coordinate coordinate);
-    bool AreAllShipsSunk();
+    PlacementResult PlaceShip(IShip ship);
+    bool AreAllShipsSunk();     
     FleetValidationResult ValidateFleet();
 }
