@@ -264,7 +264,7 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
                 .Throw<GameOverException>()
                 .WithMessage("Cannot shoot when game is over.");
         }
-
+        
         [Fact] // Still wont pass yet
         public void TryStartGame_ShouldReturnFalse_WhenGameIsAlreadyStarted()
         {
@@ -273,5 +273,32 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
             result.Should().BeFalse();
             _battleshipEngine.GameState.Should().Be(GameState.Playing);
         } 
+        
+        [Theory]
+        [MemberData(nameof(InvalidFleetTestData))]
+        public void TryStartGame_ShouldReturnFalse_WhenAnyFleetIsInvalid(
+            FleetValidationResult board1Result, 
+            FleetValidationResult board2Result)
+        {
+            _mockGameBoard1.Setup(x => x.ValidateFleet()).Returns(board1Result);
+            _mockGameBoard2.Setup(x => x.ValidateFleet()).Returns(board2Result);
+
+            var result = _battleshipEngine.TryStartGame();
+
+            result.Should().BeFalse();
+            _battleshipEngine.GameState.Should().Be(GameState.Setup);
+            _mockGameBoard1.Verify(x => x.ValidateFleet(), Times.Once);
+            _mockGameBoard2.Verify(x => x.ValidateFleet(), Times.Once);
+        }
+
+        public static IEnumerable<object[]> InvalidFleetTestData()
+        {
+            var invalid = new FleetValidationResult(false, [], []);
+            var valid = new FleetValidationResult(true, [], []);
+
+            yield return [invalid, valid];  
+            yield return [valid, invalid]; 
+            yield return [invalid, invalid]; 
+        }
     }
 }
