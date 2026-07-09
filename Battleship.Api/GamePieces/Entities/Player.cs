@@ -2,7 +2,7 @@
 
 namespace Battleship.Api.GamePieces.Entities;
 
-public record Player : IPlayer
+public record Player
 {
     public string Name { get; }
 

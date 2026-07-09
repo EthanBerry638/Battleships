@@ -12,8 +12,8 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
     {
         private readonly Mock<IGameBoard> _mockGameBoard1;
         private readonly Mock<IGameBoard> _mockGameBoard2;
-        private readonly Mock<IPlayer> _mockPlayer1;
-        private readonly Mock<IPlayer> _mockPlayer2;
+        private readonly Player _player1;
+        private readonly Player _player2;
         private readonly Mock<IShip> _mockShip;
         private readonly BattleshipEngine _battleshipEngine;
 
@@ -21,10 +21,10 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
         {
             _mockGameBoard1 = new();
             _mockGameBoard2 = new();
-            _mockPlayer1 = new();
-            _mockPlayer2 = new();
+            _player1 = new("Player 1");
+            _player2 = new("Player 2");
             _mockShip = new();
-            _battleshipEngine = new(_mockGameBoard1.Object, _mockGameBoard2.Object, _mockPlayer1.Object, _mockPlayer2.Object);
+            _battleshipEngine = new(_mockGameBoard1.Object, _mockGameBoard2.Object, _player1, _player2);
         }
         
         [Fact]
@@ -237,7 +237,7 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
         public void BattleShipEngineConstructor_ShouldThrowArgumentNullException_WhenAnyArgumentIsNull()
         {
             var board = new Mock<IGameBoard>().Object;
-            var player = new Mock<IPlayer>().Object;
+            var player = new Player("Test Player");
 
             FluentActions.Invoking(() => new BattleshipEngine(null!, board, player, player))
                 .Should().Throw<ArgumentNullException>();

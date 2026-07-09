@@ -8,14 +8,14 @@ namespace Battleship.Api.Engine
     public class BattleshipEngine 
     {
         private readonly IGameBoard[] _gameBoards;
-        private readonly IPlayer[] _players;
+        private readonly Player[] _players;
         private readonly HashSet<Coordinate>[] _shotsTaken = [ [], [] ];
         private int _currentPlayerIndex;
         private GameState _gameState;
         public GameState GameState => _gameState;
-        public IPlayer CurrentPlayer => _players[_currentPlayerIndex];
+        public Player CurrentPlayer => _players[_currentPlayerIndex];
         
-        public BattleshipEngine(IGameBoard playerOneBoard, IGameBoard playerTwoBoard, IPlayer playerOne, IPlayer playerTwo)
+        public BattleshipEngine(IGameBoard playerOneBoard, IGameBoard playerTwoBoard, Player playerOne, Player playerTwo)
         {
             ArgumentNullException.ThrowIfNull(playerOneBoard);
             ArgumentNullException.ThrowIfNull(playerTwoBoard);
