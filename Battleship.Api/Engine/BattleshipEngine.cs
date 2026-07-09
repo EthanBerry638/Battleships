@@ -65,7 +65,7 @@ namespace Battleship.Api.Engine
 
         public bool TryStartGame()
         {
-            return true;
+            return false;
         }
     }
 }
