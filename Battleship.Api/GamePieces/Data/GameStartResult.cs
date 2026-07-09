@@ -13,4 +13,5 @@ public record GameStartResult
 
     public static GameStartResult Ok() => new(true, null);
     public static GameStartResult Invalid(FleetValidationResult[] errors) => new(false, errors);
+    public static GameStartResult AlreadyStarted() => new(false, null);
 }
