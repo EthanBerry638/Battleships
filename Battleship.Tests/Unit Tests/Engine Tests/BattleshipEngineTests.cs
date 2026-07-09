@@ -324,5 +324,14 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
             _mockGameBoard1.Verify(x => x.ValidateFleet(), Times.Once);
             _mockGameBoard2.Verify(x => x.ValidateFleet(), Times.Once);
         }
+
+        [Fact]
+        public void GetWinner_ShouldReturnNull_WhenGameIsNotOver()
+        {
+            var result = _battleshipEngine.GetWinner();
+
+            result.Should().BeNull();
+            _battleshipEngine.GameState.Should().NotBe(GameState.Finished);
+        }
     }
 }
