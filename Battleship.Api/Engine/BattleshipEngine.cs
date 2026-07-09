@@ -64,8 +64,13 @@ namespace Battleship.Api.Engine
         }
 
         public bool TryStartGame()
-        {
-            return false;
+        { 
+            bool board1Valid = _gameBoards[0].ValidateFleet().IsValid;
+            bool board2Valid = _gameBoards[1].ValidateFleet().IsValid;
+
+            if (!board1Valid || !board2Valid) return false;
+
+            return true;
         }
     }
 }
