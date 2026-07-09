@@ -29,6 +29,9 @@ namespace Battleship.Api.Engine
         
         public ShotResult Shoot(Player player, Coordinate coordinate)
         {
+            if (player != CurrentPlayer)
+                throw new NotYourTurnException("Cannot shoot when it is not your turn.");
+            
             switch (_gameState)
             {
                 case GameState.Setup:

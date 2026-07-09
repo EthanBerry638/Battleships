@@ -294,6 +294,7 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
             act.Should()
                 .Throw<NotYourTurnException>()
                 .WithMessage("Cannot shoot when it is not your turn.");
+            _battleshipEngine.CurrentPlayer.Should().Be(_player1);
         }
         
         [Fact]
