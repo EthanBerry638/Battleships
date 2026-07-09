@@ -82,7 +82,7 @@ namespace Battleship.Api.Engine
 
         public Player? GetWinner()
         {
-            return new Player("Player 1");
+            return null;
         }
     }
 }
