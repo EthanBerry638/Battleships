@@ -58,5 +58,10 @@ namespace Battleship.Api.Engine
         {
             return _gameBoards[0].AreAllShipsSunk() || _gameBoards[1].AreAllShipsSunk();
         }
+
+        public GameState SetupGame()
+        {
+            return GameState.Finished;
+        }
     }
 }
