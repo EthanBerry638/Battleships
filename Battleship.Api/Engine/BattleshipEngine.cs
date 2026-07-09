@@ -70,6 +70,7 @@ namespace Battleship.Api.Engine
 
             if (!board1Valid || !board2Valid) return false;
 
+            _gameState = GameState.Playing;
             return true;
         }
     }
