@@ -347,5 +347,19 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
             _mockGameBoard1.Verify(x => x.AreAllShipsSunk(), Times.Once);
             _mockGameBoard2.Verify(x => x.AreAllShipsSunk(), Times.Once);
         }
+        
+        [Fact]
+        public void GetWinner_ShouldReturnPlayer1_WhenPlayer2sShipsAreAllSunk()
+        {
+            _mockGameBoard1.Setup(x => x.AreAllShipsSunk()).Returns(false);
+            _mockGameBoard2.Setup(x => x.AreAllShipsSunk()).Returns(true);
+            
+            var result = _battleshipEngine.GetWinner();
+            
+            result.Should().Be(_player1);
+            _battleshipEngine.GameState.Should().Be(GameState.Finished);
+            _mockGameBoard1.Verify(x => x.AreAllShipsSunk(), Times.Once);
+            _mockGameBoard2.Verify(x => x.AreAllShipsSunk(), Times.Once);
+        }
     }
 }
