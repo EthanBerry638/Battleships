@@ -265,13 +265,19 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
                 .WithMessage("Cannot shoot when game is over.");
         }
         
-        [Fact] // Still wont pass yet
+        [Fact]
         public void TryStartGame_ShouldReturnFalse_WhenGameIsAlreadyStarted()
         {
+            _mockGameBoard1.Setup(x => x.ValidateFleet()).Returns(new FleetValidationResult(true, [], []));
+            _mockGameBoard2.Setup(x => x.ValidateFleet()).Returns(new FleetValidationResult(true, [], []));
+            
+            _battleshipEngine.TryStartGame();
             var result = _battleshipEngine.TryStartGame();
             
             result.Should().BeFalse();
             _battleshipEngine.GameState.Should().Be(GameState.Playing);
+            _mockGameBoard1.Verify(x => x.ValidateFleet(), Times.Once);
+            _mockGameBoard2.Verify(x => x.ValidateFleet(), Times.Once);
         } 
         
         [Theory]
