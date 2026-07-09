@@ -63,17 +63,20 @@ namespace Battleship.Api.Engine
                 ? GameState.Finished : GameState.Playing;
         }
 
-        public bool TryStartGame()
-        { 
-            if (_gameState == GameState.Playing) return false;
+        public GameStartResult TryStartGame()
+        {
+            if (_gameState == GameState.Playing) return GameStartResult.AlreadyStarted();
             
-            bool board1Valid = _gameBoards[0].ValidateFleet().IsValid;
-            bool board2Valid = _gameBoards[1].ValidateFleet().IsValid;
+            var board1Check = _gameBoards[0].ValidateFleet();
+            var board2Check = _gameBoards[1].ValidateFleet();
 
-            if (!board1Valid || !board2Valid) return false;
-
+            if (!board1Check.IsValid || !board2Check.IsValid)
+            {
+                return GameStartResult.Invalid([board1Check, board2Check]);
+            }
+            
             _gameState = GameState.Playing;
-            return true;
+            return GameStartResult.Ok();
         }
     }
 }

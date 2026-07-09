@@ -264,22 +264,23 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
                 .Throw<GameOverException>()
                 .WithMessage("Cannot shoot when game is over.");
         }
-        
+
         [Fact]
         public void TryStartGame_ShouldReturnFalse_WhenGameIsAlreadyStarted()
         {
             _mockGameBoard1.Setup(x => x.ValidateFleet()).Returns(new FleetValidationResult(true, [], []));
             _mockGameBoard2.Setup(x => x.ValidateFleet()).Returns(new FleetValidationResult(true, [], []));
-            
+
             _battleshipEngine.TryStartGame();
             var result = _battleshipEngine.TryStartGame();
-            
-            result.Should().BeFalse();
+
+            result.Success.Should().BeFalse();
+            result.ValidationErrors.Should().BeNull();
             _battleshipEngine.GameState.Should().Be(GameState.Playing);
             _mockGameBoard1.Verify(x => x.ValidateFleet(), Times.Once);
             _mockGameBoard2.Verify(x => x.ValidateFleet(), Times.Once);
-        } 
-        
+        }
+
         [Theory]
         [MemberData(nameof(InvalidFleetTestData))]
         public void TryStartGame_ShouldReturnFalse_WhenAnyFleetIsInvalid(
@@ -291,7 +292,8 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
 
             var result = _battleshipEngine.TryStartGame();
 
-            result.Should().BeFalse();
+            result.Success.Should().BeFalse();
+            result.ValidationErrors.Should().NotBeNull();
             _battleshipEngine.GameState.Should().Be(GameState.Setup);
             _mockGameBoard1.Verify(x => x.ValidateFleet(), Times.Once);
             _mockGameBoard2.Verify(x => x.ValidateFleet(), Times.Once);
@@ -316,7 +318,8 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
 
             var result = _battleshipEngine.TryStartGame();
 
-            result.Should().BeTrue();
+            result.Success.Should().BeTrue();
+            result.ValidationErrors.Should().BeNull();
             _battleshipEngine.GameState.Should().Be(GameState.Playing);
             _mockGameBoard1.Verify(x => x.ValidateFleet(), Times.Once);
             _mockGameBoard2.Verify(x => x.ValidateFleet(), Times.Once);
