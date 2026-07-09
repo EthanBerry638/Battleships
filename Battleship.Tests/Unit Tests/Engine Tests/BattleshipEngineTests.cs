@@ -271,14 +271,19 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
         [InlineData(true, false)]  
         [InlineData(false, true)]  
         [InlineData(true, true)]   
-        public void Shoot_ShouldThrowGameOverException_WhenAnyPlayersShipsAreAllSunk(bool playerOneSunk, bool playerTwoSunk)
+        public void Shoot_ShouldThrowGameOverException_WhenTryingToShootAfterGameIsOver(bool playerOneSunk, bool playerTwoSunk)
         {
             StartGame();
+            var validCoordinate = new Coordinate(0, 0);
+            var tile = new Tile { OccupyingShip = null };
+            _mockGameBoard1.Setup(x => x.GetTile(validCoordinate)).Returns(tile);
+            _mockGameBoard2.Setup(x => x.GetTile(validCoordinate)).Returns(tile);
             _mockGameBoard1.Setup(x => x.AreAllShipsSunk()).Returns(playerOneSunk);
             _mockGameBoard2.Setup(x => x.AreAllShipsSunk()).Returns(playerTwoSunk);
             
-            var act = () => _battleshipEngine.Shoot(It.IsAny<Coordinate>());
-            
+            _battleshipEngine.Shoot(validCoordinate);
+            var act = () => _battleshipEngine.Shoot(new Coordinate(1, 1));
+    
             act.Should()
                 .Throw<GameOverException>()
                 .WithMessage("Cannot shoot when game is over.");

@@ -29,8 +29,6 @@ namespace Battleship.Api.Engine
         
         public ShotResult Shoot(Coordinate coordinate)
         {
-            CheckGameState();
-            
             switch (_gameState)
             {
                 case GameState.Setup:
@@ -40,7 +38,14 @@ namespace Battleship.Api.Engine
             }
 
             var shotResult = GetShotResult(coordinate);
-            SwitchTurns();
+            
+            CheckGameState();
+
+            if (_gameState is not GameState.Finished)
+            {
+                SwitchTurns();
+            }
+
             return shotResult;
         }
 
