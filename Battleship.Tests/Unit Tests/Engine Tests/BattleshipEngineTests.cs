@@ -300,5 +300,20 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
             yield return [valid, invalid]; 
             yield return [invalid, invalid]; 
         }
+
+        [Fact]
+        public void TryStartGame_ShouldReturnTrue_WhenBothFleetsAreValid()
+        {
+            var validateFleetResult = new FleetValidationResult(true, [], []);
+            _mockGameBoard1.Setup(x => x.ValidateFleet()).Returns(validateFleetResult);
+            _mockGameBoard2.Setup(x => x.ValidateFleet()).Returns(validateFleetResult);
+
+            var result = _battleshipEngine.TryStartGame();
+
+            result.Should().BeTrue();
+            _battleshipEngine.GameState.Should().Be(GameState.Playing);
+            _mockGameBoard1.Verify(x => x.ValidateFleet(), Times.Once);
+            _mockGameBoard2.Verify(x => x.ValidateFleet(), Times.Once);
+        }
     }
 }
