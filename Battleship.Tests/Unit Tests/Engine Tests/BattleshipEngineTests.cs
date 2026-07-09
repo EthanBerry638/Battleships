@@ -258,11 +258,22 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
             _mockGameBoard1.Setup(x => x.AreAllShipsSunk()).Returns(playerOneSunk);
             _mockGameBoard2.Setup(x => x.AreAllShipsSunk()).Returns(playerTwoSunk);
             
-            var act = () => _battleshipEngine.Shoot(new Coordinate(0, 0));
+            var act = () => _battleshipEngine.Shoot(It.IsAny<Coordinate>());
             
             act.Should()
                 .Throw<GameOverException>()
                 .WithMessage("Cannot shoot when game is over.");
+        }
+        
+        [Fact]
+        public void Shoot_ThrowsException_WhenGameIsInSetupPhase()
+        {
+            var act = () => _battleshipEngine.Shoot(It.IsAny<Coordinate>());
+            
+            _battleshipEngine.GameState.Should().Be(GameState.Setup);
+            act.Should()
+                .Throw<GameNotStartedException>()
+                .WithMessage("Cannot shoot when game is not started.");
         }
 
         [Fact]
