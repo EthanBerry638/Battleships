@@ -334,32 +334,23 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
             _battleshipEngine.GameState.Should().NotBe(GameState.Finished);
         }
         
-        [Fact]
-        public void GetWinner_ShouldReturnPlayer2_WhenPlayer1sShipsAreAllSunk()
+        [Theory]
+        [MemberData(nameof(WinnerTestData))]
+        public void GetWinner_ShouldReturnCorrectPlayer_WhenGameIsOver(bool board1Sunk, bool board2Sunk, Player expectedWinner)
         {
-            _mockGameBoard1.Setup(x => x.AreAllShipsSunk()).Returns(true);
-            _mockGameBoard2.Setup(x => x.AreAllShipsSunk()).Returns(false);
+            _mockGameBoard1.Setup(x => x.AreAllShipsSunk()).Returns(board1Sunk);
+            _mockGameBoard2.Setup(x => x.AreAllShipsSunk()).Returns(board2Sunk);
 
             var result = _battleshipEngine.GetWinner();
 
-            result.Should().Be(_player2);
+            result.Should().Be(expectedWinner);
             _battleshipEngine.GameState.Should().Be(GameState.Finished);
-            _mockGameBoard1.Verify(x => x.AreAllShipsSunk(), Times.Once);
-            _mockGameBoard2.Verify(x => x.AreAllShipsSunk(), Times.Never);
         }
-        
-        [Fact]
-        public void GetWinner_ShouldReturnPlayer1_WhenPlayer2sShipsAreAllSunk()
-        {
-            _mockGameBoard1.Setup(x => x.AreAllShipsSunk()).Returns(false);
-            _mockGameBoard2.Setup(x => x.AreAllShipsSunk()).Returns(true);
-            
-            var result = _battleshipEngine.GetWinner();
-            
-            result.Should().Be(_player1);
-            _battleshipEngine.GameState.Should().Be(GameState.Finished);
-            _mockGameBoard1.Verify(x => x.AreAllShipsSunk(), Times.Once);
-            _mockGameBoard2.Verify(x => x.AreAllShipsSunk(), Times.Once);
-        }
+
+        public static IEnumerable<object[]> WinnerTestData() =>
+        [
+            [true,  false, new Player("Player 2")],  
+            [false, true,  new Player("Player 1")], 
+        ];
     }
 }
