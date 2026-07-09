@@ -27,7 +27,7 @@ namespace Battleship.Api.Engine
             _players = [playerOne, playerTwo];
         }
         
-        public ShotResult Shoot(Coordinate coordinate)
+        public ShotResult Shoot(Player player, Coordinate coordinate)
         {
             switch (_gameState)
             {
