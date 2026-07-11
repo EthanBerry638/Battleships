@@ -1,6 +1,5 @@
 ﻿using Battleship.Api.Services;
 using FluentAssertions;
-using Xunit;
 
 namespace Battleship.Tests.Unit_Tests.Manager_Tests;
 
@@ -15,5 +14,16 @@ public class GameManagerTests
         
         result.Length.Should().Be(6);
         result.Should().NotBeNull();
+    }
+    
+    [Fact]
+    public void CreateGame_ShouldReturnUniqueCodes_WhenCalledMultipleTimes()
+    {
+        var manager = new BattleshipManager();
+        
+        string code1 = manager.CreateGame();
+        string code2 = manager.CreateGame();
+        
+        code1.Should().NotBe(code2);
     }
 }
