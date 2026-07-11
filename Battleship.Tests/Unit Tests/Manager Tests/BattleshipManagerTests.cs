@@ -1,4 +1,5 @@
 ﻿using Battleship.Api.Services;
+using Battleship.Api.Engine;
 using FluentAssertions;
 
 namespace Battleship.Tests.Unit_Tests.Manager_Tests;
@@ -35,5 +36,16 @@ public class GameManagerTests
         string result = manager.CreateGame();
         
         result.Should().BeUpperCased();
+    }
+    
+    [Fact]
+    public void GetGame_ShouldReturnEngineInstance_WhenGameExists()
+    {
+        var manager = new BattleshipManager();
+        string gameCode = manager.CreateGame();
+        
+        var result = manager.GetGame(gameCode);
+        
+        result.Should().NotBeNull();
     }
 }
