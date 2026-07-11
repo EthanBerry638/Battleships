@@ -17,13 +17,15 @@ public class GameManagerTests
     }
     
     [Fact]
-    public void CreateGame_ShouldReturnUniqueCodes_WhenCalledMultipleTimes()
+    public void CreateGame_ShouldNotDuplicateCodes_WhenLargeVolumeGenerated()
     {
         var manager = new BattleshipManager();
+        var codes = new HashSet<string>();
         
-        string code1 = manager.CreateGame();
-        string code2 = manager.CreateGame();
-        
-        code1.Should().NotBe(code2);
+        for (int i = 0; i < 10000; i++)
+        {
+            string code = manager.CreateGame();
+            codes.Add(code).Should().BeTrue();
+        }
     }
 }
