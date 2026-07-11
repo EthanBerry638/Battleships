@@ -26,4 +26,14 @@ public class GameManagerTests
 
         code1.Should().NotBe(code2);
     }
+    
+    [Fact]
+    public void CreateGame_ShouldReturnUppercaseCode_WhenCalled()
+    {
+        var manager = new BattleshipManager();
+        
+        string result = manager.CreateGame();
+        
+        result.Should().BeUpperCased();
+    }
 }
