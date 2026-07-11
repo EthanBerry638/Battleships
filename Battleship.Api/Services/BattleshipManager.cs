@@ -11,6 +11,9 @@ public class BattleshipManager
 
     public string CreateGame(Player player1, Player player2)
     {
+        ArgumentNullException.ThrowIfNull(player1);
+        ArgumentNullException.ThrowIfNull(player2);
+        
         string gameCode = Guid.NewGuid().ToString("N")[..6].ToUpper();
 
         var board1 = new GameBoard();

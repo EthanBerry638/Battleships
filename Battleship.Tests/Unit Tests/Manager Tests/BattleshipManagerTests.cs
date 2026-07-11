@@ -36,6 +36,23 @@ public class GameManagerTests
         result.Should().BeUpperCased();
     }
     
+    [Theory]
+    [MemberData(nameof(NullPlayerData))]
+    public void CreateGame_ShouldThrowArgumentNullException_WhenEitherPlayerIsNull(Player? player1, Player? player2)
+    {
+        var act = () => _manager.CreateGame(player1!, player2!);
+
+        act.Should()
+            .Throw<ArgumentNullException>();
+    }
+
+    public static IEnumerable<object?[]> NullPlayerData =>
+    [
+        [null, new Player("Player 2")],
+        [new Player("Player 1"), null],
+        [null, null]
+    ];
+    
     [Fact]
     public void GetGame_ShouldReturnEngineInstance_WhenGameExists()
     {
