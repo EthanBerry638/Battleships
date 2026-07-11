@@ -1,36 +1,19 @@
 ﻿using Battleship.Api.Services;
-using Battleship.Api.Engine;
 using FluentAssertions;
-using Battleship.Api.GamePieces.Board;
 using Battleship.Api.GamePieces.Entities;
-using Moq;
 
 namespace Battleship.Tests.Unit_Tests.Manager_Tests;
 
 public class GameManagerTests
 {
-    private readonly BattleshipManager _manager;
-
-    public GameManagerTests()
-    {
-        var mockFactory = new Mock<IBattleshipEngineFactory>();
-        
-        var mockEngine = new Mock<BattleshipEngine>(
-            new Mock<IGameBoard>().Object, 
-            new Mock<IGameBoard>().Object, 
-            new Mock<Player>("Player 1").Object, 
-            new Mock<Player>("Player 2").Object
-        );
-
-        mockFactory.Setup(f => f.Create()).Returns(mockEngine.Object);
-
-        _manager = new BattleshipManager(mockFactory.Object);
-    }
+    private readonly BattleshipManager _manager = new();
+    private readonly Player _dummyPlayer1 = new("Player 1");
+    private readonly Player _dummyPlayer2 = new("Player 2");
 
     [Fact]
     public void CreateGame_ShouldReturnSixCharacterCode_WhenCalled()
     {
-        string result = _manager.CreateGame();
+        string result = _manager.CreateGame(_dummyPlayer1, _dummyPlayer2);
         
         result.Length.Should().Be(6);
         result.Should().NotBeNull();
@@ -39,8 +22,8 @@ public class GameManagerTests
     [Fact]
     public void CreateGame_ShouldReturnUniqueCodes_WhenCalledMultipleTimes()
     {
-        string code1 = _manager.CreateGame();
-        string code2 = _manager.CreateGame();
+        string code1 = _manager.CreateGame(_dummyPlayer1, _dummyPlayer2);
+        string code2 = _manager.CreateGame(_dummyPlayer1, _dummyPlayer2);
 
         code1.Should().NotBe(code2);
     }
@@ -48,7 +31,7 @@ public class GameManagerTests
     [Fact]
     public void CreateGame_ShouldReturnUppercaseCode_WhenCalled()
     {
-        string result = _manager.CreateGame();
+        string result = _manager.CreateGame(_dummyPlayer1, _dummyPlayer2);
         
         result.Should().BeUpperCased();
     }
@@ -56,7 +39,7 @@ public class GameManagerTests
     [Fact]
     public void GetGame_ShouldReturnEngineInstance_WhenGameExists()
     {
-        string gameCode = _manager.CreateGame();
+        string gameCode = _manager.CreateGame(_dummyPlayer1, _dummyPlayer2);
         
         var result = _manager.GetGame(gameCode);
         
@@ -68,7 +51,7 @@ public class GameManagerTests
     {
         for (int i = 0; i < 10; i++)
         {
-            string gameCode = _manager.CreateGame();
+            string gameCode = _manager.CreateGame(_dummyPlayer1, _dummyPlayer2);
             
             var result = _manager.GetGame(gameCode);
             
