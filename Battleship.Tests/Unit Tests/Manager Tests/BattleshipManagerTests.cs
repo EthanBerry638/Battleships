@@ -62,6 +62,19 @@ public class GameManagerTests
         
         result.Should().NotBeNull();
     }
+
+    [Fact]
+    public void GetGame_ShouldReturnMultipleEngineInstances_WhenCalledMultipleTimesOnExistingGames()
+    {
+        for (int i = 0; i < 10; i++)
+        {
+            string gameCode = _manager.CreateGame();
+            
+            var result = _manager.GetGame(gameCode);
+            
+            result.Should().NotBeNull();
+        }
+    }
     
     [Theory]
     [InlineData("123456")]   
