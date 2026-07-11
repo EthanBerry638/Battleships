@@ -2,8 +2,10 @@
 
 public class BattleshipManager
 {
+    private static readonly char[] Characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".ToCharArray();
+
     public string CreateGame()
     {
-        return "ABCDEF";
+        return Guid.NewGuid().ToString("N")[..6];
     }
 }
