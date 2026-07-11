@@ -1,4 +1,5 @@
 ﻿namespace Battleship.Api.DTOs;
 
 public record StartMatchDto(
-    string PlayerName);
+    Guid Player1Id,
+    Guid Player2Id);
