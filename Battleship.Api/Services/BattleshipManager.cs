@@ -18,8 +18,9 @@ public class BattleshipManager (IBattleshipEngineFactory engineFactory)
         return gameCode;
     }
     
-    public BattleshipEngine? GetGame(string gameCode)
+    public BattleshipEngine? GetGame(string? gameCode)
     {
+        if (string.IsNullOrWhiteSpace(gameCode)) return null;
         _games.TryGetValue(gameCode, out var engine);
         return engine;
     }
