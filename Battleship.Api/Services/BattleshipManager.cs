@@ -6,6 +6,6 @@ public class BattleshipManager
 
     public string CreateGame()
     {
-        return Guid.NewGuid().ToString("N")[..6];
+        return Guid.NewGuid().ToString("N")[..6].ToUpper();
     }
 }
