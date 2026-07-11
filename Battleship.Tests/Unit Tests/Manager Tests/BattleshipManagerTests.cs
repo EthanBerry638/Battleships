@@ -62,4 +62,19 @@ public class GameManagerTests
         
         result.Should().NotBeNull();
     }
+    
+    [Theory]
+    [InlineData("123456")]   
+    [InlineData("ABCDEF")]  
+    [InlineData("123-ABC")]  
+    [InlineData("abcdef")]
+    [InlineData("")]         
+    [InlineData("   ")]      
+    [InlineData(null)]       
+    public void GetGame_ShouldReturnNull_WhenGameDoesNotExist(string? code)
+    {
+        var result = _manager.GetGame(code!);
+        
+        result.Should().BeNull();
+    }
 }
