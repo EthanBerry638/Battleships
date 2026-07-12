@@ -1,6 +1,8 @@
 ﻿using Battleship.Api.Hubs;
 using Battleship.Api.Services;
+using Battleship.Api.Engine;
 using Microsoft.AspNetCore.SignalR;
+using FluentAssertions;
 using Moq;
 
 namespace Battleship.Tests.Unit_Tests.Hub_Tests;
@@ -20,10 +22,13 @@ public class BattleshipHubTests
     [Fact]
     public async Task JoinGame_ShouldReturnFalse_WhenGameDoesNotExist()
     {
-        _mockManager.Setup(m => m.GetGame(It.IsAny<string>())).Returns((BattleshipEngine?)null);
+        _mockManager.Setup(m => m.GetGame(It.IsAny<string>()))
+            .Returns((BattleshipEngine?)null);
 
         var result = await CreateHub().JoinGame("DOESNOTEXIST");
 
         result.Should().BeFalse();
+        
+        _mockManager.Verify(m => m.GetGame("DOESNOTEXIST"), Times.Once);
     }
 }

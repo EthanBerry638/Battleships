@@ -17,4 +17,9 @@ public class BattleshipHub (IBattleshipManager battleshipManager) : Hub
         Console.WriteLine($"Client disconnected: {Context.ConnectionId}");
         await base.OnDisconnectedAsync(exception);
     }
+
+    public async Task<bool> JoinGame(string gameCode)
+    {
+        throw new NotImplementedException();
+    }
 }
