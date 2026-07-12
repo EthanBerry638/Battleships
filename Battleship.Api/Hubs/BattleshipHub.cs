@@ -21,6 +21,8 @@ public class BattleshipHub (IBattleshipManager battleshipManager) : Hub
     public async Task<bool> JoinGame(string gameCode)
     {
         if (_battleshipManager.GetGame(gameCode) is null) return false;
-        throw new NotImplementedException();
+        
+        await Groups.AddToGroupAsync(Context.ConnectionId, gameCode);
+        return true;
     }
 }
