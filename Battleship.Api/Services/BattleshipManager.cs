@@ -5,7 +5,7 @@ using Battleship.Api.GamePieces.Board;
 
 namespace Battleship.Api.Services;
 
-public class BattleshipManager
+public class BattleshipManager : IBattleshipManager
 {
     private readonly ConcurrentDictionary<string, BattleshipEngine> _games = new();
 
