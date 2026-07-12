@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿using Battleship.Api.Services;
+using Microsoft.AspNetCore.SignalR;
 
 namespace Battleship.Api.Hubs;
 
-public class BattleshipHub : Hub
+public class BattleshipHub (IBattleshipManager battleshipManager) : Hub 
 {
+    private readonly IBattleshipManager _manager = battleshipManager;
     public override async Task OnConnectedAsync()
     {
         Console.WriteLine($"Client connected: {Context.ConnectionId}");
