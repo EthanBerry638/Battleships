@@ -19,16 +19,20 @@ public class BattleshipHubTests
         Context = _mockContext.Object
     };
 
-    [Fact]
-    public async Task JoinGame_ShouldReturnFalse_WhenGameDoesNotExist()
+    [Theory]
+    [InlineData("DOESNOTEXIST")]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData(null)]
+    public async Task JoinGame_ShouldReturnFalse_WhenGameDoesNotExist(string? gameCode)
     {
         _mockManager.Setup(m => m.GetGame(It.IsAny<string>()))
             .Returns((BattleshipEngine?)null);
 
-        var result = await CreateHub().JoinGame("DOESNOTEXIST");
+        var result = await CreateHub().JoinGame(gameCode!);
 
         result.Should().BeFalse();
         
-        _mockManager.Verify(m => m.GetGame("DOESNOTEXIST"), Times.Once);
+        _mockManager.Verify(m => m.GetGame(gameCode!), Times.Once);
     }
 }
