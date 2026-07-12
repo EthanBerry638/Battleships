@@ -33,7 +33,7 @@ public class BattleshipHubTests
     [InlineData("")]
     [InlineData("   ")]
     [InlineData(null)]
-    public async Task JoinGame_ShouldReturnFalse_WhenGameDoesNotExist(string? gameCode)
+    public async Task JoinGame_ShouldReturnFalseAndNotAddUserToGroup_WhenGameDoesNotExist(string? gameCode)
     {
         _mockManager.Setup(m => m.GetGame(It.IsAny<string>()))
             .Returns((BattleshipEngine?)null);
@@ -43,6 +43,10 @@ public class BattleshipHubTests
         result.Should().BeFalse();
         
         _mockManager.Verify(m => m.GetGame(gameCode!), Times.Once);
+        _mockContext.Verify(c => c.ConnectionId, Times.Never);
+        _mockGroups.Verify(g => g.AddToGroupAsync(
+            It.IsAny<string>(),
+             It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
     }
     
     [Theory]
