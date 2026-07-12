@@ -5,7 +5,7 @@ namespace Battleship.Api.Hubs;
 
 public class BattleshipHub (IBattleshipManager battleshipManager) : Hub 
 {
-    private readonly IBattleshipManager _manager = battleshipManager;
+    private readonly IBattleshipManager _battleshipManager = battleshipManager;
     public override async Task OnConnectedAsync()
     {
         Console.WriteLine($"Client connected: {Context.ConnectionId}");
@@ -20,6 +20,7 @@ public class BattleshipHub (IBattleshipManager battleshipManager) : Hub
 
     public async Task<bool> JoinGame(string gameCode)
     {
+        if (_battleshipManager.GetGame(gameCode) is null) return false;
         throw new NotImplementedException();
     }
 }
