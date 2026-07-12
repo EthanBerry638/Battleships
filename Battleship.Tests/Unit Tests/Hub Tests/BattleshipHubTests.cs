@@ -1,6 +1,8 @@
 ﻿using Battleship.Api.Hubs;
 using Battleship.Api.Services;
 using Battleship.Api.Engine;
+using Battleship.Api.GamePieces.Board;
+using Battleship.Api.GamePieces.Entities;
 using Microsoft.AspNetCore.SignalR;
 using FluentAssertions;
 using Moq;
@@ -18,6 +20,13 @@ public class BattleshipHubTests
         Groups = _mockGroups.Object,
         Context = _mockContext.Object
     };
+    
+    private static BattleshipEngine CreateEngine() => new(
+        new GameBoard(),
+        new GameBoard(),
+        new Player("Player 1"), 
+        new Player("Player 2")
+        );
 
     [Theory]
     [InlineData("DOESNOTEXIST")]
@@ -34,5 +43,27 @@ public class BattleshipHubTests
         result.Should().BeFalse();
         
         _mockManager.Verify(m => m.GetGame(gameCode!), Times.Once);
+    }
+    
+    [Theory]
+    [InlineData("ABC123")]
+    [InlineData("XYZ789")]
+    [InlineData("123ABC")]
+    public async Task JoinGame_ShouldReturnTrueAndAddUserToGroup_WhenGameExists(string gameCode)
+    {
+        _mockManager.Setup(m => m.GetGame(gameCode))
+            .Returns(CreateEngine());
+        _mockContext.Setup(c => c.ConnectionId).Returns("test-connection-id");
+        _mockGroups
+            .Setup(g => g.AddToGroupAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        var result = await CreateHub().JoinGame(gameCode);
+
+        result.Should().BeTrue();
+        _mockManager.Verify(m => m.GetGame(gameCode), Times.Once);
+        _mockContext.Verify(c => c.ConnectionId, Times.Once);
+        _mockGroups.Verify(g => g.AddToGroupAsync(
+            "test-connection-id", gameCode, It.IsAny<CancellationToken>()), Times.Once);
     }
 }
