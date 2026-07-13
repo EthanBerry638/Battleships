@@ -1,4 +1,5 @@
-﻿using Battleship.Api.Services;
+﻿using Battleship.Api.DTOs;
+using Battleship.Api.Services;
 using Microsoft.AspNetCore.SignalR;
 
 namespace Battleship.Api.Hubs;
@@ -18,6 +19,11 @@ public class BattleshipHub (IBattleshipManager battleshipManager) : Hub
         await base.OnDisconnectedAsync(exception);
     }
 
+    public async Task<string> CreateGame(CreateGameRequest request)
+    {
+        throw new NotImplementedException();
+    }
+    
     public async Task<bool> JoinGame(string gameCode)
     {
         if (_battleshipManager.GetGame(gameCode) is null) return false;
