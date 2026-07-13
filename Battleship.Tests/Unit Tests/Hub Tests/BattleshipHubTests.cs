@@ -86,6 +86,8 @@ public class BattleshipHubTests
         var result = await CreateHub().CreateGame(request);
 
         result.Should().Be("ABC123");
+        _mockManager.Verify(m => m.CreateGame(It.IsAny<Player>(), It.IsAny<Player>()), Times.Once);
+        _mockContext.Verify(c => c.ConnectionId, Times.Once);
         _mockGroups.Verify(g => g.AddToGroupAsync(
             "test-connection-id", "ABC123", It.IsAny<CancellationToken>()), Times.Once);
     }
