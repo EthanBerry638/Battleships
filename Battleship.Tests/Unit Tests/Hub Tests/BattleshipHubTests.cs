@@ -4,6 +4,7 @@ using Battleship.Api.Engine;
 using Battleship.Api.GamePieces.Board;
 using Battleship.Api.GamePieces.Entities;
 using Microsoft.AspNetCore.SignalR;
+using Battleship.Api.DTOs;
 using FluentAssertions;
 using Moq;
 
@@ -69,5 +70,23 @@ public class BattleshipHubTests
         _mockContext.Verify(c => c.ConnectionId, Times.Once);
         _mockGroups.Verify(g => g.AddToGroupAsync(
             "test-connection-id", gameCode, It.IsAny<CancellationToken>()), Times.Once);
+    }
+    
+    [Fact]
+    public async Task CreateGame_ShouldReturnGameCodeAndAddCallerToGroup_WhenCalled()
+    {
+        var request = new CreateGameRequest("Player 1", "Player 2");
+        _mockManager.Setup(m => m.CreateGame(It.IsAny<Player>(), It.IsAny<Player>()))
+            .Returns("ABC123");
+        _mockContext.Setup(c => c.ConnectionId).Returns("test-connection-id");
+        _mockGroups
+            .Setup(g => g.AddToGroupAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        var result = await CreateHub().CreateGame(request);
+
+        result.Should().Be("ABC123");
+        _mockGroups.Verify(g => g.AddToGroupAsync(
+            "test-connection-id", "ABC123", It.IsAny<CancellationToken>()), Times.Once);
     }
 }
