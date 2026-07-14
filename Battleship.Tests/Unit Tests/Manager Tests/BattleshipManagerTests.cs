@@ -61,6 +61,19 @@ public class GameManagerTests
     }
     
     [Fact]
+    public void GetGame_ShouldReturnTheActiveEngine_WhenGameHasBeenStartedViaJoinLobby()
+    {
+        string gameCode = _manager.CreateLobby(_dummyPlayer1);
+        _manager.GetGame(gameCode).Should().BeNull();
+        
+        var createdEngine = _manager.JoinLobby(gameCode, _dummyPlayer2);
+        var retrievedEngine = _manager.GetGame(gameCode);
+        
+        retrievedEngine.Should().NotBeNull();
+        retrievedEngine.Should().Be(createdEngine); 
+    }
+    
+    [Fact]
     public void JoinLobby_ShouldThrowArgumentNullException_WhenPlayer2IsNull()
     {
         var act = () => _manager.JoinLobby("ABC123", null!);

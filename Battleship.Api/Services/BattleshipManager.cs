@@ -31,7 +31,6 @@ public class BattleshipManager : IBattleshipManager
         _games.TryAdd(gameCode, engine); 
         
         return engine;
-
     }
     
     public BattleshipEngine? GetGame(string? gameCode)
