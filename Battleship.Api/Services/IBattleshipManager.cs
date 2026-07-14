@@ -6,5 +6,6 @@ namespace Battleship.Api.Services;
 public interface IBattleshipManager
 {
     string CreateLobby(Player player);
+    BattleshipEngine? JoinLobby(string gameCode, Player player2);
     BattleshipEngine? GetGame (string gameCode);
 }
