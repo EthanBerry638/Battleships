@@ -6,6 +6,16 @@ namespace Battleship.Tests.Unit_Tests.Player_Tests;
 public class PlayerTests
 {
     [Fact]
+    public void PlayerConstructor_ShouldCreatePlayer_WhenIdIsNotEmpty()
+    {
+        var player = new Player(Guid.NewGuid(), "Test Player");
+        var act  = () => new Player(Guid.NewGuid(), "Test Player");
+        
+        player.Should().NotBeNull();
+        act.Should().NotThrow();
+    }
+    
+    [Fact]
     public void PlayerConstructor_ShouldThrowArgumentException_WhenIdIsEmpty()
     {
         var act = () => new Player(Guid.Empty, "Test Player");
