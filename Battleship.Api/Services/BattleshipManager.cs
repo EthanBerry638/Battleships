@@ -23,7 +23,8 @@ public class BattleshipManager : IBattleshipManager
 
     public BattleshipEngine? JoinLobby(string gameCode, Player player2)
     {
-        throw new NotImplementedException();
+        ArgumentNullException.ThrowIfNull(player2);
+        return null;
     }
     
     public BattleshipEngine? GetGame(string? gameCode)
