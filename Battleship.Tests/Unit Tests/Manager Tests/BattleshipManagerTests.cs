@@ -77,4 +77,15 @@ public class GameManagerTests
 
         result.Should().BeNull();
     }
+    
+    [Fact]
+    public void JoinLobby_ShouldCreateEngine_WhenLobbyExists()
+    {
+        string gameCode = _manager.CreateLobby(_dummyPlayer1);
+        
+        var engine = _manager.JoinLobby(gameCode, _dummyPlayer2);
+
+        engine.Should().NotBeNull();
+        engine!.CurrentPlayer.Should().Be(_dummyPlayer1);
+    }
 }
