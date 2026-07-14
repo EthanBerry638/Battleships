@@ -8,19 +8,15 @@ namespace Battleship.Api.Services;
 public class BattleshipManager : IBattleshipManager
 {
     private readonly ConcurrentDictionary<string, BattleshipEngine> _games = new();
+    private readonly ConcurrentDictionary<string, Player> _lobbies = new();
 
-    public string CreateGame(Player player1, Player player2)
+    public string CreateLobby(Player player1)
     {
         ArgumentNullException.ThrowIfNull(player1);
-        ArgumentNullException.ThrowIfNull(player2);
         
         string gameCode = Guid.NewGuid().ToString("N")[..6].ToUpper();
-
-        var board1 = new GameBoard();
-        var board2 = new GameBoard();
         
-        var engine = new BattleshipEngine(board1, board2, player1, player2);
-        _games.TryAdd(gameCode, engine);
+        _lobbies.TryAdd(gameCode, player1);
         
         return gameCode;
     }
