@@ -25,4 +25,17 @@ public class PlayerTests
             .WithParameterName("id")
             .WithMessage("Id cannot be empty*");
     }
+    
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    [InlineData(null)]
+    public void PlayerConstructor_ShouldThrowArgumentException_WhenNameIsNullOrEmpty(string name)
+    {
+        var act = () => new Player(Guid.NewGuid(), name);
+
+        act.Should()
+            .Throw<ArgumentException>()
+            .WithParameterName(nameof(name));
+    }
 }
