@@ -40,4 +40,15 @@ public class PlayerTests
         player.Id.Should().Be(expectedId);
         player.Name.Should().Be(expectedName);
     }
+    
+    [Fact]
+    public void PlayerConstructor_ShouldAllowNameWithLeadingOrTrailingWhitespace_ButTrimIt()
+    {
+        string nameWithSpaces = "  Valid Name  ";
+        string nameWithoutSpaces = "Valid Name";
+        
+        var player = new Player(Guid.NewGuid(), nameWithSpaces);
+        
+        player.Name.Should().Be(nameWithoutSpaces);
+    }
 }
