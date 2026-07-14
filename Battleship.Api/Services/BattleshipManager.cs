@@ -20,6 +20,11 @@ public class BattleshipManager : IBattleshipManager
         
         return gameCode;
     }
+
+    public BattleshipEngine? JoinLobby(string gameCode, Player player2)
+    {
+        throw new NotImplementedException();
+    }
     
     public BattleshipEngine? GetGame(string? gameCode)
     {
