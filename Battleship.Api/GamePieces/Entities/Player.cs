@@ -12,6 +12,6 @@ public record Player
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         if (id == Guid.Empty) throw new ArgumentException("Id cannot be empty", nameof(id));
         Id = id;
-        Name = name;
+        Name = name.Trim();
     }
 }       
