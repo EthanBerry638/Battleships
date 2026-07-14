@@ -10,6 +10,9 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
 {
     public class BattleshipEngineTests
     {
+        private static readonly Player StaticPlayer1 = new(Guid.NewGuid(), "Player 1");
+        private static readonly Player StaticPlayer2 = new(Guid.NewGuid(), "Player 2");
+
         private readonly Mock<IGameBoard> _mockGameBoard1;
         private readonly Mock<IGameBoard> _mockGameBoard2;
         private readonly Player _player1;
@@ -21,8 +24,8 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
         {
             _mockGameBoard1 = new();
             _mockGameBoard2 = new();
-            _player1 = new(Guid.Empty, "Player 1");
-            _player2 = new(Guid.Empty, "Player 2");
+            _player1 = StaticPlayer1;
+            _player2 = StaticPlayer2;
             _mockShip = new();
             _battleshipEngine = new(_mockGameBoard1.Object, _mockGameBoard2.Object, _player1, _player2);
         }
@@ -311,7 +314,7 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
         public void BattleShipEngineConstructor_ShouldThrowArgumentNullException_WhenAnyArgumentIsNull()
         {
             var board = new Mock<IGameBoard>().Object;
-            var player = new Player(Guid.Empty, "Test Player");
+            var player = new Player(Guid.NewGuid(), "Test Player");
 
             FluentActions.Invoking(() => new BattleshipEngine(null!, board, player, player))
                 .Should().Throw<ArgumentNullException>();
@@ -408,8 +411,8 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
 
         public static IEnumerable<object[]> WinnerTestData() =>
         [
-            [true,  false, new Player(Guid.Empty, "Player 2")],  
-            [false, true,  new Player(Guid.Empty, "Player 1")], 
+            [true,  false, StaticPlayer2],  
+            [false, true,  StaticPlayer1], 
         ];
     }
 }
