@@ -103,4 +103,17 @@ public class GameManagerTests
         
         result.Should().BeNull();
     }
+    
+    [Fact]
+    public void JoinLobby_ShouldOnlyAllowOneJoin_WhenCalledMultipleTimes()
+    {
+        string gameCode = _manager.CreateLobby(_dummyPlayer1);
+        var player3 = new Player(Guid.NewGuid(), "Player 3");
+
+        var firstJoin = _manager.JoinLobby(gameCode, _dummyPlayer2);
+        var secondJoin = _manager.JoinLobby(gameCode, player3);
+
+        firstJoin.Should().NotBeNull();
+        secondJoin.Should().BeNull(); 
+    }
 }
