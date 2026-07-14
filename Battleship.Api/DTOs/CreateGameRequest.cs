@@ -1,3 +1,5 @@
 ﻿namespace Battleship.Api.DTOs;
 
-public record CreateGameRequest(string PlayerName);
+public record CreateLobbyRequest(
+    Guid PlayerId,
+    string PlayerName);
