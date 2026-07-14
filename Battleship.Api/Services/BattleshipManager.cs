@@ -29,6 +29,7 @@ public class BattleshipManager : IBattleshipManager
 
         if (_lobbies.TryGetValue(gameCode, out var player1))
         {
+            _lobbies.TryRemove(gameCode, out _);
             return new BattleshipEngine(new GameBoard(), new GameBoard(), player1, player2);
         }
 
