@@ -58,4 +58,23 @@ public class GameManagerTests
 
         result.Should().BeNull();
     }
+    
+    [Fact]
+    public void JoinLobby_ShouldThrowArgumentNullException_WhenPlayer2IsNull()
+    {
+        var act = () => _manager.JoinLobby("ABC123", null!);
+
+        act.Should().Throw<ArgumentNullException>();
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData(null)]
+    public void JoinLobby_ShouldReturnNull_WhenGameCodeIsInvalid(string? gameCode)
+    {
+        var result = _manager.JoinLobby(gameCode!, _dummyPlayer2);
+
+        result.Should().BeNull();
+    }
 }
