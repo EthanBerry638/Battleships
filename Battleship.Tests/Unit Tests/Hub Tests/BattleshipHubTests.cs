@@ -75,8 +75,8 @@ public class BattleshipHubTests
     [Fact]
     public async Task CreateGame_ShouldReturnGameCodeAndAddCallerToGroup_WhenCalled()
     {
-        var request = new CreateGameRequest("Player 1", "Player 2");
-        _mockManager.Setup(m => m.CreateGame(It.IsAny<Player>(), It.IsAny<Player>()))
+        var request = new CreateGameRequest("Player 1");
+        _mockManager.Setup(m => m.CreateLobby(It.IsAny<Player>()))
             .Returns("ABC123");
         _mockContext.Setup(c => c.ConnectionId).Returns("test-connection-id");
         _mockGroups
@@ -86,7 +86,7 @@ public class BattleshipHubTests
         var result = await CreateHub().CreateGame(request);
 
         result.Should().Be("ABC123");
-        _mockManager.Verify(m => m.CreateGame(It.IsAny<Player>(), It.IsAny<Player>()), Times.Once);
+        _mockManager.Verify(m => m.CreateLobby(It.IsAny<Player>()), Times.Once);
         _mockContext.Verify(c => c.ConnectionId, Times.Once);
         _mockGroups.Verify(g => g.AddToGroupAsync(
             "test-connection-id", "ABC123", It.IsAny<CancellationToken>()), Times.Once);

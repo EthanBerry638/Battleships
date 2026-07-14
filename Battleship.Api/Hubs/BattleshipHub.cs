@@ -22,10 +22,9 @@ public class BattleshipHub (IBattleshipManager battleshipManager) : Hub
 
     public async Task<string> CreateGame(CreateGameRequest request)
     {
-        var player1 = new Player(request.Player1Name);
-        var player2 = new Player(request.Player2Name);
+        var player = new Player(request.PlayerName);
         
-        string gameCode = _battleshipManager.CreateGame(player1, player2);
+        string gameCode = _battleshipManager.CreateLobby(player);
         
         await Groups.AddToGroupAsync(Context.ConnectionId, gameCode);
         return gameCode;
