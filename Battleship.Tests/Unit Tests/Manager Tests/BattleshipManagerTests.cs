@@ -1,4 +1,5 @@
-﻿using Battleship.Api.Services;
+﻿using System.Runtime.InteropServices;
+using Battleship.Api.Services;
 using FluentAssertions;
 using Battleship.Api.GamePieces.Entities;
 
@@ -87,5 +88,19 @@ public class GameManagerTests
 
         engine.Should().NotBeNull();
         engine!.CurrentPlayer.Should().Be(_dummyPlayer1);
+    }
+    
+    [Theory]
+    [InlineData("FAKE12")]
+    [InlineData("NOTLBY")]
+    [InlineData("000000")]
+    [InlineData("ABC-12")]
+    [InlineData("1")]
+    [InlineData("INVALIDcode")]
+    public void JoinLobby_ShouldReturnNull_WhenLobbyDoesNotExist(string gameCode)
+    {
+        var result = _manager.JoinLobby(gameCode, _dummyPlayer2);
+        
+        result.Should().BeNull();
     }
 }
