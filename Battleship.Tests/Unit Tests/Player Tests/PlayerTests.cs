@@ -38,4 +38,16 @@ public class PlayerTests
             .Throw<ArgumentException>()
             .WithParameterName(nameof(name));
     }
+    
+    [Fact]
+    public void PlayerConstructor_ShouldAssignPropertiesCorrectly_WhenArgumentsAreValid()
+    {
+        var expectedId = Guid.NewGuid();
+        string expectedName = "Test Player";
+        
+        var player = new Player(expectedId, expectedName);
+        
+        player.Id.Should().Be(expectedId);
+        player.Name.Should().Be(expectedName);
+    }
 }
