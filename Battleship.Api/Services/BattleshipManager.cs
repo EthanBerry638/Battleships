@@ -24,6 +24,14 @@ public class BattleshipManager : IBattleshipManager
     public BattleshipEngine? JoinLobby(string gameCode, Player player2)
     {
         ArgumentNullException.ThrowIfNull(player2);
+
+        if (gameCode is null) return null;
+
+        if (_lobbies.TryGetValue(gameCode, out var player1))
+        {
+            return new BattleshipEngine(new GameBoard(), new GameBoard(), player1, player2);
+        }
+
         return null;
     }
     
