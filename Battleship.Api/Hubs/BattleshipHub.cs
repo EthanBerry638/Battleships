@@ -30,7 +30,7 @@ public class BattleshipHub (IBattleshipManager battleshipManager) : Hub
         return gameCode;
     }
     
-    public async Task<bool> JoinGame(string gameCode)
+    public async Task<bool> JoinLobby(string gameCode, JoinLobbyRequest request)
     {
         if (_battleshipManager.GetGame(gameCode) is null) return false;
         

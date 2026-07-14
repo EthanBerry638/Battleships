@@ -36,10 +36,11 @@ public class BattleshipHubTests
     [InlineData(null)]
     public async Task JoinGame_ShouldReturnFalseAndNotAddUserToGroup_WhenGameDoesNotExist(string? gameCode)
     {
+        var request = new JoinLobbyRequest(Guid.NewGuid(), "Player 1");
         _mockManager.Setup(m => m.GetGame(It.IsAny<string>()))
             .Returns((BattleshipEngine?)null);
 
-        var result = await CreateHub().JoinGame(gameCode!);
+        var result = await CreateHub().JoinLobby(gameCode!, request);
 
         result.Should().BeFalse();
         
@@ -54,8 +55,9 @@ public class BattleshipHubTests
     [InlineData("ABC123")]
     [InlineData("XYZ789")]
     [InlineData("123ABC")]
-    public async Task JoinGame_ShouldReturnTrueAndAddUserToGroup_WhenGameExists(string gameCode)
+    public async Task JoinLobby_ShouldReturnTrueAndAddUserToGroup_WhenGameExists(string gameCode)
     {
+        var request = new JoinLobbyRequest(Guid.NewGuid(), "Player 1");
         _mockManager.Setup(m => m.GetGame(gameCode))
             .Returns(CreateEngine());
         _mockContext.Setup(c => c.ConnectionId).Returns("test-connection-id");
@@ -63,7 +65,7 @@ public class BattleshipHubTests
             .Setup(g => g.AddToGroupAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
-        var result = await CreateHub().JoinGame(gameCode);
+        var result = await CreateHub().JoinLobby(gameCode, request);
 
         result.Should().BeTrue();
         _mockManager.Verify(m => m.GetGame(gameCode), Times.Once);
