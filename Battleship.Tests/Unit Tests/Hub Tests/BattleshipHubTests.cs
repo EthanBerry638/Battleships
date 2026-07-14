@@ -34,44 +34,46 @@ public class BattleshipHubTests
     [InlineData("")]
     [InlineData("   ")]
     [InlineData(null)]
-    public async Task JoinGame_ShouldReturnFalseAndNotAddUserToGroup_WhenGameDoesNotExist(string? gameCode)
+    public async Task JoinLobby_ShouldReturnFalseAndNotAddUserToGroup_WhenLobbyDoesNotExist(string? gameCode)
     {
-        var request = new JoinLobbyRequest(Guid.NewGuid(), "Player 1");
-        _mockManager.Setup(m => m.GetGame(It.IsAny<string>()))
+        var request = new JoinLobbyRequest(Guid.NewGuid(), "Player 2");
+        _mockManager.Setup(m => m.JoinLobby(It.IsAny<string>(), It.IsAny<Player>()))
             .Returns((BattleshipEngine?)null);
 
         var result = await CreateHub().JoinLobby(gameCode!, request);
 
         result.Should().BeFalse();
         
-        _mockManager.Verify(m => m.GetGame(gameCode!), Times.Once);
+        _mockManager.Verify(m => m.JoinLobby(gameCode!, It.IsAny<Player>()), Times.Once);
         _mockContext.Verify(c => c.ConnectionId, Times.Never);
         _mockGroups.Verify(g => g.AddToGroupAsync(
-            It.IsAny<string>(),
-             It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+            It.IsAny<string>(), It.IsAny<string>(),
+            It.IsAny<CancellationToken>()), Times.Never);
     }
     
     [Theory]
     [InlineData("ABC123")]
     [InlineData("XYZ789")]
     [InlineData("123ABC")]
-    public async Task JoinLobby_ShouldReturnTrueAndAddUserToGroup_WhenGameExists(string gameCode)
+    public async Task JoinLobby_ShouldReturnTrueAndAddUserToGroup_WhenLobbyExists(string gameCode)
     {
-        var request = new JoinLobbyRequest(Guid.NewGuid(), "Player 1");
-        _mockManager.Setup(m => m.GetGame(gameCode))
+        var request = new JoinLobbyRequest(Guid.NewGuid(), "Player 2");
+        _mockManager.Setup(m => m.JoinLobby(gameCode, It.IsAny<Player>()))
             .Returns(CreateEngine());
         _mockContext.Setup(c => c.ConnectionId).Returns("test-connection-id");
         _mockGroups
-            .Setup(g => g.AddToGroupAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Setup(g => g.AddToGroupAsync(It.IsAny<string>(), It.IsAny<string>(), 
+                It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
         var result = await CreateHub().JoinLobby(gameCode, request);
 
         result.Should().BeTrue();
-        _mockManager.Verify(m => m.GetGame(gameCode), Times.Once);
+        _mockManager.Verify(m => m.JoinLobby(gameCode, It.IsAny<Player>()), Times.Once);
         _mockContext.Verify(c => c.ConnectionId, Times.Once);
         _mockGroups.Verify(g => g.AddToGroupAsync(
-            "test-connection-id", gameCode, It.IsAny<CancellationToken>()), Times.Once);
+            "test-connection-id", gameCode, 
+            It.IsAny<CancellationToken>()), Times.Once);
     }
     
     [Fact]
