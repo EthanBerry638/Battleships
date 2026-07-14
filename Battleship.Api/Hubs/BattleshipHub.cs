@@ -32,7 +32,10 @@ public class BattleshipHub (IBattleshipManager battleshipManager) : Hub
     
     public async Task<bool> JoinLobby(string gameCode, JoinLobbyRequest request)
     {
-        if (_battleshipManager.GetGame(gameCode) is null) return false;
+        var player = new Player(request.PlayerId, request.PlayerName);
+        var engine = _battleshipManager.JoinLobby(gameCode, player);
+        
+        if (engine is null) return false;
         
         await Groups.AddToGroupAsync(Context.ConnectionId, gameCode);
         return true;
