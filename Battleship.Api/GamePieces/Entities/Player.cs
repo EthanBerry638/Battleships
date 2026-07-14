@@ -9,7 +9,6 @@ public record Player
 
     public Player(Guid id, string name)
     {
-        ArgumentNullException.ThrowIfNull(id);
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         if (id == Guid.Empty) throw new ArgumentException("Id cannot be empty", nameof(id));
         Id = id;
