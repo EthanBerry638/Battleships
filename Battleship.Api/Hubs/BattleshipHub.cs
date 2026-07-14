@@ -20,9 +20,9 @@ public class BattleshipHub (IBattleshipManager battleshipManager) : Hub
         await base.OnDisconnectedAsync(exception);
     }
 
-    public async Task<string> CreateGame(CreateGameRequest request)
+    public async Task<string> CreateLobby(CreateLobbyRequest request)
     {
-        var player = new Player(request.PlayerName);
+        var player = new Player(request.PlayerId, request.PlayerName);
         
         string gameCode = _battleshipManager.CreateLobby(player);
         
