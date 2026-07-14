@@ -25,8 +25,8 @@ public class BattleshipHubTests
     private static BattleshipEngine CreateEngine() => new(
         new GameBoard(),
         new GameBoard(),
-        new Player("Player 1"), 
-        new Player("Player 2")
+        new Player(Guid.Empty, "Player 1"), 
+        new Player(Guid.Empty, "Player 2")
         );
 
     [Theory]
@@ -75,7 +75,7 @@ public class BattleshipHubTests
     [Fact]
     public async Task CreateGame_ShouldReturnGameCodeAndAddCallerToGroup_WhenCalled()
     {
-        var request = new CreateGameRequest("Player 1");
+        var request = new CreateLobbyRequest(Guid.Empty, "Player 1");
         _mockManager.Setup(m => m.CreateLobby(It.IsAny<Player>()))
             .Returns("ABC123");
         _mockContext.Setup(c => c.ConnectionId).Returns("test-connection-id");
@@ -83,7 +83,7 @@ public class BattleshipHubTests
             .Setup(g => g.AddToGroupAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
-        var result = await CreateHub().CreateGame(request);
+        var result = await CreateHub().CreateLobby(request);
 
         result.Should().Be("ABC123");
         _mockManager.Verify(m => m.CreateLobby(It.IsAny<Player>()), Times.Once);

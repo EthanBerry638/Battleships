@@ -7,8 +7,8 @@ namespace Battleship.Tests.Unit_Tests.Manager_Tests;
 public class GameManagerTests
 {
     private readonly BattleshipManager _manager = new();
-    private readonly Player _dummyPlayer1 = new("Player 1");
-    private readonly Player _dummyPlayer2 = new("Player 2");
+    private readonly Player _dummyPlayer1 = new(Guid.Empty, "Player 1");
+    private readonly Player _dummyPlayer2 = new(Guid.Empty, "Player 2");
 
     [Fact]
     public void CreateLobby_ShouldReturnSixCharacterCode_WhenCalled()
