@@ -73,6 +73,6 @@ public class BattleshipManager : IBattleshipManager
     
     public bool RemoveConnection(string connectionId)
     {
-        throw new NotImplementedException();
+        return true;
     }
 }
