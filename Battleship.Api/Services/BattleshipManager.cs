@@ -70,4 +70,9 @@ public class BattleshipManager : IBattleshipManager
         
         return _connections.TryAdd(request.ConnectionId, request.PlayerId);
     }
+    
+    public bool RemoveConnection(string connectionId)
+    {
+        throw new NotImplementedException();
+    }
 }
