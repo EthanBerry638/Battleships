@@ -38,6 +38,8 @@ public class BattleshipHub (IBattleshipManager battleshipManager) : Hub
         if (engine is null) return false;
         
         await Groups.AddToGroupAsync(Context.ConnectionId, gameCode);
+        await Clients.Group(gameCode).SendAsync("GameStarted", engine);
+        
         return true;
     }
 }
