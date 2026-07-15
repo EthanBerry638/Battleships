@@ -44,6 +44,7 @@ public class BattleshipManager : IBattleshipManager
     public BattleshipEngine? JoinLobby(string gameCode, Player player2)
     {
         ArgumentNullException.ThrowIfNull(player2);
+        CheckLobbyAndGame(player2);
         if (string.IsNullOrWhiteSpace(gameCode)) return null;
 
         if (!_lobbies.TryRemove(gameCode, out var player1)) return null;
