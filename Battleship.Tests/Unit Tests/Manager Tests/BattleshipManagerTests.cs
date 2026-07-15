@@ -215,6 +215,17 @@ public class BattleshipManagerTests
 
         result.Should().BeFalse();
     }
+    
+    [Fact]
+    public void RemoveConnection_ShouldReturnTrue_WhenConnectionExists()
+    {
+        var request = new AddConnectionRequest("test-connection-123", Guid.NewGuid());
+        _manager.AddConnection(request);
+
+        var result = _manager.RemoveConnection(request.ConnectionId);
+
+        result.Should().BeTrue();
+    }
 }
 
 public class CollidingBattleshipManager : BattleshipManager
