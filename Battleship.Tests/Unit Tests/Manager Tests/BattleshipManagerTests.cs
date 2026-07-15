@@ -183,6 +183,27 @@ public class BattleshipManagerTests
         
         result.Should().BeTrue();
     }
+
+    [Theory]
+    [MemberData(nameof(InvalidAddConnectionData))]
+    public void AddConnection_ShouldThrowException_WhenPassedNullOrEmptyConnectionIdOrGuid(string connectionId,
+        Guid guid)
+    {
+        var request = new AddConnectionRequest(connectionId, guid);
+        
+        var act = () => _manager.AddConnection(request);
+        
+        act.Should().Throw<ArgumentException>()
+            .WithMessage("ConnectionId and/or Guid cannot be null or empty.");
+    }
+    
+    public static IEnumerable<object[]> InvalidAddConnectionData =>
+    [
+        [null!, Guid.NewGuid()],
+        ["", Guid.NewGuid()],
+        [" ", Guid.NewGuid()],
+        ["test-connection-123", Guid.Empty],
+    ];
 }
 
 public class CollidingBattleshipManager : BattleshipManager
