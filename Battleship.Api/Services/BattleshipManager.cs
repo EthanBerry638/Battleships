@@ -63,7 +63,7 @@ public class BattleshipManager : IBattleshipManager
         return engine;
     }
 
-    public void AddConnection(AddConnectionRequest request)
+    public bool AddConnection(AddConnectionRequest request)
     {
         throw new NotImplementedException();
     }
