@@ -1,4 +1,4 @@
-﻿using System.Runtime.InteropServices;
+﻿using Battleship.Api.Exceptions;
 using Battleship.Api.Services;
 using FluentAssertions;
 using Battleship.Api.GamePieces.Entities;
@@ -56,6 +56,29 @@ public class BattleshipManagerTests
         string result = managerWithCollision.CreateLobby(player2);
         
         result.Should().Be("UNIQUE");
+    }
+    
+    [Fact]
+    public void CreateLobby_ShouldThrowPlayerAlreadyInSessionException_WhenPlayerAlreadyHasOpenLobby()
+    {
+        _manager.CreateLobby(_dummyPlayer1);
+        
+        var act = () => _manager.CreateLobby(_dummyPlayer1);
+        
+        act.Should().Throw<PlayerAlreadyInSessionException>()
+            .WithMessage("Player is already in an active lobby or game.");
+    }
+
+    [Fact]
+    public void CreateLobby_ShouldThrowPlayerAlreadyInSessionException_WhenPlayerAlreadyInActiveGame()
+    {
+        string gameCode = _manager.CreateLobby(_dummyPlayer1);
+        _manager.JoinLobby(gameCode, _dummyPlayer1);
+        
+        var act = () => _manager.CreateLobby(_dummyPlayer1);
+        
+        act.Should().Throw<PlayerAlreadyInSessionException>()
+            .WithMessage("Player is already in an active lobby or game.");
     }
 
     [Theory]
