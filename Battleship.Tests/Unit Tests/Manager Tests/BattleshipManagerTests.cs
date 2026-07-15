@@ -238,6 +238,14 @@ public class BattleshipManagerTests
         act.Should().Throw<ArgumentException>()
             .WithMessage("ConnectionId cannot be null or whitespace.");
     }
+
+    [Fact]
+    public void RemoveConnection_ShouldReturnFalse_WhenConnectionIsValidButDoesNotExist()
+    {
+        var result = _manager.RemoveConnection("non-existent-connection");
+
+        result.Should().BeFalse();
+    }
 }
 
 public class CollidingBattleshipManager : BattleshipManager
