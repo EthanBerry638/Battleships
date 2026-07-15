@@ -70,4 +70,9 @@ public class BattleshipManager : IBattleshipManager
         
         return _connections.TryAdd(request.ConnectionId, request.PlayerId);
     }
+
+    public async Task HandleDisconnectAsync(string connectionId, TimeSpan delay = default)
+    {
+        _connections.TryRemove(connectionId, out _);
+    }
 }
