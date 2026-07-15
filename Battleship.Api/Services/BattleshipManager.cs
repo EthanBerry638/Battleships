@@ -27,10 +27,13 @@ public class BattleshipManager : IBattleshipManager
 
     private void CheckLobbyAndGame(Player player)
     {
-        if (_lobbies.Values.Any(p => p.Id == player.Id) || _games.Values.Any(g => g.Players.Any(p => p.Id == player.Id)))
-        {
+        bool isWaitingInLobby = _lobbies.Values
+            .Any(p => p.Id == player.Id);
+        bool isPlayingInGame = _games.Values
+            .Any(g => g.Players.Any(p => p.Id == player.Id));
+
+        if (isWaitingInLobby || isPlayingInGame) 
             throw new PlayerAlreadyInSessionException("Player is already in an active lobby or game.");
-        }
     }
     
     protected virtual string GenerateCode()
