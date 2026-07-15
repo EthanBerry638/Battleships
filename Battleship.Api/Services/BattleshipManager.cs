@@ -65,6 +65,9 @@ public class BattleshipManager : IBattleshipManager
 
     public bool AddConnection(AddConnectionRequest request)
     {
+        if (string.IsNullOrWhiteSpace(request.ConnectionId) || request.PlayerId == Guid.Empty) 
+            throw new ArgumentException("ConnectionId and/or Guid cannot be null or empty.");
+        
         return true;
     }
 }
