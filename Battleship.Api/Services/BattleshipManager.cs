@@ -80,7 +80,10 @@ public class BattleshipManager : IBattleshipManager
         var lobbyToQuery = _lobbies.
             FirstOrDefault(l => l.Value.Id == playerId);
         if (lobbyToQuery.Key is not null)
+        {
             _lobbies.TryRemove(lobbyToQuery.Key, out _);
+            return;
+        }
 
         var gameToQuery = _games
             .FirstOrDefault(g => g.Value.Players.
