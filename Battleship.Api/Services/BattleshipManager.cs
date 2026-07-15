@@ -68,6 +68,6 @@ public class BattleshipManager : IBattleshipManager
         if (string.IsNullOrWhiteSpace(request.ConnectionId) || request.PlayerId == Guid.Empty) 
             throw new ArgumentException("ConnectionId and/or Guid cannot be null or empty.");
         
-        return true;
+        return _connections.TryAdd(request.ConnectionId, request.PlayerId);
     }
 }
