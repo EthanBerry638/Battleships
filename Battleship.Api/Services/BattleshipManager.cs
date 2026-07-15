@@ -13,9 +13,12 @@ public class BattleshipManager : IBattleshipManager
     public string CreateLobby(Player player1)
     {
         ArgumentNullException.ThrowIfNull(player1);
-        
-        string gameCode = GenerateCode();
-        _lobbies.TryAdd(gameCode, player1);
+
+        string gameCode;
+        do
+        {
+            gameCode = GenerateCode();
+        } while (!_lobbies.TryAdd(gameCode, player1));
     
         return gameCode;
     }
