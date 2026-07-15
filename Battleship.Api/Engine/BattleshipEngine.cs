@@ -15,6 +15,7 @@ namespace Battleship.Api.Engine
         private Player? _winner;
         public GameState GameState => _gameState;
         public Player CurrentPlayer => _players[_currentPlayerIndex];
+        public IReadOnlyList<Player> Players => _players;
         
         public BattleshipEngine(IGameBoard playerOneBoard, IGameBoard playerTwoBoard, Player playerOne, Player playerTwo)
         {
