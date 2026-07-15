@@ -44,6 +44,19 @@ public class BattleshipManagerTests
 
         act.Should().Throw<ArgumentNullException>();
     }
+    
+    [Fact]
+    public void CreateLobby_ShouldRetryGeneration_WhenCodeCollisionOccurs()
+    {
+        var managerWithCollision = new CollidingBattleshipManager();
+        var player1 = new Player(Guid.NewGuid(), "Original Player");
+        managerWithCollision.CreateLobby(player1); 
+        var player2 = new Player(Guid.NewGuid(), "Colliding Player");
+        
+        string result = managerWithCollision.CreateLobby(player2);
+        
+        result.Should().Be("UNIQUE");
+    }
 
     [Theory]
     [InlineData("123456")]
@@ -128,5 +141,18 @@ public class BattleshipManagerTests
 
         firstJoin.Should().NotBeNull();
         secondJoin.Should().BeNull(); 
+    }
+}
+
+public class CollidingBattleshipManager : BattleshipManager
+{
+    private int _callCount = 0;
+
+    protected override string GenerateCode()
+    {
+        _callCount++;
+        if (_callCount == 1) return "DUPLIC";
+        if (_callCount == 2) return "DUPLIC";
+        return "UNIQUE";
     }
 }
