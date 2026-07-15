@@ -15,11 +15,14 @@ public class BattleshipHubTests
     private readonly Mock<IBattleshipManager> _mockManager = new();
     private readonly Mock<IGroupManager> _mockGroups = new();
     private readonly Mock<HubCallerContext> _mockContext = new();
+    private readonly Mock<IHubCallerClients> _mockClients = new();
+    private readonly Mock<IClientProxy> _mockClientProxy = new();
 
     private BattleshipHub CreateHub() => new(_mockManager.Object)
     {
         Groups = _mockGroups.Object,
-        Context = _mockContext.Object
+        Context = _mockContext.Object,
+        Clients = _mockClients.Object
     };
     
     private static BattleshipEngine CreateEngine() => new(
@@ -55,25 +58,34 @@ public class BattleshipHubTests
     [InlineData("ABC123")]
     [InlineData("XYZ789")]
     [InlineData("123ABC")]
-    public async Task JoinLobby_ShouldReturnTrueAndAddUserToGroup_WhenLobbyExists(string gameCode)
+    public async Task JoinLobby_ShouldReturnTrueAndAddUserToGroupAndNotifyGroup_WhenLobbyExists(string gameCode)
     {
         var request = new JoinLobbyRequest(Guid.NewGuid(), "Player 2");
+        var expectedEngine = CreateEngine(); 
         _mockManager.Setup(m => m.JoinLobby(gameCode, It.IsAny<Player>()))
-            .Returns(CreateEngine());
+            .Returns(expectedEngine);
         _mockContext.Setup(c => c.ConnectionId).Returns("test-connection-id");
         _mockGroups
             .Setup(g => g.AddToGroupAsync(It.IsAny<string>(), It.IsAny<string>(), 
                 It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
-
+        _mockClients.Setup(c => c.Group(gameCode)).Returns(_mockClientProxy.Object);
+        
         var result = await CreateHub().JoinLobby(gameCode, request);
-
+        
         result.Should().BeTrue();
         _mockManager.Verify(m => m.JoinLobby(gameCode, It.IsAny<Player>()), Times.Once);
         _mockContext.Verify(c => c.ConnectionId, Times.Once);
         _mockGroups.Verify(g => g.AddToGroupAsync(
             "test-connection-id", gameCode, 
             It.IsAny<CancellationToken>()), Times.Once);
+        _mockClients.Verify(c => c.Group(gameCode), Times.Once);
+        _mockClientProxy.Verify(
+            p => p.SendCoreAsync(
+                "GameStarted",
+                It.Is<object[]>(args => args.Length == 1 && args[0] == expectedEngine),
+                CancellationToken.None),
+            Times.Once);
     }
     
     [Fact]

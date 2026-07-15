@@ -5,7 +5,7 @@ using Battleship.Api.GamePieces.Entities;
 
 namespace Battleship.Tests.Unit_Tests.Manager_Tests;
 
-public class GameManagerTests
+public class BattleshipManagerTests
 {
     private readonly BattleshipManager _manager = new();
     private readonly Player _dummyPlayer1 = new(Guid.NewGuid(), "Player 1");
