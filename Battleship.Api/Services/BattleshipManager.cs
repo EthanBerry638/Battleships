@@ -73,6 +73,13 @@ public class BattleshipManager : IBattleshipManager
 
     public async Task HandleDisconnectAsync(string connectionId, TimeSpan delay = default)
     {
-        _connections.TryRemove(connectionId, out _);
+        _connections.TryRemove(connectionId, out var playerId);
+        
+        await Task.Delay(delay);
+        
+        var lobbyToQuery = _lobbies.
+            FirstOrDefault(l => l.Value.Id == playerId);
+        if (lobbyToQuery.Key is not null)
+            _lobbies.TryRemove(lobbyToQuery.Key, out _);
     }
 }
