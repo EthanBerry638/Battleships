@@ -59,25 +59,32 @@ public class BattleshipManagerTests
     }
     
     [Fact]
-    public void CreateLobby_ShouldThrowPlayerAlreadyInSessionException_WhenPlayerAlreadyHasOpenLobby()
+    public void CreateOrJoinLobby_ShouldThrowPlayerAlreadyInSessionException_WhenPlayerAlreadyHasOpenLobby()
     {
-        _manager.CreateLobby(_dummyPlayer1);
+        string gameCode = _manager.CreateLobby(_dummyPlayer1);
         
-        var act = () => _manager.CreateLobby(_dummyPlayer1);
+        var actCreate = () => _manager.CreateLobby(_dummyPlayer1);
+        var actJoin = () => _manager.JoinLobby(gameCode, _dummyPlayer1);
         
-        act.Should().Throw<PlayerAlreadyInSessionException>()
+        actCreate.Should().Throw<PlayerAlreadyInSessionException>()
+            .WithMessage("Player is already in an active lobby or game.");
+        actJoin.Should().Throw<PlayerAlreadyInSessionException>()
             .WithMessage("Player is already in an active lobby or game.");
     }
 
     [Fact]
-    public void CreateLobby_ShouldThrowPlayerAlreadyInSessionException_WhenPlayerAlreadyInActiveGame()
+    public void CreateOrJoinLobby_ShouldThrowPlayerAlreadyInSessionException_WhenPlayerAlreadyInActiveGame()
     {
-        string gameCode = _manager.CreateLobby(_dummyPlayer1);
-        _manager.JoinLobby(gameCode, _dummyPlayer1);
+        string gameCode1 = _manager.CreateLobby(_dummyPlayer1); 
+        _manager.JoinLobby(gameCode1, _dummyPlayer2); 
+        string gameCode2 = _manager.CreateLobby(new Player(Guid.NewGuid(), "Player 3"));
         
-        var act = () => _manager.CreateLobby(_dummyPlayer1);
+        var actCreate = () => _manager.CreateLobby(_dummyPlayer1);
+        var actJoin = () => _manager.JoinLobby(gameCode2, _dummyPlayer1);
         
-        act.Should().Throw<PlayerAlreadyInSessionException>()
+        actCreate.Should().Throw<PlayerAlreadyInSessionException>()
+            .WithMessage("Player is already in an active lobby or game.");
+        actJoin.Should().Throw<PlayerAlreadyInSessionException>()
             .WithMessage("Player is already in an active lobby or game.");
     }
 
