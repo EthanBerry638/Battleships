@@ -81,5 +81,11 @@ public class BattleshipManager : IBattleshipManager
             FirstOrDefault(l => l.Value.Id == playerId);
         if (lobbyToQuery.Key is not null)
             _lobbies.TryRemove(lobbyToQuery.Key, out _);
+
+        var gameToQuery = _games
+            .FirstOrDefault(g => g.Value.Players.
+                Any(p => p.Id == playerId));
+        if (gameToQuery.Key is not null) _games.TryRemove(gameToQuery.Key, out _);
+        
     }
 }
