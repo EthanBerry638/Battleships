@@ -215,50 +215,6 @@ public class BattleshipManagerTests
 
         result.Should().BeFalse();
     }
-    
-    [Fact]
-    public void RemoveConnection_ShouldReturnTrue_WhenConnectionExists()
-    {
-        var request = new AddConnectionRequest("test-connection-123", Guid.NewGuid());
-        _manager.AddConnection(request);
-
-        var result = _manager.RemoveConnection(request.ConnectionId);
-
-        result.Should().BeTrue();
-    }
-    
-    [Theory]
-    [InlineData("")]
-    [InlineData(" ")]
-    [InlineData(null)]
-    public void RemoveConnection_ShouldThrowArgumentException_WhenConnectionIdIsNullOrWhiteSpace(string connectionId)
-    {
-        var act = () => _manager.RemoveConnection(connectionId);
-        
-        act.Should().Throw<ArgumentException>()
-            .WithMessage("ConnectionId cannot be null or whitespace.");
-    }
-
-    [Fact]
-    public void RemoveConnection_ShouldReturnFalse_WhenConnectionIsValidButDoesNotExist()
-    {
-        var result = _manager.RemoveConnection("non-existent-connection");
-
-        result.Should().BeFalse();
-    }
-    
-    [Fact]
-    public void RemoveConnection_ShouldReturnTrueThenFalse_WhenCalledTwiceWithSameExistingConnectionId()
-    {
-        var request = new AddConnectionRequest("test-connection-123", Guid.NewGuid());
-        _manager.AddConnection(request);
-
-        var firstRemove = _manager.RemoveConnection(request.ConnectionId);
-        var secondRemove = _manager.RemoveConnection(request.ConnectionId);
-
-        firstRemove.Should().BeTrue();
-        secondRemove.Should().BeFalse();
-    }
 }
 
 public class CollidingBattleshipManager : BattleshipManager

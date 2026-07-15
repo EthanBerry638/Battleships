@@ -70,12 +70,4 @@ public class BattleshipManager : IBattleshipManager
         
         return _connections.TryAdd(request.ConnectionId, request.PlayerId);
     }
-    
-    public bool RemoveConnection(string connectionId)
-    {
-        if (string.IsNullOrWhiteSpace(connectionId)) 
-            throw new ArgumentException("ConnectionId cannot be null or whitespace.");
-        
-        return _connections.TryRemove(connectionId, out _);
-    }
 }
