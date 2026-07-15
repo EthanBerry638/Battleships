@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using Battleship.Api.DTOs;
 using Battleship.Api.Engine;
 using Battleship.Api.Exceptions;
 using Battleship.Api.GamePieces.Entities;
@@ -10,6 +11,7 @@ public class BattleshipManager : IBattleshipManager
 {
     private readonly ConcurrentDictionary<string, BattleshipEngine> _games = new();
     private readonly ConcurrentDictionary<string, Player> _lobbies = new();
+    private readonly ConcurrentDictionary<string, Guid> _connections = new();
 
     public string CreateLobby(Player player1)
     {
@@ -59,5 +61,10 @@ public class BattleshipManager : IBattleshipManager
         if (string.IsNullOrWhiteSpace(gameCode)) return null;
         _games.TryGetValue(gameCode, out var engine);
         return engine;
+    }
+
+    public void AddConnection(AddConnectionRequest request)
+    {
+        throw new NotImplementedException();
     }
 }
