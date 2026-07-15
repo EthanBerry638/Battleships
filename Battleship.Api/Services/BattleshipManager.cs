@@ -65,6 +65,6 @@ public class BattleshipManager : IBattleshipManager
 
     public bool AddConnection(AddConnectionRequest request)
     {
-        throw new NotImplementedException();
+        return true;
     }
 }
