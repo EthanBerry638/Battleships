@@ -2,6 +2,7 @@
 using Battleship.Api.Services;
 using FluentAssertions;
 using Battleship.Api.GamePieces.Entities;
+using Battleship.Api.DTOs;
 
 namespace Battleship.Tests.Unit_Tests.Manager_Tests;
 
@@ -171,6 +172,16 @@ public class BattleshipManagerTests
 
         firstJoin.Should().NotBeNull();
         secondJoin.Should().BeNull(); 
+    }
+
+    [Fact]
+    public void AddConnection_ShouldReturnTrue_WhenPassedValidConnectionIdAndGuid()
+    {
+        var request = new AddConnectionRequest("test-connection-123", Guid.NewGuid());
+        
+        var result = _manager.AddConnection(request);
+        
+        result.Should().BeTrue();
     }
 }
 
