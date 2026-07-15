@@ -24,7 +24,7 @@ public class BattleshipManagerTests
     public void CreateLobby_ShouldReturnUniqueCodes_WhenCalledMultipleTimes()
     {
         string code1 = _manager.CreateLobby(_dummyPlayer1);
-        string code2 = _manager.CreateLobby(_dummyPlayer1);
+        string code2 = _manager.CreateLobby(_dummyPlayer2);
 
         code1.Should().NotBe(code2);
     }
