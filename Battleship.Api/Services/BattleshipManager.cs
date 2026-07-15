@@ -14,11 +14,15 @@ public class BattleshipManager : IBattleshipManager
     {
         ArgumentNullException.ThrowIfNull(player1);
         
-        string gameCode = Guid.NewGuid().ToString("N")[..6].ToUpper();
-        
+        string gameCode = GenerateCode();
         _lobbies.TryAdd(gameCode, player1);
-        
+    
         return gameCode;
+    }
+    
+    protected virtual string GenerateCode()
+    {
+        return Guid.NewGuid().ToString("N")[..6].ToUpper();
     }
 
     public BattleshipEngine? JoinLobby(string gameCode, Player player2)
