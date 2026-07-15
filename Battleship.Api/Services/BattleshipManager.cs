@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using Battleship.Api.Engine;
+using Battleship.Api.Exceptions;
 using Battleship.Api.GamePieces.Entities;
 using Battleship.Api.GamePieces.Board;
 
@@ -13,7 +14,8 @@ public class BattleshipManager : IBattleshipManager
     public string CreateLobby(Player player1)
     {
         ArgumentNullException.ThrowIfNull(player1);
-
+        CheckLobbyAndGame(player1);
+        
         string gameCode;
         do
         {
@@ -21,6 +23,14 @@ public class BattleshipManager : IBattleshipManager
         } while (!_lobbies.TryAdd(gameCode, player1));
     
         return gameCode;
+    }
+
+    private void CheckLobbyAndGame(Player player)
+    {
+        if (_lobbies.Values.Any(p => p.Id == player.Id) || _games.Values.Any(g => g.Players.Any(p => p.Id == player.Id)))
+        {
+            throw new PlayerAlreadyInSessionException("Player is already in an active lobby or game.");
+        }
     }
     
     protected virtual string GenerateCode()
