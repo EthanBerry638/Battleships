@@ -204,6 +204,17 @@ public class BattleshipManagerTests
         [" ", Guid.NewGuid()],
         ["test-connection-123", Guid.Empty],
     ];
+    
+    [Fact]
+    public void AddConnection_ShouldReturnFalse_WhenConnectionAlreadyExists()
+    {
+        var request = new AddConnectionRequest("test-connection-123", Guid.NewGuid());
+        _manager.AddConnection(request);
+
+        var result = _manager.AddConnection(request);
+
+        result.Should().BeFalse();
+    }
 }
 
 public class CollidingBattleshipManager : BattleshipManager
