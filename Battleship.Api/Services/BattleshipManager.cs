@@ -73,6 +73,9 @@ public class BattleshipManager : IBattleshipManager
     
     public bool RemoveConnection(string connectionId)
     {
+        if (string.IsNullOrWhiteSpace(connectionId)) 
+            throw new ArgumentException("ConnectionId cannot be null or whitespace.");
+        
         return true;
     }
 }
