@@ -1,6 +1,7 @@
 ﻿using Battleship.Api.Hubs;
 using Battleship.Api.Services;
 using Battleship.Api.Engine;
+using Battleship.Api.Exceptions;
 using Battleship.Api.GamePieces.Board;
 using Battleship.Api.GamePieces.Entities;
 using Microsoft.AspNetCore.SignalR;
@@ -106,5 +107,22 @@ public class BattleshipHubTests
         _mockContext.Verify(c => c.ConnectionId, Times.Once);
         _mockGroups.Verify(g => g.AddToGroupAsync(
             "test-connection-id", "ABC123", It.IsAny<CancellationToken>()), Times.Once);
+    }
+    
+    [Fact]
+    public async Task CreateLobby_ShouldPropagatePlayerAlreadyInSessionException_WhenManagerThrows()
+    {
+        var request = new CreateLobbyRequest(Guid.NewGuid(), "Player 1");
+        _mockManager.Setup(m => m.CreateLobby(It.IsAny<Player>()))
+            .Throws(new PlayerAlreadyInSessionException("Player is already in an active lobby or game."));
+        
+        var act = () => CreateHub().CreateLobby(request);
+        
+        await act.Should().ThrowAsync<PlayerAlreadyInSessionException>()
+            .WithMessage("Player is already in an active lobby or game.");
+        _mockManager.Verify(m => m.CreateLobby(It.IsAny<Player>()), Times.Once);
+        _mockContext.Verify(c => c.ConnectionId, Times.Never);
+        _mockGroups.Verify(g => g.AddToGroupAsync(
+            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 }
