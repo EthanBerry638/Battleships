@@ -215,6 +215,20 @@ public class BattleshipManagerTests
 
         result.Should().BeFalse();
     }
+    
+    [Fact]
+    public async Task HandleDisconnectAsync_ShouldRemoveConnectionImmediately_WhenConnectionIdExists()
+    {
+        string connectionId = "test-connection-123";
+        var playerId = Guid.NewGuid();
+        var request = new AddConnectionRequest(connectionId, playerId);
+        _manager.AddConnection(request);
+
+        await _manager.HandleDisconnectAsync(connectionId,TimeSpan.Zero);
+        var canAddConnection = _manager.AddConnection(request);
+        
+        canAddConnection.Should().BeTrue();
+    }
 }
 
 public class CollidingBattleshipManager : BattleshipManager
