@@ -246,6 +246,19 @@ public class BattleshipManagerTests
 
         result.Should().BeFalse();
     }
+    
+    [Fact]
+    public void RemoveConnection_ShouldReturnTrueThenFalse_WhenCalledTwiceWithSameExistingConnectionId()
+    {
+        var request = new AddConnectionRequest("test-connection-123", Guid.NewGuid());
+        _manager.AddConnection(request);
+
+        var firstRemove = _manager.RemoveConnection(request.ConnectionId);
+        var secondRemove = _manager.RemoveConnection(request.ConnectionId);
+
+        firstRemove.Should().BeTrue();
+        secondRemove.Should().BeFalse();
+    }
 }
 
 public class CollidingBattleshipManager : BattleshipManager
