@@ -65,6 +65,7 @@ public class BattleshipHubTests
         var expectedEngine = CreateEngine(); 
         _mockManager.Setup(m => m.JoinLobby(gameCode, It.IsAny<Player>()))
             .Returns(expectedEngine);
+        _mockManager.Setup(m => m.AddConnection(new AddConnectionRequest("test-connection-id", request.PlayerId)));
         _mockContext.Setup(c => c.ConnectionId).Returns("test-connection-id");
         _mockGroups
             .Setup(g => g.AddToGroupAsync(It.IsAny<string>(), It.IsAny<string>(), 
@@ -76,6 +77,7 @@ public class BattleshipHubTests
         
         result.Should().BeTrue();
         _mockManager.Verify(m => m.JoinLobby(gameCode, It.IsAny<Player>()), Times.Once);
+        _mockManager.Verify(m => m.AddConnection(new AddConnectionRequest("test-connection-id", request.PlayerId)), Times.Once);
         _mockContext.Verify(c => c.ConnectionId, Times.Once);
         _mockGroups.Verify(g => g.AddToGroupAsync(
             "test-connection-id", gameCode, 
