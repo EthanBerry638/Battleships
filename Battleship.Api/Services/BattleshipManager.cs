@@ -75,7 +75,7 @@ public class BattleshipManager : IBattleshipManager
     {
         if (string.IsNullOrWhiteSpace(connectionId)) throw new ArgumentException("Connection ID cannot be null or whitespace");
         
-        _connections.TryRemove(connectionId, out var playerId);
+        if (!_connections.TryRemove(connectionId, out var playerId)) return;
         
         await Task.Delay(delay);
         
