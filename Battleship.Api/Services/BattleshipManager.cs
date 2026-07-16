@@ -78,6 +78,8 @@ public class BattleshipManager : IBattleshipManager
         if (!_connections.TryRemove(connectionId, out var playerId)) return;
         
         await Task.Delay(delay);
+
+        if (_connections.Values.Contains(playerId)) return;
         
         var lobbyToQuery = _lobbies.
             FirstOrDefault(l => l.Value.Id == playerId);
