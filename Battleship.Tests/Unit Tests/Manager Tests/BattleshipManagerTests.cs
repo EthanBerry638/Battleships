@@ -282,6 +282,23 @@ public class BattleshipManagerTests
         var engine = _manager.JoinLobby(gameCode, _dummyPlayer2);
         engine.Should().NotBeNull();
     }
+    
+    [Fact]
+    public async Task HandleDisconnectAsync_ShouldNotRemoveLobby_WhenPlayerReconnectsBeforeDelayExpires()
+    {
+        string connectionId = "original-connection";
+        string reconnectedConnectionId = "reconnected-connection";
+        var player = new Player(Guid.NewGuid(), "Reconnecting Player");
+        _manager.AddConnection(new AddConnectionRequest(connectionId, player.Id));
+        string gameCode = _manager.CreateLobby(player);
+
+        var disconnectTask = _manager.HandleDisconnectAsync(connectionId, TimeSpan.FromMilliseconds(200));
+        _manager.AddConnection(new AddConnectionRequest(reconnectedConnectionId, player.Id));
+        await disconnectTask;
+        var engine = _manager.JoinLobby(gameCode, _dummyPlayer2);
+        
+        engine.Should().NotBeNull();
+    }
 }
 
 public class CollidingBattleshipManager : BattleshipManager
