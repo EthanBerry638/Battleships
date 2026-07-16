@@ -78,7 +78,7 @@ public class BattleshipHubTests
         result.Should().BeTrue();
         _mockManager.Verify(m => m.JoinLobby(gameCode, It.IsAny<Player>()), Times.Once);
         _mockManager.Verify(m => m.AddConnection(new AddConnectionRequest("test-connection-id", request.PlayerId)), Times.Once);
-        _mockContext.Verify(c => c.ConnectionId, Times.Once);
+        _mockContext.Verify(c => c.ConnectionId, Times.Exactly(2));
         _mockGroups.Verify(g => g.AddToGroupAsync(
             "test-connection-id", gameCode, 
             It.IsAny<CancellationToken>()), Times.Once);
