@@ -37,6 +37,7 @@ public class BattleshipHub (IBattleshipManager battleshipManager) : Hub
         
         if (engine is null) return false;
         
+        _battleshipManager.AddConnection(new AddConnectionRequest(Context.ConnectionId, player.Id));
         await Groups.AddToGroupAsync(Context.ConnectionId, gameCode);
         await Clients.Group(gameCode).SendAsync("GameStarted", engine);
         
