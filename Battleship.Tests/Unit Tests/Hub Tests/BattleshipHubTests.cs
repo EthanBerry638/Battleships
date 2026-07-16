@@ -146,4 +146,22 @@ public class BattleshipHubTests
         _mockGroups.Verify(g => g.AddToGroupAsync(
             It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
     }
+    
+    [Fact]
+    public async Task CreateLobbyAndJoinLobby_ShouldPropagateArgumentException_WhenAddConnectionThrows()
+    {
+        var createRequest = new CreateLobbyRequest(Guid.NewGuid(), "Player 1");
+        var joinRequest = new JoinLobbyRequest(Guid.NewGuid(), "Player 2");
+        _mockManager.Setup(m => m.CreateLobby(It.IsAny<Player>())).Returns("ABC123");
+        _mockManager.Setup(m => m.JoinLobby(It.IsAny<string>(), It.IsAny<Player>())).Returns(CreateEngine());
+        _mockContext.Setup(c => c.ConnectionId).Returns("test-connection-id");
+        _mockManager.Setup(m => m.AddConnection(It.IsAny<AddConnectionRequest>()))
+            .Throws<ArgumentException>();
+
+        var createAct = () => CreateHub().CreateLobby(createRequest);
+        var joinAct = () => CreateHub().JoinLobby("ABC123", joinRequest);
+
+        await createAct.Should().ThrowAsync<ArgumentException>();
+        await joinAct.Should().ThrowAsync<ArgumentException>();
+    }
 }
