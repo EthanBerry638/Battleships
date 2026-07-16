@@ -258,6 +258,18 @@ public class BattleshipManagerTests
         
         activeGame.Should().BeNull();
     }
+    
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public async Task HandleDisconnectAsync_ShouldThrowArgumentException_WhenConnectionIdIsInvalid(string? invalidConnectionId)
+    {
+        var act = async () => await _manager.HandleDisconnectAsync(invalidConnectionId!, TimeSpan.Zero);
+
+        await act.Should().ThrowAsync<ArgumentException>()
+            .WithMessage("*Connection ID cannot be null or whitespace*");
+    }
 }
 
 public class CollidingBattleshipManager : BattleshipManager
