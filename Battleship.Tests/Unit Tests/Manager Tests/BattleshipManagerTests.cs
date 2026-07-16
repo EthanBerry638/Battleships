@@ -268,7 +268,7 @@ public class BattleshipManagerTests
         var act = async () => await _manager.HandleDisconnectAsync(invalidConnectionId!, TimeSpan.Zero);
 
         await act.Should().ThrowAsync<ArgumentException>()
-            .WithMessage("*Connection ID cannot be null or whitespace*");
+            .WithMessage("Connection ID cannot be null or whitespace");
     }
 }
 

@@ -73,6 +73,8 @@ public class BattleshipManager : IBattleshipManager
 
     public async Task HandleDisconnectAsync(string connectionId, TimeSpan delay = default)
     {
+        if (string.IsNullOrWhiteSpace(connectionId)) throw new ArgumentException("Connection ID cannot be null or whitespace");
+        
         _connections.TryRemove(connectionId, out var playerId);
         
         await Task.Delay(delay);
@@ -89,6 +91,5 @@ public class BattleshipManager : IBattleshipManager
             .FirstOrDefault(g => g.Value.Players.
                 Any(p => p.Id == playerId));
         if (gameToQuery.Key is not null) _games.TryRemove(gameToQuery.Key, out _);
-        
     }
 }
