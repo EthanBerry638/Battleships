@@ -270,6 +270,18 @@ public class BattleshipManagerTests
         await act.Should().ThrowAsync<ArgumentException>()
             .WithMessage("Connection ID cannot be null or whitespace");
     }
+    
+    [Fact]
+    public async Task HandleDisconnectAsync_ShouldNotRemoveLobbyOrGame_WhenConnectionIdIsNotFound()
+    {
+        string unknownConnectionId = "connection-that-was-never-added";
+        string gameCode = _manager.CreateLobby(_dummyPlayer1);
+        
+        await _manager.HandleDisconnectAsync(unknownConnectionId, TimeSpan.Zero);
+        
+        var engine = _manager.JoinLobby(gameCode, _dummyPlayer2);
+        engine.Should().NotBeNull();
+    }
 }
 
 public class CollidingBattleshipManager : BattleshipManager
