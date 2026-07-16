@@ -114,6 +114,7 @@ public class BattleshipHubTests
         var request = new CreateLobbyRequest(Guid.NewGuid(), "Player 1");
         _mockManager.Setup(m => m.CreateLobby(It.IsAny<Player>()))
             .Returns("ABC123");
+        _mockManager.Setup(m => m.AddConnection(new AddConnectionRequest("test-connection-id", request.PlayerId)));
         _mockContext.Setup(c => c.ConnectionId).Returns("test-connection-id");
         _mockGroups
             .Setup(g => g.AddToGroupAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
@@ -123,7 +124,8 @@ public class BattleshipHubTests
 
         result.Should().Be("ABC123");
         _mockManager.Verify(m => m.CreateLobby(It.IsAny<Player>()), Times.Once);
-        _mockContext.Verify(c => c.ConnectionId, Times.Once);
+        _mockManager.Verify(m => m.AddConnection(new AddConnectionRequest("test-connection-id", request.PlayerId)), Times.Once);
+        _mockContext.Verify(c => c.ConnectionId, Times.Exactly(2));
         _mockGroups.Verify(g => g.AddToGroupAsync(
             "test-connection-id", "ABC123", It.IsAny<CancellationToken>()), Times.Once);
     }
