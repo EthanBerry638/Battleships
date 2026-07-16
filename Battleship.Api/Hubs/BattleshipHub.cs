@@ -26,6 +26,7 @@ public class BattleshipHub (IBattleshipManager battleshipManager) : Hub
         
         string gameCode = _battleshipManager.CreateLobby(player);
         
+        _battleshipManager.AddConnection(new AddConnectionRequest(Context.ConnectionId, player.Id));
         await Groups.AddToGroupAsync(Context.ConnectionId, gameCode);
         return gameCode;
     }
