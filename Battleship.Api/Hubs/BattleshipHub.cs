@@ -16,7 +16,7 @@ public class BattleshipHub (IBattleshipManager battleshipManager) : Hub
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
-        Console.WriteLine($"Client disconnected: {Context.ConnectionId}");
+        await _battleshipManager.HandleDisconnectAsync(Context.ConnectionId, TimeSpan.FromSeconds(30));
         await base.OnDisconnectedAsync(exception);
     }
 
