@@ -164,4 +164,16 @@ public class BattleshipHubTests
         await createAct.Should().ThrowAsync<ArgumentException>();
         await joinAct.Should().ThrowAsync<ArgumentException>();
     }
+
+    [Fact]
+    public async Task OnDisconnectedAsync_ShouldPropagateArgumentException_WhenTheManagerThrows()
+    {
+        _mockManager.Setup(m => m.HandleDisconnectAsync(It.IsAny<string>(), It.IsAny<TimeSpan>()))
+            .Throws<ArgumentException>();
+
+        var act = async () =>await CreateHub().OnDisconnectedAsync(null);
+        
+        await act.Should().ThrowAsync<ArgumentException>();
+        _mockManager.Verify(m => m.HandleDisconnectAsync(It.IsAny<string>(), It.IsAny<TimeSpan>()), Times.Once);
+    }
 }
