@@ -9,5 +9,5 @@ public interface IBattleshipManager
     string CreateLobby(Player player);
     BattleshipEngine? JoinLobby(string gameCode, Player player2);
     bool AddConnection(AddConnectionRequest request);
-    Task<DisconnectResponse> HandleDisconnectAsync(string connectionId, TimeSpan delay = default);
+    Task<string?> HandleDisconnectAsync(string connectionId, TimeSpan delay = default);
 }
