@@ -18,7 +18,12 @@ public class BattleshipHub (IBattleshipManager battleshipManager) : Hub
     {
         string? gameCode =
             await _battleshipManager.HandleDisconnectAsync(Context.ConnectionId, TimeSpan.FromSeconds(30));
-        await Clients.Group(gameCode!).SendCoreAsync("OpponentDisconnected", []);
+        
+        if (gameCode is not null)
+        {
+            await Clients.Group(gameCode!).SendCoreAsync("OpponentDisconnected", []);
+        }
+
         await base.OnDisconnectedAsync(exception);
     }
 
