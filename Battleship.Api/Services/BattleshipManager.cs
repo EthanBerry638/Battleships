@@ -92,7 +92,11 @@ public class BattleshipManager : IBattleshipManager
         var gameToQuery = _games
             .FirstOrDefault(g => g.Value.Players.
                 Any(p => p.Id == playerId));
-        if (gameToQuery.Key is not null) _games.TryRemove(gameToQuery.Key, out _);
+        if (gameToQuery.Key is not null)
+        {
+            _games.TryRemove(gameToQuery.Key, out _);
+            return gameToQuery.Key;
+        }
         
         return null;
     }
