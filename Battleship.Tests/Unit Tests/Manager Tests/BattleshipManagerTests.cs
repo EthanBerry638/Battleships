@@ -1,4 +1,5 @@
-﻿using Battleship.Api.Exceptions;
+﻿using System.Diagnostics;
+using Battleship.Api.Exceptions;
 using Battleship.Api.Services;
 using FluentAssertions;
 using Battleship.Api.GamePieces.Entities;
@@ -224,10 +225,11 @@ public class BattleshipManagerTests
         var request = new AddConnectionRequest(connectionId, playerId);
         _manager.AddConnection(request);
 
-        await _manager.HandleDisconnectAsync(connectionId,TimeSpan.Zero);
-        var canAddConnection = _manager.AddConnection(request);
-        
-        canAddConnection.Should().BeTrue();
+        var result = await _manager.HandleDisconnectAsync(connectionId,TimeSpan.Zero);
+        var canAdd = _manager.AddConnection(request);
+
+        result.Should().BeNull();
+        canAdd.Should().BeTrue();
     }
     
     [Fact]
@@ -235,14 +237,13 @@ public class BattleshipManagerTests
     {
         string connectionId = "host-connection-123";
         var player = new Player(Guid.NewGuid(), "Lobby Host");
-        var dummyJoiner = new Player(Guid.NewGuid(), "Joiner");
         _manager.AddConnection(new AddConnectionRequest(connectionId, player.Id));
         string gameCode = _manager.CreateLobby(player);
         
-        await _manager.HandleDisconnectAsync(connectionId, TimeSpan.Zero);
-        var engine = _manager.JoinLobby(gameCode, dummyJoiner);
-    
-        engine.Should().BeNull();
+        var result = await _manager.HandleDisconnectAsync(connectionId, TimeSpan.Zero);
+        
+        result.Should().BeNull();
+        _manager.GetGame(gameCode).Should().BeNull();
     }
     
     [Fact]
@@ -253,10 +254,11 @@ public class BattleshipManagerTests
         string gameCode = _manager.CreateLobby(_dummyPlayer1);
         _manager.JoinLobby(gameCode, _dummyPlayer2);
         
-        await _manager.HandleDisconnectAsync(connectionId, TimeSpan.Zero);
+        var result = await _manager.HandleDisconnectAsync(connectionId, TimeSpan.Zero);
         var activeGame = _manager.GetGame(gameCode);
-        
-        activeGame.Should().BeNull();
+
+        result.Should().Be(gameCode);
+        activeGame.Should().BeNull();   
     }
     
     [Theory]
@@ -277,9 +279,10 @@ public class BattleshipManagerTests
         string unknownConnectionId = "connection-that-was-never-added";
         string gameCode = _manager.CreateLobby(_dummyPlayer1);
         
-        await _manager.HandleDisconnectAsync(unknownConnectionId, TimeSpan.Zero);
-        
+        var result= await _manager.HandleDisconnectAsync(unknownConnectionId, TimeSpan.Zero);
         var engine = _manager.JoinLobby(gameCode, _dummyPlayer2);
+        
+        result.Should().BeNull();
         engine.Should().NotBeNull();
     }
     
@@ -294,9 +297,10 @@ public class BattleshipManagerTests
 
         var disconnectTask = _manager.HandleDisconnectAsync(connectionId, TimeSpan.FromMilliseconds(200));
         _manager.AddConnection(new AddConnectionRequest(reconnectedConnectionId, player.Id));
-        await disconnectTask;
+        var result= await disconnectTask;
         var engine = _manager.JoinLobby(gameCode, _dummyPlayer2);
         
+        result.Should().BeNull();
         engine.Should().NotBeNull();
     }
     
@@ -311,9 +315,10 @@ public class BattleshipManagerTests
 
         var disconnectTask = _manager.HandleDisconnectAsync(connectionId, TimeSpan.FromMilliseconds(200));
         _manager.AddConnection(new AddConnectionRequest(reconnectedConnectionId, _dummyPlayer1.Id));
-        await disconnectTask;
+        var result = await disconnectTask;
         var activeGame = _manager.GetGame(gameCode);
         
+        result.Should().BeNull();
         activeGame.Should().NotBeNull();
     }
     
@@ -325,9 +330,10 @@ public class BattleshipManagerTests
         string gameCode = _manager.CreateLobby(_dummyPlayer1);
         _manager.JoinLobby(gameCode, _dummyPlayer2);
 
-        await _manager.HandleDisconnectAsync(connectionId, TimeSpan.Zero);
+        var result= await _manager.HandleDisconnectAsync(connectionId, TimeSpan.Zero);
         var activeGame = _manager.GetGame(gameCode);
 
+        result.Should().Be(gameCode);
         activeGame.Should().BeNull();
     }
 }
