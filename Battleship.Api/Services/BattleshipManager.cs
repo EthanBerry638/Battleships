@@ -70,34 +70,39 @@ public class BattleshipManager : IBattleshipManager
         
         return _connections.TryAdd(request.ConnectionId, request.PlayerId);
     }
-
+    
     public async Task<string?> HandleDisconnectAsync(string connectionId, TimeSpan delay = default)
     {
-        if (string.IsNullOrWhiteSpace(connectionId)) throw new ArgumentException("Connection ID cannot be null or whitespace");
-        
-        if (!_connections.TryRemove(connectionId, out var playerId)) return null;
-        
+        if (string.IsNullOrWhiteSpace(connectionId))
+            throw new ArgumentException("Connection ID cannot be null or whitespace");
+
+        if (!_connections.TryRemove(connectionId, out var playerId))
+            return null;
+
         await Task.Delay(delay);
 
-        if (_connections.Values.Contains(playerId)) return null;
-        
-        var lobbyToQuery = _lobbies.
-            FirstOrDefault(l => l.Value.Id == playerId);
-        if (lobbyToQuery.Key is not null)
+        if (_connections.Values.Contains(playerId))
+            return null;
+
+        var lobbyKey = _lobbies
+            .FirstOrDefault(lobby => lobby.Value.Id == playerId)
+            .Key;
+
+        if (lobbyKey is not null)
         {
-            _lobbies.TryRemove(lobbyToQuery.Key, out _);
+            _lobbies.TryRemove(lobbyKey, out _);
             return null;
         }
 
-        var gameToQuery = _games
-            .FirstOrDefault(g => g.Value.Players.
-                Any(p => p.Id == playerId));
-        if (gameToQuery.Key is not null)
-        {
-            _games.TryRemove(gameToQuery.Key, out _);
-            return gameToQuery.Key;
-        }
-        
-        return null;
+        var gameKey = _games
+            .FirstOrDefault(game => game.Value.Players
+                .Any(player => player.Id == playerId))
+            .Key;
+
+        if (gameKey is null)
+            return null;
+
+        _games.TryRemove(gameKey, out _);
+        return gameKey;
     }
 }
