@@ -176,4 +176,22 @@ public class BattleshipHubTests
         await act.Should().ThrowAsync<ArgumentException>();
         _mockManager.Verify(m => m.HandleDisconnectAsync(It.IsAny<string>(), It.IsAny<TimeSpan>()), Times.Once);
     }
+    
+    [Fact]
+    public async Task OnDisconnectedAsync_ShouldSendMessageToOtherPlayer_WhenManagerReturnsAGameCode()
+    {
+        string gameCode = "ABC123";
+        _mockContext.Setup(c => c.ConnectionId).Returns("test-connection-id");
+        _mockManager.Setup(m => m.HandleDisconnectAsync("test-connection-id", It.IsAny<TimeSpan>()))
+            .ReturnsAsync(gameCode);
+        _mockClients.Setup(c => c.Group(gameCode)).Returns(_mockClientProxy.Object);
+
+        await CreateHub().OnDisconnectedAsync(null);
+        
+        _mockManager.Verify(m => m.HandleDisconnectAsync("test-connection-id", It.IsAny<TimeSpan>()), Times.Once);
+        _mockClients.Verify(c => c.Group(gameCode), Times.Once);
+        _mockClientProxy.Verify(
+            p => p.SendCoreAsync("OpponentDisconnected", It.IsAny<object[]>(), CancellationToken.None),
+            Times.Once);
+    }
 }
