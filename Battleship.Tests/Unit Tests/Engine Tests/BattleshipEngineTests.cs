@@ -417,7 +417,7 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
         ];
 
         [Fact]
-        public void PlaceShip_WithValidPlayerAndShip_ShouldPlaceShipOnCorrespondingBoard_WhenInSetupPhase()
+        public void PlaceShip_WithPlayer1_ShouldPlaceShipOnBoard1_WhenInSetupPhase()
         {
             var testShip = new Ship(ShipType.PatrolBoat, [new Coordinate(0, 0), new Coordinate(0, 1)]);
             var request = new PlaceShipRequest(_player1.Id, testShip);
@@ -430,6 +430,22 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
             result.Should().Be(expectedResult);
             _mockGameBoard1.Verify(x => x.PlaceShip(testShip), Times.Once);
             _mockGameBoard2.Verify(x => x.PlaceShip(It.IsAny<IShip>()), Times.Never);
+        }
+        
+        [Fact]
+        public void PlaceShip_WithPlayer2_ShouldPlaceShipOnBoard2_WhenInSetupPhase()
+        {
+            var testShip = new Ship(ShipType.PatrolBoat, [new Coordinate(0, 0), new Coordinate(0, 1)]);
+            var request = new PlaceShipRequest(_player2.Id, testShip);
+            var expectedResult = new PlacementResult(true, null);
+            _mockGameBoard2.Setup(x => x.PlaceShip(testShip))
+                .Returns(expectedResult);
+            
+            var result = _battleshipEngine.PlaceShip(request);
+            
+            result.Should().Be(expectedResult);
+            _mockGameBoard2.Verify(x => x.PlaceShip(testShip), Times.Once);
+            _mockGameBoard1.Verify(x => x.PlaceShip(It.IsAny<IShip>()), Times.Never);
         }
     }
 }
