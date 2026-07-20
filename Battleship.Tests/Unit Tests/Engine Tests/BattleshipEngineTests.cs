@@ -1,3 +1,4 @@
+using Battleship.Api.DTOs;
 using Battleship.Api.Engine;
 using Battleship.Api.GamePieces.Board;
 using Battleship.Api.GamePieces.Data;
@@ -414,5 +415,21 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
             [true,  false, StaticPlayer2],  
             [false, true,  StaticPlayer1], 
         ];
+
+        [Fact]
+        public void PlaceShip_WithValidPlayerAndShip_ShouldPlaceShipOnCorrespondingBoard_WhenInSetupPhase()
+        {
+            var testShip = new Ship(ShipType.PatrolBoat, [new Coordinate(0, 0), new Coordinate(0, 1)]);
+            var request = new PlaceShipRequest(_player1.Id, testShip);
+            var expectedResult = new PlacementResult(true, null);
+            _mockGameBoard1.Setup(x => x.PlaceShip(testShip))
+                .Returns(expectedResult);
+
+            var result = _battleshipEngine.PlaceShip(request);
+
+            result.Should().Be(expectedResult);
+            _mockGameBoard1.Verify(x => x.PlaceShip(testShip), Times.Once);
+            _mockGameBoard2.Verify(x => x.PlaceShip(It.IsAny<IShip>()), Times.Never);
+        }
     }
 }
