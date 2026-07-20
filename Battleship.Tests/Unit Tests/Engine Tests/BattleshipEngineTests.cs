@@ -447,5 +447,18 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
             _mockGameBoard2.Verify(x => x.PlaceShip(testShip), Times.Once);
             _mockGameBoard1.Verify(x => x.PlaceShip(It.IsAny<IShip>()), Times.Never);
         }
+        
+        [Fact]
+        public void PlaceShip_ShouldThrowPlayerNotFoundException_WhenPlayerIdIsInvalid()
+        {
+            var testShip = new Ship(ShipType.PatrolBoat, [new Coordinate(0, 0), new Coordinate(0, 1)]);
+            var request = new PlaceShipRequest(Guid.NewGuid(), testShip);
+            
+            var act = () => _battleshipEngine.PlaceShip(request);
+            
+            act.Should()
+                .Throw<PlayerNotFoundException>()
+                .WithMessage($"Player with id {request.PlayerId} not found.");
+        }
     }
 }
