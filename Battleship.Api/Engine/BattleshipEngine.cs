@@ -121,7 +121,7 @@ namespace Battleship.Api.Engine
 
         public PlacementResult PlaceShip(PlaceShipRequest request)
         {
-            throw new NotImplementedException();
+            return _gameBoards[0].PlaceShip(request.Ship);
         }
     }
 }
