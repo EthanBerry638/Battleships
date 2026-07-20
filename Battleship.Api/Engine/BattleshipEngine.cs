@@ -122,6 +122,7 @@ namespace Battleship.Api.Engine
         public PlacementResult PlaceShip(PlaceShipRequest request)
         {
             int playerIndex = Array.FindIndex(_players, p => p.Id == request.PlayerId);
+            if (playerIndex == -1) throw new PlayerNotFoundException($"Player with id {request.PlayerId} not found.");
             
             return _gameBoards[playerIndex].PlaceShip(request.Ship);
         }
