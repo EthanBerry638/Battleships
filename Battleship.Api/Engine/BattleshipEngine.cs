@@ -1,4 +1,5 @@
-﻿using Battleship.Api.GamePieces.Board;
+﻿using Battleship.Api.DTOs;
+using Battleship.Api.GamePieces.Board;
 using Battleship.Api.GamePieces.Data;
 using Battleship.Api.GamePieces.Entities;
 using Battleship.Api.Exceptions;
@@ -116,6 +117,11 @@ namespace Battleship.Api.Engine
             CheckGameState();
             
             return _gameState is not GameState.Finished ? null : _winner;
+        }
+
+        public PlacementResult PlaceShip(PlaceShipRequest request)
+        {
+            throw new NotImplementedException();
         }
     }
 }
