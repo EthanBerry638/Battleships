@@ -460,5 +460,29 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
                 .Throw<PlayerNotFoundException>()
                 .WithMessage($"Player with id {request.PlayerId} not found.");
         }
+        
+        [Fact]
+        public void PlaceShip_ShouldThrowAppropriateException_WhenGameHasAlreadyStartedOrFinished()
+        {
+            var testShip = new Ship(ShipType.PatrolBoat, [new Coordinate(0, 0), new Coordinate(0, 1)]);
+            var request = new PlaceShipRequest(_player1.Id, testShip);
+            
+            StartGame();
+            _battleshipEngine.GameState.Should().Be(GameState.Playing);
+
+            var actPlaying = () => _battleshipEngine.PlaceShip(request);
+            actPlaying.Should()
+                .Throw<GameInProgressException>()
+                .WithMessage("You can't place a ship after the game has started");
+            
+            _mockGameBoard1.Setup(x => x.AreAllShipsSunk()).Returns(true);
+            _battleshipEngine.GetWinner();
+            _battleshipEngine.GameState.Should().Be(GameState.Finished);
+
+            var actFinished = () => _battleshipEngine.PlaceShip(request);
+            actFinished.Should()
+                .Throw<GameOverException>()
+                .WithMessage("You can't place a ship after the game is finished");
+        }
     }
 }
