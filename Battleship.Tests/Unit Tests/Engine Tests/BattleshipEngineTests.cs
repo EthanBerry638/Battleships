@@ -523,7 +523,7 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
 
             var act = () => _battleshipEngine.PlaceShip(request);
 
-            act.Should().Throw<ArgumentNullException>().WithParameterName("ship");
+            act.Should().Throw<ArgumentNullException>().WithParameterName("request.Ship");
         }
     }
 }
