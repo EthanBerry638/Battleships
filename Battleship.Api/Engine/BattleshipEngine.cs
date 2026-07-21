@@ -121,6 +121,9 @@ namespace Battleship.Api.Engine
 
         public PlacementResult PlaceShip(PlaceShipRequest request)
         {
+            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(request.Ship);
+            
             if (_gameState is GameState.Finished) throw new GameOverException("You can't place a ship after the game is finished");
 
             if (_gameState is GameState.Playing) throw new GameInProgressException("You can't place a ship after the game has started");
