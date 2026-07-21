@@ -507,5 +507,23 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
             result.Should().Be(expectedResult);
             _mockGameBoard1.Verify(x => x.PlaceShip(testShip), Times.Once);
         }
+        
+        [Fact]
+        public void PlaceShip_ShouldThrowArgumentNullException_WhenRequestIsNull()
+        {
+            var act = () => _battleshipEngine.PlaceShip(null!);
+
+            act.Should().Throw<ArgumentNullException>().WithParameterName("request");
+        }
+
+        [Fact]
+        public void PlaceShip_ShouldThrowArgumentNullException_WhenShipInRequestIsNull()
+        {
+            var request = new PlaceShipRequest(_player1.Id, null!);
+
+            var act = () => _battleshipEngine.PlaceShip(request);
+
+            act.Should().Throw<ArgumentNullException>().WithParameterName("ship");
+        }
     }
 }
