@@ -121,6 +121,10 @@ namespace Battleship.Api.Engine
 
         public PlacementResult PlaceShip(PlaceShipRequest request)
         {
+            if (_gameState is GameState.Finished) throw new GameOverException("You can't place a ship after the game is finished");
+
+            if (_gameState is GameState.Playing) throw new GameInProgressException("You can't place a ship after the game has started");
+
             int playerIndex = Array.FindIndex(_players, p => p.Id == request.PlayerId);
             if (playerIndex == -1) throw new PlayerNotFoundException($"Player with id {request.PlayerId} not found.");
             
