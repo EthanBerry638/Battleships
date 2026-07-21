@@ -491,5 +491,21 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
                 .Throw<GameOverException>()
                 .WithMessage("You can't place a ship after the game is finished");
         }
+        
+        [Fact]
+        public void PlaceShip_ShouldReturnFailedPlacementResult_WhenBoardPlacementFails()
+        {
+            var failedCoordinates = new List<Coordinate> { new(0, 0), new Coordinate(0, 1) };
+            var testShip = new Ship(ShipType.PatrolBoat, failedCoordinates);
+            var request = new PlaceShipRequest(_player1.Id, testShip);
+            var expectedResult = new PlacementResult(false, failedCoordinates);
+            _mockGameBoard1.Setup(x => x.PlaceShip(testShip))
+                .Returns(expectedResult);
+            
+            var result = _battleshipEngine.PlaceShip(request);
+            
+            result.Should().Be(expectedResult);
+            _mockGameBoard1.Verify(x => x.PlaceShip(testShip), Times.Once);
+        }
     }
 }
