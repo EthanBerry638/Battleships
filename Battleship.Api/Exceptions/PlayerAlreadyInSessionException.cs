@@ -1,8 +1,3 @@
 ﻿namespace Battleship.Api.Exceptions;
 
-public class PlayerAlreadyInSessionException : Exception
-{
-    public PlayerAlreadyInSessionException(string message) : base(message)
-    {
-    }
-}
+public class PlayerAlreadyInSessionException(string message) : Exception(message);
