@@ -1,5 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using Battleship.Api.GamePieces.Data;
+﻿using Battleship.Api.GamePieces.Data;
 using Battleship.Api.Exceptions;
 using Battleship.Api.GamePieces.Entities;
 
