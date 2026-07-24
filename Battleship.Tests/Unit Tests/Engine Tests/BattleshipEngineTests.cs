@@ -1,3 +1,4 @@
+using Battleship.Api.DTOs;
 using Battleship.Api.Engine;
 using Battleship.Api.GamePieces.Board;
 using Battleship.Api.GamePieces.Data;
@@ -10,6 +11,9 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
 {
     public class BattleshipEngineTests
     {
+        private static readonly Player StaticPlayer1 = new(Guid.NewGuid(), "Player 1");
+        private static readonly Player StaticPlayer2 = new(Guid.NewGuid(), "Player 2");
+
         private readonly Mock<IGameBoard> _mockGameBoard1;
         private readonly Mock<IGameBoard> _mockGameBoard2;
         private readonly Player _player1;
@@ -21,8 +25,8 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
         {
             _mockGameBoard1 = new();
             _mockGameBoard2 = new();
-            _player1 = new("Player 1");
-            _player2 = new("Player 2");
+            _player1 = StaticPlayer1;
+            _player2 = StaticPlayer2;
             _mockShip = new();
             _battleshipEngine = new(_mockGameBoard1.Object, _mockGameBoard2.Object, _player1, _player2);
         }
@@ -311,7 +315,7 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
         public void BattleShipEngineConstructor_ShouldThrowArgumentNullException_WhenAnyArgumentIsNull()
         {
             var board = new Mock<IGameBoard>().Object;
-            var player = new Player("Test Player");
+            var player = new Player(Guid.NewGuid(), "Test Player");
 
             FluentActions.Invoking(() => new BattleshipEngine(null!, board, player, player))
                 .Should().Throw<ArgumentNullException>();
@@ -408,8 +412,118 @@ namespace Battleship.Tests.Unit_Tests.Engine_Tests
 
         public static IEnumerable<object[]> WinnerTestData() =>
         [
-            [true,  false, new Player("Player 2")],  
-            [false, true,  new Player("Player 1")], 
+            [true,  false, StaticPlayer2],  
+            [false, true,  StaticPlayer1], 
         ];
+
+        [Fact]
+        public void PlaceShip_WithPlayer1_ShouldPlaceShipOnBoard1_WhenInSetupPhase()
+        {
+            var testShip = new Ship(ShipType.PatrolBoat, [new Coordinate(0, 0), new Coordinate(0, 1)]);
+            var request = new PlaceShipRequest(_player1.Id, testShip);
+            var expectedResult = new PlacementResult(true, null);
+            _mockGameBoard1.Setup(x => x.PlaceShip(testShip))
+                .Returns(expectedResult);
+
+            var result = _battleshipEngine.PlaceShip(request);
+
+            result.Should().Be(expectedResult);
+            _mockGameBoard1.Verify(x => x.PlaceShip(testShip), Times.Once);
+            _mockGameBoard2.Verify(x => x.PlaceShip(It.IsAny<IShip>()), Times.Never);
+        }
+        
+        [Fact]
+        public void PlaceShip_WithPlayer2_ShouldPlaceShipOnBoard2_WhenInSetupPhase()
+        {
+            var testShip = new Ship(ShipType.PatrolBoat, [new Coordinate(0, 0), new Coordinate(0, 1)]);
+            var request = new PlaceShipRequest(_player2.Id, testShip);
+            var expectedResult = new PlacementResult(true, null);
+            _mockGameBoard2.Setup(x => x.PlaceShip(testShip))
+                .Returns(expectedResult);
+            
+            var result = _battleshipEngine.PlaceShip(request);
+            
+            result.Should().Be(expectedResult);
+            _mockGameBoard2.Verify(x => x.PlaceShip(testShip), Times.Once);
+            _mockGameBoard1.Verify(x => x.PlaceShip(It.IsAny<IShip>()), Times.Never);
+        }
+        
+        [Fact]
+        public void PlaceShip_ShouldThrowPlayerNotFoundException_WhenPlayerIdIsInvalid()
+        {
+            var testShip = new Ship(ShipType.PatrolBoat, [new Coordinate(0, 0), new Coordinate(0, 1)]);
+            var request = new PlaceShipRequest(Guid.NewGuid(), testShip);
+            
+            var act = () => _battleshipEngine.PlaceShip(request);
+            
+            act.Should()
+                .Throw<PlayerNotFoundException>()
+                .WithMessage($"Player with id {request.PlayerId} not found.");
+        }
+        
+        [Fact]
+        public void PlaceShip_ShouldThrowGameInProgressException_WhenGameIsPlaying()
+        {
+            var testShip = new Ship(ShipType.PatrolBoat, [new Coordinate(0, 0), new Coordinate(0, 1)]);
+            var request = new PlaceShipRequest(_player1.Id, testShip);
+            StartGame();
+            
+            var act = () => _battleshipEngine.PlaceShip(request);
+            
+            act.Should()
+                .Throw<GameInProgressException>()
+                .WithMessage("You can't place a ship after the game has started");
+        }
+
+        [Fact]
+        public void PlaceShip_ShouldThrowGameOverException_WhenGameIsFinished()
+        {
+            var testShip = new Ship(ShipType.PatrolBoat, [new Coordinate(0, 0), new Coordinate(0, 1)]);
+            var request = new PlaceShipRequest(_player1.Id, testShip);
+    
+            StartGame();
+            _mockGameBoard1.Setup(x => x.AreAllShipsSunk()).Returns(true);
+            _battleshipEngine.GetWinner(); 
+
+            var act = () => _battleshipEngine.PlaceShip(request);
+            
+            act.Should()
+                .Throw<GameOverException>()
+                .WithMessage("You can't place a ship after the game is finished");
+        }
+        
+        [Fact]
+        public void PlaceShip_ShouldReturnFailedPlacementResult_WhenBoardPlacementFails()
+        {
+            var failedCoordinates = new List<Coordinate> { new(0, 0), new Coordinate(0, 1) };
+            var testShip = new Ship(ShipType.PatrolBoat, failedCoordinates);
+            var request = new PlaceShipRequest(_player1.Id, testShip);
+            var expectedResult = new PlacementResult(false, failedCoordinates);
+            _mockGameBoard1.Setup(x => x.PlaceShip(testShip))
+                .Returns(expectedResult);
+            
+            var result = _battleshipEngine.PlaceShip(request);
+            
+            result.Should().Be(expectedResult);
+            _mockGameBoard1.Verify(x => x.PlaceShip(testShip), Times.Once);
+        }
+        
+        [Fact]
+        public void PlaceShip_ShouldThrowArgumentNullException_WhenRequestIsNull()
+        {
+            var act = () => _battleshipEngine.PlaceShip(null!);
+
+            act.Should().Throw<ArgumentNullException>().WithParameterName("request");
+        }
+
+        [Fact]
+        public void PlaceShip_ShouldThrowArgumentNullException_WhenShipInRequestIsNull()
+        {
+            var request = new PlaceShipRequest(_player1.Id, null!);
+
+            var act = () => _battleshipEngine.PlaceShip(request);
+
+            act.Should().Throw<ArgumentNullException>().WithParameterName("request.Ship");
+        }
     }
 }

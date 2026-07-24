@@ -1,4 +1,5 @@
-﻿using Battleship.Api.GamePieces.Board;
+﻿using Battleship.Api.DTOs;
+using Battleship.Api.GamePieces.Board;
 using Battleship.Api.GamePieces.Data;
 using Battleship.Api.GamePieces.Entities;
 using Battleship.Api.Exceptions;
@@ -15,6 +16,7 @@ namespace Battleship.Api.Engine
         private Player? _winner;
         public GameState GameState => _gameState;
         public Player CurrentPlayer => _players[_currentPlayerIndex];
+        public IReadOnlyList<Player> Players => _players;
         
         public BattleshipEngine(IGameBoard playerOneBoard, IGameBoard playerTwoBoard, Player playerOne, Player playerTwo)
         {
@@ -115,6 +117,21 @@ namespace Battleship.Api.Engine
             CheckGameState();
             
             return _gameState is not GameState.Finished ? null : _winner;
+        }
+
+        public PlacementResult PlaceShip(PlaceShipRequest request)
+        {
+            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(request.Ship);
+            
+            if (_gameState is GameState.Finished) throw new GameOverException("You can't place a ship after the game is finished");
+
+            if (_gameState is GameState.Playing) throw new GameInProgressException("You can't place a ship after the game has started");
+
+            int playerIndex = Array.FindIndex(_players, p => p.Id == request.PlayerId);
+            if (playerIndex == -1) throw new PlayerNotFoundException($"Player with id {request.PlayerId} not found.");
+            
+            return _gameBoards[playerIndex].PlaceShip(request.Ship);
         }
     }
 }
