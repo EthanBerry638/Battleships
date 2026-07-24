@@ -11,7 +11,18 @@ public record GameStartResult
         ValidationErrors = errors;
     }
 
-    public static GameStartResult Ok() => new(true, null);
-    public static GameStartResult Invalid(FleetValidationResult[] errors) => new(false, errors);
-    public static GameStartResult AlreadyStarted() => new(false, null);
+    public static GameStartResult Ok()
+    {
+        return new GameStartResult(true, null);
+    }
+
+    public static GameStartResult Invalid(FleetValidationResult[] errors)
+    {
+        return new GameStartResult(false, errors);
+    }
+
+    public static GameStartResult AlreadyStarted()
+    {
+        return new GameStartResult(false, null);
+    }
 }

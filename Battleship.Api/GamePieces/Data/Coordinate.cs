@@ -1,4 +1,5 @@
-﻿namespace Battleship.Api.GamePieces.Data
+﻿namespace Battleship.Api.GamePieces.Data;
+
+public record Coordinate(int X, int Y)
 {
-    public record Coordinate (int X, int Y) {}
 }

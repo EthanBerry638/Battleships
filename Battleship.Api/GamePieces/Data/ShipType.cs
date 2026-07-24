@@ -1,11 +1,10 @@
-﻿namespace Battleship.Api.GamePieces.Data
+﻿namespace Battleship.Api.GamePieces.Data;
+
+public enum ShipType
 {
-    public enum ShipType
-    {
-        Carrier,
-        Battleship,
-        Destroyer,
-        Submarine,
-        PatrolBoat
-    }
+    Carrier,
+    Battleship,
+    Destroyer,
+    Submarine,
+    PatrolBoat
 }

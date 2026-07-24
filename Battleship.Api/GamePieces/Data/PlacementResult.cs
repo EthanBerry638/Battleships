@@ -1,5 +1,5 @@
 ﻿namespace Battleship.Api.GamePieces.Data;
 
 public record PlacementResult(
-    bool IsSuccessful, 
+    bool IsSuccessful,
     List<Coordinate>? InvalidCoordinates = null);

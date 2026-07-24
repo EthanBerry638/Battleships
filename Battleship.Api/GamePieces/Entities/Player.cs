@@ -14,4 +14,4 @@ public record Player
         Id = id;
         Name = name.Trim();
     }
-}       
+}

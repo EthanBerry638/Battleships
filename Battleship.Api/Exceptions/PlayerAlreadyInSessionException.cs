@@ -2,5 +2,7 @@
 
 public class PlayerAlreadyInSessionException : Exception
 {
-    public PlayerAlreadyInSessionException(string message) : base(message){}
+    public PlayerAlreadyInSessionException(string message) : base(message)
+    {
+    }
 }

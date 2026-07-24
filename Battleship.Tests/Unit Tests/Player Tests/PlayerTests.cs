@@ -9,13 +9,13 @@ public class PlayerTests
     public void PlayerConstructor_ShouldThrowArgumentException_WhenIdIsEmpty()
     {
         var act = () => new Player(Guid.Empty, "Test Player");
-        
+
         act.Should()
             .Throw<ArgumentException>()
             .WithParameterName("id")
             .WithMessage("Id cannot be empty*");
     }
-    
+
     [Theory]
     [InlineData("")]
     [InlineData(" ")]
@@ -28,27 +28,27 @@ public class PlayerTests
             .Throw<ArgumentException>()
             .WithParameterName(nameof(name));
     }
-    
+
     [Fact]
     public void PlayerConstructor_ShouldAssignPropertiesCorrectly_WhenArgumentsAreValid()
     {
         var expectedId = Guid.NewGuid();
         string expectedName = "Test Player";
-        
+
         var player = new Player(expectedId, expectedName);
-        
+
         player.Id.Should().Be(expectedId);
         player.Name.Should().Be(expectedName);
     }
-    
+
     [Fact]
     public void PlayerConstructor_ShouldAllowNameWithLeadingOrTrailingWhitespace_ButTrimIt()
     {
         string nameWithSpaces = "  Valid Name  ";
         string nameWithoutSpaces = "Valid Name";
-        
+
         var player = new Player(Guid.NewGuid(), nameWithSpaces);
-        
+
         player.Name.Should().Be(nameWithoutSpaces);
     }
 }

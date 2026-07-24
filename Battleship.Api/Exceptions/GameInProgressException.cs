@@ -2,7 +2,11 @@
 
 public class GameInProgressException : Exception
 {
-    public GameInProgressException(){}
-    
-    public GameInProgressException(string message) : base(message){}
+    public GameInProgressException()
+    {
+    }
+
+    public GameInProgressException(string message) : base(message)
+    {
+    }
 }

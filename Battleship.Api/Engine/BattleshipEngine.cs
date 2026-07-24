@@ -4,134 +4,126 @@ using Battleship.Api.GamePieces.Data;
 using Battleship.Api.GamePieces.Entities;
 using Battleship.Api.Exceptions;
 
-namespace Battleship.Api.Engine
+namespace Battleship.Api.Engine;
+
+public class BattleshipEngine
 {
-    public class BattleshipEngine 
+    private readonly IGameBoard[] _gameBoards;
+    private readonly Player[] _players;
+    private readonly HashSet<Coordinate>[] _shotsTaken = [[], []];
+    private int _currentPlayerIndex;
+    private GameState _gameState;
+    private Player? _winner;
+    public GameState GameState => _gameState;
+    public Player CurrentPlayer => _players[_currentPlayerIndex];
+    public IReadOnlyList<Player> Players => _players;
+
+    public BattleshipEngine(IGameBoard playerOneBoard, IGameBoard playerTwoBoard, Player playerOne, Player playerTwo)
     {
-        private readonly IGameBoard[] _gameBoards;
-        private readonly Player[] _players;
-        private readonly HashSet<Coordinate>[] _shotsTaken = [ [], [] ];
-        private int _currentPlayerIndex;
-        private GameState _gameState;
-        private Player? _winner;
-        public GameState GameState => _gameState;
-        public Player CurrentPlayer => _players[_currentPlayerIndex];
-        public IReadOnlyList<Player> Players => _players;
-        
-        public BattleshipEngine(IGameBoard playerOneBoard, IGameBoard playerTwoBoard, Player playerOne, Player playerTwo)
+        ArgumentNullException.ThrowIfNull(playerOneBoard);
+        ArgumentNullException.ThrowIfNull(playerTwoBoard);
+        ArgumentNullException.ThrowIfNull(playerOne);
+        ArgumentNullException.ThrowIfNull(playerTwo);
+
+        _gameBoards = [playerOneBoard, playerTwoBoard];
+        _players = [playerOne, playerTwo];
+    }
+
+    public ShotResult Shoot(Player player, Coordinate coordinate)
+    {
+        ValidateShotPreconditions(player);
+
+        ShotResult shotResult = GetShotResult(coordinate);
+
+        CheckGameState();
+
+        if (_gameState is not GameState.Finished) SwitchTurns();
+
+        return shotResult;
+    }
+
+    private void ValidateShotPreconditions(Player player)
+    {
+        if (player != CurrentPlayer)
+            throw new NotYourTurnException("Cannot shoot when it is not your turn.");
+
+        if (_gameState is GameState.Setup)
+            throw new GameNotStartedException("Cannot shoot when game is not started.");
+
+        if (_gameState is GameState.Finished)
+            throw new GameOverException("Cannot shoot when game is over.");
+    }
+
+    private ShotResult GetShotResult(Coordinate coordinate)
+    {
+        if (!_shotsTaken[_currentPlayerIndex].Add(coordinate)) return ShotResult.Duplicate;
+
+        int opponentIndex = (_currentPlayerIndex + 1) % 2;
+        IGameBoard opponentBoard = _gameBoards[opponentIndex];
+
+        Tile tile = opponentBoard.GetTile(coordinate);
+
+        if (!tile.HasShip) return ShotResult.Miss;
+
+        tile.OccupyingShip!.RegisterHit(coordinate);
+        return tile.OccupyingShip.IsSunk() ? ShotResult.Sunk : ShotResult.Hit;
+    }
+
+    private void SwitchTurns()
+    {
+        _currentPlayerIndex = (_currentPlayerIndex + 1) % 2;
+    }
+
+    private void CheckGameState()
+    {
+        if (_gameState is GameState.Setup) return;
+
+        if (_gameBoards[0].AreAllShipsSunk())
         {
-            ArgumentNullException.ThrowIfNull(playerOneBoard);
-            ArgumentNullException.ThrowIfNull(playerTwoBoard);
-            ArgumentNullException.ThrowIfNull(playerOne);
-            ArgumentNullException.ThrowIfNull(playerTwo);
-            
-            _gameBoards = [playerOneBoard, playerTwoBoard];
-            _players = [playerOne, playerTwo];
+            _gameState = GameState.Finished;
+            _winner = _players[1];
         }
-        
-        public ShotResult Shoot(Player player, Coordinate coordinate)
+        else if (_gameBoards[1].AreAllShipsSunk())
         {
-            ValidateShotPreconditions(player);
-
-            var shotResult = GetShotResult(coordinate);
-    
-            CheckGameState();
-
-            if (_gameState is not GameState.Finished)
-            {
-                SwitchTurns();
-            }
-
-            return shotResult;
+            _gameState = GameState.Finished;
+            _winner = _players[0];
         }
+    }
 
-        private void ValidateShotPreconditions(Player player)
-        {
-            if (player != CurrentPlayer)
-                throw new NotYourTurnException("Cannot shoot when it is not your turn.");
+    public GameStartResult TryStartGame()
+    {
+        if (_gameState is GameState.Playing) return GameStartResult.AlreadyStarted();
 
-            if (_gameState is GameState.Setup)
-                throw new GameNotStartedException("Cannot shoot when game is not started.");
+        FleetValidationResult board1Check = _gameBoards[0].ValidateFleet();
+        FleetValidationResult board2Check = _gameBoards[1].ValidateFleet();
 
-            if (_gameState is GameState.Finished)
-                throw new GameOverException("Cannot shoot when game is over.");
-        }
+        if (!board1Check.IsValid || !board2Check.IsValid) return GameStartResult.Invalid([board1Check, board2Check]);
 
-        private ShotResult GetShotResult(Coordinate coordinate)
-        {
-            if (!_shotsTaken[_currentPlayerIndex].Add(coordinate))
-            {
-                return ShotResult.Duplicate;
-            }
-            
-            var opponentIndex = (_currentPlayerIndex + 1) % 2;
-            var opponentBoard = _gameBoards[opponentIndex];
-            
-            var tile = opponentBoard.GetTile(coordinate);
+        _gameState = GameState.Playing;
+        return GameStartResult.Ok();
+    }
 
-            if (!tile.HasShip) return ShotResult.Miss;
-            
-            tile.OccupyingShip!.RegisterHit(coordinate);
-            return tile.OccupyingShip.IsSunk() ? ShotResult.Sunk : ShotResult.Hit;
-        }
-        
-        private void SwitchTurns()
-        {
-            _currentPlayerIndex = (_currentPlayerIndex + 1) % 2;
-        }
-        
-        private void CheckGameState()
-        {
-            if (_gameState is GameState.Setup) return;
-            
-            if (_gameBoards[0].AreAllShipsSunk())
-            {
-                _gameState = GameState.Finished;
-                _winner = _players[1];
-            }
-            else if (_gameBoards[1].AreAllShipsSunk())
-            {
-                _gameState = GameState.Finished;
-                _winner = _players[0];
-            }
-        }
+    public Player? GetWinner()
+    {
+        CheckGameState();
 
-        public GameStartResult TryStartGame()
-        {
-            if (_gameState is GameState.Playing) return GameStartResult.AlreadyStarted();
-            
-            var board1Check = _gameBoards[0].ValidateFleet();
-            var board2Check = _gameBoards[1].ValidateFleet();
+        return _gameState is not GameState.Finished ? null : _winner;
+    }
 
-            if (!board1Check.IsValid || !board2Check.IsValid)
-            {
-                return GameStartResult.Invalid([board1Check, board2Check]);
-            }
-            
-            _gameState = GameState.Playing;
-            return GameStartResult.Ok();
-        }
+    public PlacementResult PlaceShip(PlaceShipRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(request.Ship);
 
-        public Player? GetWinner()
-        {
-            CheckGameState();
-            
-            return _gameState is not GameState.Finished ? null : _winner;
-        }
+        if (_gameState is GameState.Finished)
+            throw new GameOverException("You can't place a ship after the game is finished");
 
-        public PlacementResult PlaceShip(PlaceShipRequest request)
-        {
-            ArgumentNullException.ThrowIfNull(request);
-            ArgumentNullException.ThrowIfNull(request.Ship);
-            
-            if (_gameState is GameState.Finished) throw new GameOverException("You can't place a ship after the game is finished");
+        if (_gameState is GameState.Playing)
+            throw new GameInProgressException("You can't place a ship after the game has started");
 
-            if (_gameState is GameState.Playing) throw new GameInProgressException("You can't place a ship after the game has started");
+        int playerIndex = Array.FindIndex(_players, p => p.Id == request.PlayerId);
+        if (playerIndex == -1) throw new PlayerNotFoundException($"Player with id {request.PlayerId} not found.");
 
-            int playerIndex = Array.FindIndex(_players, p => p.Id == request.PlayerId);
-            if (playerIndex == -1) throw new PlayerNotFoundException($"Player with id {request.PlayerId} not found.");
-            
-            return _gameBoards[playerIndex].PlaceShip(request.Ship);
-        }
+        return _gameBoards[playerIndex].PlaceShip(request.Ship);
     }
 }

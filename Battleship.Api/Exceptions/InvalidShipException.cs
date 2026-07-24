@@ -2,6 +2,11 @@
 
 public class InvalidShipException : Exception
 {
-    public InvalidShipException(){}
-    public InvalidShipException(string message):base(message){}
+    public InvalidShipException()
+    {
+    }
+
+    public InvalidShipException(string message) : base(message)
+    {
+    }
 }

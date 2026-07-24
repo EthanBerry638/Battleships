@@ -7,523 +7,527 @@ using FluentAssertions;
 using Moq;
 using Battleship.Api.Exceptions;
 
-namespace Battleship.Tests.Unit_Tests.Engine_Tests
+namespace Battleship.Tests.Unit_Tests.Engine_Tests;
+
+public class BattleshipEngineTests
 {
-    public class BattleshipEngineTests
+    private static readonly Player StaticPlayer1 = new(Guid.NewGuid(), "Player 1");
+    private static readonly Player StaticPlayer2 = new(Guid.NewGuid(), "Player 2");
+
+    private readonly Mock<IGameBoard> _mockGameBoard1;
+    private readonly Mock<IGameBoard> _mockGameBoard2;
+    private readonly Player _player1;
+    private readonly Player _player2;
+    private readonly Mock<IShip> _mockShip;
+    private readonly BattleshipEngine _battleshipEngine;
+
+    public BattleshipEngineTests()
     {
-        private static readonly Player StaticPlayer1 = new(Guid.NewGuid(), "Player 1");
-        private static readonly Player StaticPlayer2 = new(Guid.NewGuid(), "Player 2");
+        _mockGameBoard1 = new Mock<IGameBoard>();
+        _mockGameBoard2 = new Mock<IGameBoard>();
+        _player1 = StaticPlayer1;
+        _player2 = StaticPlayer2;
+        _mockShip = new Mock<IShip>();
+        _battleshipEngine = new BattleshipEngine(_mockGameBoard1.Object, _mockGameBoard2.Object, _player1, _player2);
+    }
 
-        private readonly Mock<IGameBoard> _mockGameBoard1;
-        private readonly Mock<IGameBoard> _mockGameBoard2;
-        private readonly Player _player1;
-        private readonly Player _player2;
-        private readonly Mock<IShip> _mockShip;
-        private readonly BattleshipEngine _battleshipEngine;
+    private void StartGame()
+    {
+        _mockGameBoard1.Setup(x => x.ValidateFleet()).Returns(new FleetValidationResult(true, [], []));
+        _mockGameBoard2.Setup(x => x.ValidateFleet()).Returns(new FleetValidationResult(true, [], []));
+        _battleshipEngine.TryStartGame();
+    }
 
-        public BattleshipEngineTests()
-        {
-            _mockGameBoard1 = new();
-            _mockGameBoard2 = new();
-            _player1 = StaticPlayer1;
-            _player2 = StaticPlayer2;
-            _mockShip = new();
-            _battleshipEngine = new(_mockGameBoard1.Object, _mockGameBoard2.Object, _player1, _player2);
-        }
-        
-        private void StartGame()
-        {
-            _mockGameBoard1.Setup(x => x.ValidateFleet()).Returns(new FleetValidationResult(true, [], []));
-            _mockGameBoard2.Setup(x => x.ValidateFleet()).Returns(new FleetValidationResult(true, [], []));
-            _battleshipEngine.TryStartGame();
-        }
-        
-        [Fact]
-        public void Shoot_ReturnsHit_WhenTileHasShip()
-        {
-            StartGame();
-            var coordinate = new Coordinate(0, 0);
-            _mockShip.Setup(s => s.IsSunk()).Returns(false);
-            var tile = new Tile { OccupyingShip = _mockShip.Object };
-            _mockGameBoard2.Setup(x => x.GetTile(coordinate)).Returns(tile);
-        
-            var result = _battleshipEngine.Shoot(_player1, coordinate);
-        
-            result.Should().Be(ShotResult.Hit);
-            _mockGameBoard2.Verify(x => x.GetTile(coordinate), Times.Once);
-            _mockShip.Verify(s => s.RegisterHit(coordinate), Times.Once);
-            _mockShip.Verify(s => s.IsSunk(), Times.Once);
-        }   
-    
-        [Fact]
-        public void Shoot_ReturnsMiss_WhenTileHasNoShip()
-        {
-            StartGame();
-            var coordinate = new Coordinate(0, 0);
-            var tile = new Tile { OccupyingShip = null };
-            _mockGameBoard2.Setup(x => x.GetTile(coordinate)).Returns(tile);
-    
-            var result = _battleshipEngine.Shoot(_player1, coordinate);
+    [Fact]
+    public void Shoot_ReturnsHit_WhenTileHasShip()
+    {
+        StartGame();
+        var coordinate = new Coordinate(0, 0);
+        _mockShip.Setup(s => s.IsSunk()).Returns(false);
+        var tile = new Tile { OccupyingShip = _mockShip.Object };
+        _mockGameBoard2.Setup(x => x.GetTile(coordinate)).Returns(tile);
 
-            result.Should().Be(ShotResult.Miss);
-            _mockGameBoard2.Verify(x => x.GetTile(coordinate), Times.Once);
-            _mockShip.Verify(s => s.RegisterHit(coordinate), Times.Never);
-            _mockShip.Verify(s => s.IsSunk(), Times.Never);
-        }
-    
-        [Fact]
-        public void Shoot_ReturnsSunk_WhenShipIsDestroyed()
-        {
-            StartGame();
-            var coordinate = new Coordinate(0, 0);
-            _mockShip.Setup(s => s.IsSunk()).Returns(true);
-            var tile = new Tile { OccupyingShip = _mockShip.Object };
-            _mockGameBoard2.Setup(x => x.GetTile(coordinate)).Returns(tile);
-    
-            var result = _battleshipEngine.Shoot(_player1, coordinate);
-    
-            result.Should().Be(ShotResult.Sunk);
-            _mockGameBoard2.Verify(x => x.GetTile(coordinate), Times.Once);
-            _mockShip.Verify(s => s.RegisterHit(coordinate), Times.Once);
-            _mockShip.Verify(s => s.IsSunk(), Times.Once);
-        }
-        
-        [Fact]
-        public void Shoot_ReturnsDuplicate_WhenSameHitCoordinateIsShotTwice()
-        {
-            StartGame();
-            var coordinate = new Coordinate(0, 0);
-            var player2Coordinate = new Coordinate(1, 1);
-            _mockShip.Setup(s => s.IsSunk()).Returns(false);
-            var tile = new Tile { OccupyingShip = _mockShip.Object };
-            _mockGameBoard2.Setup(x => x.GetTile(coordinate)).Returns(tile);
-            _mockGameBoard1.Setup(x => x.GetTile(player2Coordinate)).Returns(new Tile { OccupyingShip = null });
+        var result = _battleshipEngine.Shoot(_player1, coordinate);
 
-            var firstResult = _battleshipEngine.Shoot(_player1, coordinate);       
-            _battleshipEngine.Shoot(_player2, player2Coordinate);                   
-            var secondResult = _battleshipEngine.Shoot(_player1, coordinate);      
+        result.Should().Be(ShotResult.Hit);
+        _mockGameBoard2.Verify(x => x.GetTile(coordinate), Times.Once);
+        _mockShip.Verify(s => s.RegisterHit(coordinate), Times.Once);
+        _mockShip.Verify(s => s.IsSunk(), Times.Once);
+    }
 
-            firstResult.Should().Be(ShotResult.Hit);
-            secondResult.Should().Be(ShotResult.Duplicate);
-            _mockGameBoard2.Verify(x => x.GetTile(coordinate), Times.Once);
-            _mockGameBoard1.Verify(x => x.GetTile(player2Coordinate), Times.Once);
-            _mockShip.Verify(s => s.RegisterHit(coordinate), Times.Once);
-            _mockShip.Verify(s => s.IsSunk(), Times.Once);
-        }
-        
-        [Fact]
-        public void Shoot_ReturnsDuplicate_WhenSameMissCoordinateIsShotTwice()
-        {
-            StartGame();
-            var coordinate = new Coordinate(0, 0);
-            var player2Coordinate = new Coordinate(1, 1);
-            var tile = new Tile { OccupyingShip = null };
-            _mockGameBoard2.Setup(x => x.GetTile(coordinate)).Returns(tile);
-            _mockGameBoard1.Setup(x => x.GetTile(player2Coordinate)).Returns(tile);
+    [Fact]
+    public void Shoot_ReturnsMiss_WhenTileHasNoShip()
+    {
+        StartGame();
+        var coordinate = new Coordinate(0, 0);
+        var tile = new Tile { OccupyingShip = null };
+        _mockGameBoard2.Setup(x => x.GetTile(coordinate)).Returns(tile);
 
-            var firstResult = _battleshipEngine.Shoot(_player1, coordinate);        
-            _battleshipEngine.Shoot(_player2, player2Coordinate);                   
-            var secondResult = _battleshipEngine.Shoot(_player1, coordinate);       
+        var result = _battleshipEngine.Shoot(_player1, coordinate);
 
-            firstResult.Should().Be(ShotResult.Miss);
-            secondResult.Should().Be(ShotResult.Duplicate);
-            _mockGameBoard2.Verify(x => x.GetTile(coordinate), Times.Once);
-            _mockGameBoard1.Verify(x => x.GetTile(player2Coordinate), Times.Once);
-        }
+        result.Should().Be(ShotResult.Miss);
+        _mockGameBoard2.Verify(x => x.GetTile(coordinate), Times.Once);
+        _mockShip.Verify(s => s.RegisterHit(coordinate), Times.Never);
+        _mockShip.Verify(s => s.IsSunk(), Times.Never);
+    }
 
-        [Fact]
-        public void Shoot_ReturnsDuplicate_WhenAlreadySunkCoordinateIsShotAgain()
-        {
-            StartGame();
-            var coordinate = new Coordinate(0, 0);
-            var player2Coordinate = new Coordinate(1, 1);
-            _mockShip.Setup(s => s.IsSunk()).Returns(true);
-            var tile = new Tile { OccupyingShip = _mockShip.Object };
-            _mockGameBoard2.Setup(x => x.GetTile(coordinate)).Returns(tile);
-            _mockGameBoard1.Setup(x => x.GetTile(player2Coordinate)).Returns(new Tile { OccupyingShip = null });
+    [Fact]
+    public void Shoot_ReturnsSunk_WhenShipIsDestroyed()
+    {
+        StartGame();
+        var coordinate = new Coordinate(0, 0);
+        _mockShip.Setup(s => s.IsSunk()).Returns(true);
+        var tile = new Tile { OccupyingShip = _mockShip.Object };
+        _mockGameBoard2.Setup(x => x.GetTile(coordinate)).Returns(tile);
 
-            var firstResult = _battleshipEngine.Shoot(_player1, coordinate);        
-            _battleshipEngine.Shoot(_player2, player2Coordinate);                  
-            var secondResult = _battleshipEngine.Shoot(_player1, coordinate);       
+        var result = _battleshipEngine.Shoot(_player1, coordinate);
 
-            firstResult.Should().Be(ShotResult.Sunk);
-            secondResult.Should().Be(ShotResult.Duplicate);
-            _mockGameBoard2.Verify(x => x.GetTile(coordinate), Times.Once);
-            _mockGameBoard1.Verify(x => x.GetTile(player2Coordinate), Times.Once);
-            _mockShip.Verify(s => s.RegisterHit(coordinate), Times.Once);
-            _mockShip.Verify(s => s.IsSunk(), Times.Once);
-        }
-        
-        [Fact]
-        public void Shoot_OnlyAffectsPlayer2sBoard_WhenShootIsCalledOnceByPlayer1AndIsSuccessful()
-        {
-            StartGame();
-            var coordinate = new Coordinate(0, 0);
-            var tile = new  Tile { OccupyingShip = _mockShip.Object };
-            _mockShip.Setup(s => s.IsSunk()).Returns(true);
-            _mockGameBoard2.Setup(x => x.GetTile(coordinate)).Returns(tile);
-            
-            var result = _battleshipEngine.Shoot(_player1, coordinate);
+        result.Should().Be(ShotResult.Sunk);
+        _mockGameBoard2.Verify(x => x.GetTile(coordinate), Times.Once);
+        _mockShip.Verify(s => s.RegisterHit(coordinate), Times.Once);
+        _mockShip.Verify(s => s.IsSunk(), Times.Once);
+    }
 
-            result.Should().Be(ShotResult.Sunk);
-            _mockGameBoard1.Verify(x => x.GetTile(coordinate), Times.Never);
-            _mockGameBoard2.Verify(x => x.GetTile(coordinate), Times.Once);
-            _mockShip.Verify(s => s.RegisterHit(coordinate), Times.Once);
-            _mockShip.Verify(s => s.IsSunk(), Times.Once);
-        }
+    [Fact]
+    public void Shoot_ReturnsDuplicate_WhenSameHitCoordinateIsShotTwice()
+    {
+        StartGame();
+        var coordinate = new Coordinate(0, 0);
+        var player2Coordinate = new Coordinate(1, 1);
+        _mockShip.Setup(s => s.IsSunk()).Returns(false);
+        var tile = new Tile { OccupyingShip = _mockShip.Object };
+        _mockGameBoard2.Setup(x => x.GetTile(coordinate)).Returns(tile);
+        _mockGameBoard1.Setup(x => x.GetTile(player2Coordinate)).Returns(new Tile { OccupyingShip = null });
 
-        [Fact]
-        public void Shoot_OnlyAffectsPlayer1sBoard_WhenShootIsCalledByPlayer2AndIsSuccessful()
-        {
-            StartGame();
-            var player1Coordinate = new Coordinate(1, 1);
-            var player2Coordinate = new Coordinate(0, 0);
-            var tile = new Tile { OccupyingShip = _mockShip.Object };
-            _mockShip.Setup(s => s.IsSunk()).Returns(true);
-            _mockGameBoard2.Setup(x => x.GetTile(player1Coordinate)).Returns(new Tile { OccupyingShip = null });
-            _mockGameBoard1.Setup(x => x.GetTile(player2Coordinate)).Returns(tile);
+        var firstResult = _battleshipEngine.Shoot(_player1, coordinate);
+        _battleshipEngine.Shoot(_player2, player2Coordinate);
+        var secondResult = _battleshipEngine.Shoot(_player1, coordinate);
 
-            _battleshipEngine.Shoot(_player1, player1Coordinate); 
-            var result = _battleshipEngine.Shoot(_player2, player2Coordinate); 
+        firstResult.Should().Be(ShotResult.Hit);
+        secondResult.Should().Be(ShotResult.Duplicate);
+        _mockGameBoard2.Verify(x => x.GetTile(coordinate), Times.Once);
+        _mockGameBoard1.Verify(x => x.GetTile(player2Coordinate), Times.Once);
+        _mockShip.Verify(s => s.RegisterHit(coordinate), Times.Once);
+        _mockShip.Verify(s => s.IsSunk(), Times.Once);
+    }
 
-            result.Should().Be(ShotResult.Sunk);
-            _mockGameBoard1.Verify(x => x.GetTile(player2Coordinate), Times.Once);
-            _mockGameBoard2.Verify(x => x.GetTile(player2Coordinate), Times.Never);
-            _mockShip.Verify(s => s.RegisterHit(player2Coordinate), Times.Once);
-            _mockShip.Verify(s => s.IsSunk(), Times.Once);
-        }
-        
-        [Fact]
-        public void Shoot_SwitchesTurn_WhenDuplicateShotIsFired()
-        {
-            StartGame();
-            var player1FirstCoordinate = new Coordinate(0, 0);
-            var player2FirstCoordinate = new Coordinate(1, 1);
-            var player2SecondCoordinate = new Coordinate(1, 2);
-            var tile = new Tile { OccupyingShip = null };
-            _mockGameBoard1.Setup(x => x.GetTile(player2FirstCoordinate)).Returns(tile);
-            _mockGameBoard1.Setup(x => x.GetTile(player2SecondCoordinate)).Returns(tile);
-            _mockGameBoard2.Setup(x => x.GetTile(player1FirstCoordinate)).Returns(tile);
-            
-            var player1FirstMiss= _battleshipEngine.Shoot(_player1, player1FirstCoordinate);
-            var player2FirstMiss = _battleshipEngine.Shoot(_player2, player2FirstCoordinate);
-            var player1SecondDuplicateShot = _battleshipEngine.Shoot(_player1, player1FirstCoordinate);
-            var player2SecondMiss = _battleshipEngine.Shoot(_player2, player2SecondCoordinate);
-            
-            player1FirstMiss.Should().Be(ShotResult.Miss);
-            player2FirstMiss.Should().Be(ShotResult.Miss);
-            player1SecondDuplicateShot.Should().Be(ShotResult.Duplicate);
-            player2SecondMiss.Should().Be(ShotResult.Miss);
-            _mockGameBoard1.Verify(x => x.GetTile(player2FirstCoordinate), Times.Once);
-            _mockGameBoard1.Verify(x => x.GetTile(player2SecondCoordinate), Times.Once);
-            _mockGameBoard2.Verify(x => x.GetTile(player1FirstCoordinate), Times.Once);
-        }
+    [Fact]
+    public void Shoot_ReturnsDuplicate_WhenSameMissCoordinateIsShotTwice()
+    {
+        StartGame();
+        var coordinate = new Coordinate(0, 0);
+        var player2Coordinate = new Coordinate(1, 1);
+        var tile = new Tile { OccupyingShip = null };
+        _mockGameBoard2.Setup(x => x.GetTile(coordinate)).Returns(tile);
+        _mockGameBoard1.Setup(x => x.GetTile(player2Coordinate)).Returns(tile);
 
-        [Fact]
-        public void Shoot_ShouldTrackDuplicatesSeparately_WhenPlayer1And2TakeDuplicateShots()
-        {
-            StartGame();
-            var firstCoordinate = new Coordinate(0, 0);
-            var tile = new Tile { OccupyingShip = null };
-            _mockGameBoard1.Setup(x => x.GetTile(firstCoordinate)).Returns(tile);
-            _mockGameBoard2.Setup(x => x.GetTile(firstCoordinate)).Returns(tile);
-            
-            var player1Miss = _battleshipEngine.Shoot(_player1, firstCoordinate);
-            var player2Miss = _battleshipEngine.Shoot(_player2, firstCoordinate);
-            var player1Duplicate = _battleshipEngine.Shoot(_player1, firstCoordinate);
-            var player2Duplicate = _battleshipEngine.Shoot(_player2, firstCoordinate);
-            
-            player1Miss.Should().Be(ShotResult.Miss);
-            player2Miss.Should().Be(ShotResult.Miss);
-            player1Duplicate.Should().Be(ShotResult.Duplicate);
-            player2Duplicate.Should().Be(ShotResult.Duplicate);
-            _mockGameBoard1.Verify(x => x.GetTile(firstCoordinate), Times.Once);
-            _mockGameBoard2.Verify(x => x.GetTile(firstCoordinate), Times.Once);
-        }
-        
-        [Fact]
-        public void Shoot_PropagatesInvalidCoordinateException_WhenBoardThrowsIt()
-        {
-            StartGame();
-            var coordinate = new Coordinate(-1, 5);
-            _mockGameBoard2
-                .Setup(x => x.GetTile(coordinate))
-                .Throws(new InvalidCoordinateException($"Invalid coordinate: {coordinate}"));
+        var firstResult = _battleshipEngine.Shoot(_player1, coordinate);
+        _battleshipEngine.Shoot(_player2, player2Coordinate);
+        var secondResult = _battleshipEngine.Shoot(_player1, coordinate);
 
-            var act = () => _battleshipEngine.Shoot(_player1, coordinate);
+        firstResult.Should().Be(ShotResult.Miss);
+        secondResult.Should().Be(ShotResult.Duplicate);
+        _mockGameBoard2.Verify(x => x.GetTile(coordinate), Times.Once);
+        _mockGameBoard1.Verify(x => x.GetTile(player2Coordinate), Times.Once);
+    }
 
-            act.Should().Throw<InvalidCoordinateException>().WithMessage($"Invalid coordinate: {coordinate}");
-        }
-        
-        [Theory]
-        [InlineData(true, false)]  
-        [InlineData(false, true)]  
-        [InlineData(true, true)]   
-        public void Shoot_ShouldThrowGameOverException_WhenTryingToShootAfterGameIsOver(bool playerOneSunk, bool playerTwoSunk)
-        {
-            StartGame();
-            var validCoordinate = new Coordinate(0, 0);
-            var tile = new Tile { OccupyingShip = null };
-            _mockGameBoard1.Setup(x => x.GetTile(validCoordinate)).Returns(tile);
-            _mockGameBoard2.Setup(x => x.GetTile(validCoordinate)).Returns(tile);
-            _mockGameBoard1.Setup(x => x.AreAllShipsSunk()).Returns(playerOneSunk);
-            _mockGameBoard2.Setup(x => x.AreAllShipsSunk()).Returns(playerTwoSunk);
-            
-            _battleshipEngine.Shoot(_player1, validCoordinate);
-            var act = () => _battleshipEngine.Shoot(_player1, new Coordinate(1, 1));
-    
-            act.Should()
-                .Throw<GameOverException>()
-                .WithMessage("Cannot shoot when game is over.");
-        }
-        
-        [Fact]
-        public void Shoot_ShouldThrowGameNotStartedException_WhenGameIsInSetupPhase()
-        {
-            var act = () => _battleshipEngine.Shoot(_player1, It.IsAny<Coordinate>());
-            
-            _battleshipEngine.GameState.Should().Be(GameState.Setup);
-            act.Should()
-                .Throw<GameNotStartedException>()
-                .WithMessage("Cannot shoot when game is not started.");
-        }
-        
-        [Fact]
-        public void Shoot_ShouldThrowNotYourTurnException_WhenAPlayerTriesToShootOutOfTurn()
-        {
-            StartGame();
-            
-            var act = () => _battleshipEngine.Shoot(_player2, It.IsAny<Coordinate>());
+    [Fact]
+    public void Shoot_ReturnsDuplicate_WhenAlreadySunkCoordinateIsShotAgain()
+    {
+        StartGame();
+        var coordinate = new Coordinate(0, 0);
+        var player2Coordinate = new Coordinate(1, 1);
+        _mockShip.Setup(s => s.IsSunk()).Returns(true);
+        var tile = new Tile { OccupyingShip = _mockShip.Object };
+        _mockGameBoard2.Setup(x => x.GetTile(coordinate)).Returns(tile);
+        _mockGameBoard1.Setup(x => x.GetTile(player2Coordinate)).Returns(new Tile { OccupyingShip = null });
 
-            act.Should()
-                .Throw<NotYourTurnException>()
-                .WithMessage("Cannot shoot when it is not your turn.");
-            _battleshipEngine.CurrentPlayer.Should().Be(_player1);
-        }
+        var firstResult = _battleshipEngine.Shoot(_player1, coordinate);
+        _battleshipEngine.Shoot(_player2, player2Coordinate);
+        var secondResult = _battleshipEngine.Shoot(_player1, coordinate);
 
-        [Fact]
-        public void Shoot_ShouldThrowNotYourTurnException_WhenAPlayerShootsOnTheirTurn()
-        {
-            StartGame();
-            
-            var act = () => _battleshipEngine.Shoot(_player1, It.IsAny<Coordinate>());
+        firstResult.Should().Be(ShotResult.Sunk);
+        secondResult.Should().Be(ShotResult.Duplicate);
+        _mockGameBoard2.Verify(x => x.GetTile(coordinate), Times.Once);
+        _mockGameBoard1.Verify(x => x.GetTile(player2Coordinate), Times.Once);
+        _mockShip.Verify(s => s.RegisterHit(coordinate), Times.Once);
+        _mockShip.Verify(s => s.IsSunk(), Times.Once);
+    }
 
-            act.Should().NotThrow<NotYourTurnException>();
-        }
-        
-        [Fact]
-        public void BattleShipEngineConstructor_ShouldThrowArgumentNullException_WhenAnyArgumentIsNull()
-        {
-            var board = new Mock<IGameBoard>().Object;
-            var player = new Player(Guid.NewGuid(), "Test Player");
+    [Fact]
+    public void Shoot_OnlyAffectsPlayer2sBoard_WhenShootIsCalledOnceByPlayer1AndIsSuccessful()
+    {
+        StartGame();
+        var coordinate = new Coordinate(0, 0);
+        var tile = new Tile { OccupyingShip = _mockShip.Object };
+        _mockShip.Setup(s => s.IsSunk()).Returns(true);
+        _mockGameBoard2.Setup(x => x.GetTile(coordinate)).Returns(tile);
 
-            FluentActions.Invoking(() => new BattleshipEngine(null!, board, player, player))
-                .Should().Throw<ArgumentNullException>();
-            FluentActions.Invoking(() => new BattleshipEngine(board, null!, player, player))
-                .Should().Throw<ArgumentNullException>();
-            FluentActions.Invoking(() => new BattleshipEngine(board, board, null!, player))
-                .Should().Throw<ArgumentNullException>();
-            FluentActions.Invoking(() => new BattleshipEngine(board, board, player, null!))
-                .Should().Throw<ArgumentNullException>();
-        }
+        var result = _battleshipEngine.Shoot(_player1, coordinate);
 
-        [Fact]
-        public void TryStartGame_ShouldReturnFalse_WhenGameIsAlreadyStarted()
-        {
-            _mockGameBoard1.Setup(x => x.ValidateFleet()).Returns(new FleetValidationResult(true, [], []));
-            _mockGameBoard2.Setup(x => x.ValidateFleet()).Returns(new FleetValidationResult(true, [], []));
+        result.Should().Be(ShotResult.Sunk);
+        _mockGameBoard1.Verify(x => x.GetTile(coordinate), Times.Never);
+        _mockGameBoard2.Verify(x => x.GetTile(coordinate), Times.Once);
+        _mockShip.Verify(s => s.RegisterHit(coordinate), Times.Once);
+        _mockShip.Verify(s => s.IsSunk(), Times.Once);
+    }
 
-            _battleshipEngine.TryStartGame();
-            var result = _battleshipEngine.TryStartGame();
+    [Fact]
+    public void Shoot_OnlyAffectsPlayer1sBoard_WhenShootIsCalledByPlayer2AndIsSuccessful()
+    {
+        StartGame();
+        var player1Coordinate = new Coordinate(1, 1);
+        var player2Coordinate = new Coordinate(0, 0);
+        var tile = new Tile { OccupyingShip = _mockShip.Object };
+        _mockShip.Setup(s => s.IsSunk()).Returns(true);
+        _mockGameBoard2.Setup(x => x.GetTile(player1Coordinate)).Returns(new Tile { OccupyingShip = null });
+        _mockGameBoard1.Setup(x => x.GetTile(player2Coordinate)).Returns(tile);
 
-            result.Success.Should().BeFalse();
-            result.ValidationErrors.Should().BeNull();
-            _battleshipEngine.GameState.Should().Be(GameState.Playing);
-            _mockGameBoard1.Verify(x => x.ValidateFleet(), Times.Once);
-            _mockGameBoard2.Verify(x => x.ValidateFleet(), Times.Once);
-        }
+        _battleshipEngine.Shoot(_player1, player1Coordinate);
+        var result = _battleshipEngine.Shoot(_player2, player2Coordinate);
 
-        [Theory]
-        [MemberData(nameof(InvalidFleetTestData))]
-        public void TryStartGame_ShouldReturnFalse_WhenAnyFleetIsInvalid(
-            FleetValidationResult board1Result, 
-            FleetValidationResult board2Result)
-        {
-            _mockGameBoard1.Setup(x => x.ValidateFleet()).Returns(board1Result);
-            _mockGameBoard2.Setup(x => x.ValidateFleet()).Returns(board2Result);
+        result.Should().Be(ShotResult.Sunk);
+        _mockGameBoard1.Verify(x => x.GetTile(player2Coordinate), Times.Once);
+        _mockGameBoard2.Verify(x => x.GetTile(player2Coordinate), Times.Never);
+        _mockShip.Verify(s => s.RegisterHit(player2Coordinate), Times.Once);
+        _mockShip.Verify(s => s.IsSunk(), Times.Once);
+    }
 
-            var result = _battleshipEngine.TryStartGame();
+    [Fact]
+    public void Shoot_SwitchesTurn_WhenDuplicateShotIsFired()
+    {
+        StartGame();
+        var player1FirstCoordinate = new Coordinate(0, 0);
+        var player2FirstCoordinate = new Coordinate(1, 1);
+        var player2SecondCoordinate = new Coordinate(1, 2);
+        var tile = new Tile { OccupyingShip = null };
+        _mockGameBoard1.Setup(x => x.GetTile(player2FirstCoordinate)).Returns(tile);
+        _mockGameBoard1.Setup(x => x.GetTile(player2SecondCoordinate)).Returns(tile);
+        _mockGameBoard2.Setup(x => x.GetTile(player1FirstCoordinate)).Returns(tile);
 
-            result.Success.Should().BeFalse();
-            result.ValidationErrors.Should().NotBeNull();
-            _battleshipEngine.GameState.Should().Be(GameState.Setup);
-            _mockGameBoard1.Verify(x => x.ValidateFleet(), Times.Once);
-            _mockGameBoard2.Verify(x => x.ValidateFleet(), Times.Once);
-        }
+        var player1FirstMiss = _battleshipEngine.Shoot(_player1, player1FirstCoordinate);
+        var player2FirstMiss = _battleshipEngine.Shoot(_player2, player2FirstCoordinate);
+        var player1SecondDuplicateShot = _battleshipEngine.Shoot(_player1, player1FirstCoordinate);
+        var player2SecondMiss = _battleshipEngine.Shoot(_player2, player2SecondCoordinate);
 
-        public static IEnumerable<object[]> InvalidFleetTestData()
-        {
-            var invalid = new FleetValidationResult(false, [], []);
-            var valid = new FleetValidationResult(true, [], []);
+        player1FirstMiss.Should().Be(ShotResult.Miss);
+        player2FirstMiss.Should().Be(ShotResult.Miss);
+        player1SecondDuplicateShot.Should().Be(ShotResult.Duplicate);
+        player2SecondMiss.Should().Be(ShotResult.Miss);
+        _mockGameBoard1.Verify(x => x.GetTile(player2FirstCoordinate), Times.Once);
+        _mockGameBoard1.Verify(x => x.GetTile(player2SecondCoordinate), Times.Once);
+        _mockGameBoard2.Verify(x => x.GetTile(player1FirstCoordinate), Times.Once);
+    }
 
-            yield return [invalid, valid];  
-            yield return [valid, invalid]; 
-            yield return [invalid, invalid]; 
-        }
+    [Fact]
+    public void Shoot_ShouldTrackDuplicatesSeparately_WhenPlayer1And2TakeDuplicateShots()
+    {
+        StartGame();
+        var firstCoordinate = new Coordinate(0, 0);
+        var tile = new Tile { OccupyingShip = null };
+        _mockGameBoard1.Setup(x => x.GetTile(firstCoordinate)).Returns(tile);
+        _mockGameBoard2.Setup(x => x.GetTile(firstCoordinate)).Returns(tile);
 
-        [Fact]
-        public void TryStartGame_ShouldReturnTrue_WhenBothFleetsAreValid()
-        {
-            var validateFleetResult = new FleetValidationResult(true, [], []);
-            _mockGameBoard1.Setup(x => x.ValidateFleet()).Returns(validateFleetResult);
-            _mockGameBoard2.Setup(x => x.ValidateFleet()).Returns(validateFleetResult);
+        var player1Miss = _battleshipEngine.Shoot(_player1, firstCoordinate);
+        var player2Miss = _battleshipEngine.Shoot(_player2, firstCoordinate);
+        var player1Duplicate = _battleshipEngine.Shoot(_player1, firstCoordinate);
+        var player2Duplicate = _battleshipEngine.Shoot(_player2, firstCoordinate);
 
-            var result = _battleshipEngine.TryStartGame();
+        player1Miss.Should().Be(ShotResult.Miss);
+        player2Miss.Should().Be(ShotResult.Miss);
+        player1Duplicate.Should().Be(ShotResult.Duplicate);
+        player2Duplicate.Should().Be(ShotResult.Duplicate);
+        _mockGameBoard1.Verify(x => x.GetTile(firstCoordinate), Times.Once);
+        _mockGameBoard2.Verify(x => x.GetTile(firstCoordinate), Times.Once);
+    }
 
-            result.Success.Should().BeTrue();
-            result.ValidationErrors.Should().BeNull();
-            _battleshipEngine.GameState.Should().Be(GameState.Playing);
-            _mockGameBoard1.Verify(x => x.ValidateFleet(), Times.Once);
-            _mockGameBoard2.Verify(x => x.ValidateFleet(), Times.Once);
-        }
+    [Fact]
+    public void Shoot_PropagatesInvalidCoordinateException_WhenBoardThrowsIt()
+    {
+        StartGame();
+        var coordinate = new Coordinate(-1, 5);
+        _mockGameBoard2
+            .Setup(x => x.GetTile(coordinate))
+            .Throws(new InvalidCoordinateException($"Invalid coordinate: {coordinate}"));
 
-        [Fact]
-        public void GetWinner_ShouldReturnNull_WhenGameIsNotOver()
-        {
-            var result = _battleshipEngine.GetWinner();
+        var act = () => _battleshipEngine.Shoot(_player1, coordinate);
 
-            result.Should().BeNull();
-            _battleshipEngine.GameState.Should().NotBe(GameState.Finished);
-        }
-        
-        [Theory]
-        [MemberData(nameof(WinnerTestData))]
-        public void GetWinner_ShouldReturnCorrectPlayer_WhenGameIsOver(bool board1Sunk, bool board2Sunk, Player expectedWinner)
-        {
-            StartGame();
-            _mockGameBoard1.Setup(x => x.AreAllShipsSunk()).Returns(board1Sunk);
-            _mockGameBoard2.Setup(x => x.AreAllShipsSunk()).Returns(board2Sunk);
+        act.Should().Throw<InvalidCoordinateException>().WithMessage($"Invalid coordinate: {coordinate}");
+    }
 
-            var result = _battleshipEngine.GetWinner();
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public void Shoot_ShouldThrowGameOverException_WhenTryingToShootAfterGameIsOver(bool playerOneSunk,
+        bool playerTwoSunk)
+    {
+        StartGame();
+        var validCoordinate = new Coordinate(0, 0);
+        var tile = new Tile { OccupyingShip = null };
+        _mockGameBoard1.Setup(x => x.GetTile(validCoordinate)).Returns(tile);
+        _mockGameBoard2.Setup(x => x.GetTile(validCoordinate)).Returns(tile);
+        _mockGameBoard1.Setup(x => x.AreAllShipsSunk()).Returns(playerOneSunk);
+        _mockGameBoard2.Setup(x => x.AreAllShipsSunk()).Returns(playerTwoSunk);
 
-            result.Should().Be(expectedWinner);
-            _battleshipEngine.GameState.Should().Be(GameState.Finished);
-        }
+        _battleshipEngine.Shoot(_player1, validCoordinate);
+        var act = () => _battleshipEngine.Shoot(_player1, new Coordinate(1, 1));
 
-        public static IEnumerable<object[]> WinnerTestData() =>
+        act.Should()
+            .Throw<GameOverException>()
+            .WithMessage("Cannot shoot when game is over.");
+    }
+
+    [Fact]
+    public void Shoot_ShouldThrowGameNotStartedException_WhenGameIsInSetupPhase()
+    {
+        var act = () => _battleshipEngine.Shoot(_player1, It.IsAny<Coordinate>());
+
+        _battleshipEngine.GameState.Should().Be(GameState.Setup);
+        act.Should()
+            .Throw<GameNotStartedException>()
+            .WithMessage("Cannot shoot when game is not started.");
+    }
+
+    [Fact]
+    public void Shoot_ShouldThrowNotYourTurnException_WhenAPlayerTriesToShootOutOfTurn()
+    {
+        StartGame();
+
+        var act = () => _battleshipEngine.Shoot(_player2, It.IsAny<Coordinate>());
+
+        act.Should()
+            .Throw<NotYourTurnException>()
+            .WithMessage("Cannot shoot when it is not your turn.");
+        _battleshipEngine.CurrentPlayer.Should().Be(_player1);
+    }
+
+    [Fact]
+    public void Shoot_ShouldThrowNotYourTurnException_WhenAPlayerShootsOnTheirTurn()
+    {
+        StartGame();
+
+        var act = () => _battleshipEngine.Shoot(_player1, It.IsAny<Coordinate>());
+
+        act.Should().NotThrow<NotYourTurnException>();
+    }
+
+    [Fact]
+    public void BattleShipEngineConstructor_ShouldThrowArgumentNullException_WhenAnyArgumentIsNull()
+    {
+        var board = new Mock<IGameBoard>().Object;
+        var player = new Player(Guid.NewGuid(), "Test Player");
+
+        FluentActions.Invoking(() => new BattleshipEngine(null!, board, player, player))
+            .Should().Throw<ArgumentNullException>();
+        FluentActions.Invoking(() => new BattleshipEngine(board, null!, player, player))
+            .Should().Throw<ArgumentNullException>();
+        FluentActions.Invoking(() => new BattleshipEngine(board, board, null!, player))
+            .Should().Throw<ArgumentNullException>();
+        FluentActions.Invoking(() => new BattleshipEngine(board, board, player, null!))
+            .Should().Throw<ArgumentNullException>();
+    }
+
+    [Fact]
+    public void TryStartGame_ShouldReturnFalse_WhenGameIsAlreadyStarted()
+    {
+        _mockGameBoard1.Setup(x => x.ValidateFleet()).Returns(new FleetValidationResult(true, [], []));
+        _mockGameBoard2.Setup(x => x.ValidateFleet()).Returns(new FleetValidationResult(true, [], []));
+
+        _battleshipEngine.TryStartGame();
+        var result = _battleshipEngine.TryStartGame();
+
+        result.Success.Should().BeFalse();
+        result.ValidationErrors.Should().BeNull();
+        _battleshipEngine.GameState.Should().Be(GameState.Playing);
+        _mockGameBoard1.Verify(x => x.ValidateFleet(), Times.Once);
+        _mockGameBoard2.Verify(x => x.ValidateFleet(), Times.Once);
+    }
+
+    [Theory]
+    [MemberData(nameof(InvalidFleetTestData))]
+    public void TryStartGame_ShouldReturnFalse_WhenAnyFleetIsInvalid(
+        FleetValidationResult board1Result,
+        FleetValidationResult board2Result)
+    {
+        _mockGameBoard1.Setup(x => x.ValidateFleet()).Returns(board1Result);
+        _mockGameBoard2.Setup(x => x.ValidateFleet()).Returns(board2Result);
+
+        var result = _battleshipEngine.TryStartGame();
+
+        result.Success.Should().BeFalse();
+        result.ValidationErrors.Should().NotBeNull();
+        _battleshipEngine.GameState.Should().Be(GameState.Setup);
+        _mockGameBoard1.Verify(x => x.ValidateFleet(), Times.Once);
+        _mockGameBoard2.Verify(x => x.ValidateFleet(), Times.Once);
+    }
+
+    public static IEnumerable<object[]> InvalidFleetTestData()
+    {
+        var invalid = new FleetValidationResult(false, [], []);
+        var valid = new FleetValidationResult(true, [], []);
+
+        yield return [invalid, valid];
+        yield return [valid, invalid];
+        yield return [invalid, invalid];
+    }
+
+    [Fact]
+    public void TryStartGame_ShouldReturnTrue_WhenBothFleetsAreValid()
+    {
+        var validateFleetResult = new FleetValidationResult(true, [], []);
+        _mockGameBoard1.Setup(x => x.ValidateFleet()).Returns(validateFleetResult);
+        _mockGameBoard2.Setup(x => x.ValidateFleet()).Returns(validateFleetResult);
+
+        var result = _battleshipEngine.TryStartGame();
+
+        result.Success.Should().BeTrue();
+        result.ValidationErrors.Should().BeNull();
+        _battleshipEngine.GameState.Should().Be(GameState.Playing);
+        _mockGameBoard1.Verify(x => x.ValidateFleet(), Times.Once);
+        _mockGameBoard2.Verify(x => x.ValidateFleet(), Times.Once);
+    }
+
+    [Fact]
+    public void GetWinner_ShouldReturnNull_WhenGameIsNotOver()
+    {
+        var result = _battleshipEngine.GetWinner();
+
+        result.Should().BeNull();
+        _battleshipEngine.GameState.Should().NotBe(GameState.Finished);
+    }
+
+    [Theory]
+    [MemberData(nameof(WinnerTestData))]
+    public void GetWinner_ShouldReturnCorrectPlayer_WhenGameIsOver(bool board1Sunk, bool board2Sunk,
+        Player expectedWinner)
+    {
+        StartGame();
+        _mockGameBoard1.Setup(x => x.AreAllShipsSunk()).Returns(board1Sunk);
+        _mockGameBoard2.Setup(x => x.AreAllShipsSunk()).Returns(board2Sunk);
+
+        var result = _battleshipEngine.GetWinner();
+
+        result.Should().Be(expectedWinner);
+        _battleshipEngine.GameState.Should().Be(GameState.Finished);
+    }
+
+    public static IEnumerable<object[]> WinnerTestData()
+    {
+        return
         [
-            [true,  false, StaticPlayer2],  
-            [false, true,  StaticPlayer1], 
+            [true, false, StaticPlayer2],
+            [false, true, StaticPlayer1]
         ];
+    }
 
-        [Fact]
-        public void PlaceShip_WithPlayer1_ShouldPlaceShipOnBoard1_WhenInSetupPhase()
-        {
-            var testShip = new Ship(ShipType.PatrolBoat, [new Coordinate(0, 0), new Coordinate(0, 1)]);
-            var request = new PlaceShipRequest(_player1.Id, testShip);
-            var expectedResult = new PlacementResult(true, null);
-            _mockGameBoard1.Setup(x => x.PlaceShip(testShip))
-                .Returns(expectedResult);
+    [Fact]
+    public void PlaceShip_WithPlayer1_ShouldPlaceShipOnBoard1_WhenInSetupPhase()
+    {
+        var testShip = new Ship(ShipType.PatrolBoat, [new Coordinate(0, 0), new Coordinate(0, 1)]);
+        var request = new PlaceShipRequest(_player1.Id, testShip);
+        var expectedResult = new PlacementResult(true, null);
+        _mockGameBoard1.Setup(x => x.PlaceShip(testShip))
+            .Returns(expectedResult);
 
-            var result = _battleshipEngine.PlaceShip(request);
+        var result = _battleshipEngine.PlaceShip(request);
 
-            result.Should().Be(expectedResult);
-            _mockGameBoard1.Verify(x => x.PlaceShip(testShip), Times.Once);
-            _mockGameBoard2.Verify(x => x.PlaceShip(It.IsAny<IShip>()), Times.Never);
-        }
-        
-        [Fact]
-        public void PlaceShip_WithPlayer2_ShouldPlaceShipOnBoard2_WhenInSetupPhase()
-        {
-            var testShip = new Ship(ShipType.PatrolBoat, [new Coordinate(0, 0), new Coordinate(0, 1)]);
-            var request = new PlaceShipRequest(_player2.Id, testShip);
-            var expectedResult = new PlacementResult(true, null);
-            _mockGameBoard2.Setup(x => x.PlaceShip(testShip))
-                .Returns(expectedResult);
-            
-            var result = _battleshipEngine.PlaceShip(request);
-            
-            result.Should().Be(expectedResult);
-            _mockGameBoard2.Verify(x => x.PlaceShip(testShip), Times.Once);
-            _mockGameBoard1.Verify(x => x.PlaceShip(It.IsAny<IShip>()), Times.Never);
-        }
-        
-        [Fact]
-        public void PlaceShip_ShouldThrowPlayerNotFoundException_WhenPlayerIdIsInvalid()
-        {
-            var testShip = new Ship(ShipType.PatrolBoat, [new Coordinate(0, 0), new Coordinate(0, 1)]);
-            var request = new PlaceShipRequest(Guid.NewGuid(), testShip);
-            
-            var act = () => _battleshipEngine.PlaceShip(request);
-            
-            act.Should()
-                .Throw<PlayerNotFoundException>()
-                .WithMessage($"Player with id {request.PlayerId} not found.");
-        }
-        
-        [Fact]
-        public void PlaceShip_ShouldThrowGameInProgressException_WhenGameIsPlaying()
-        {
-            var testShip = new Ship(ShipType.PatrolBoat, [new Coordinate(0, 0), new Coordinate(0, 1)]);
-            var request = new PlaceShipRequest(_player1.Id, testShip);
-            StartGame();
-            
-            var act = () => _battleshipEngine.PlaceShip(request);
-            
-            act.Should()
-                .Throw<GameInProgressException>()
-                .WithMessage("You can't place a ship after the game has started");
-        }
+        result.Should().Be(expectedResult);
+        _mockGameBoard1.Verify(x => x.PlaceShip(testShip), Times.Once);
+        _mockGameBoard2.Verify(x => x.PlaceShip(It.IsAny<IShip>()), Times.Never);
+    }
 
-        [Fact]
-        public void PlaceShip_ShouldThrowGameOverException_WhenGameIsFinished()
-        {
-            var testShip = new Ship(ShipType.PatrolBoat, [new Coordinate(0, 0), new Coordinate(0, 1)]);
-            var request = new PlaceShipRequest(_player1.Id, testShip);
-    
-            StartGame();
-            _mockGameBoard1.Setup(x => x.AreAllShipsSunk()).Returns(true);
-            _battleshipEngine.GetWinner(); 
+    [Fact]
+    public void PlaceShip_WithPlayer2_ShouldPlaceShipOnBoard2_WhenInSetupPhase()
+    {
+        var testShip = new Ship(ShipType.PatrolBoat, [new Coordinate(0, 0), new Coordinate(0, 1)]);
+        var request = new PlaceShipRequest(_player2.Id, testShip);
+        var expectedResult = new PlacementResult(true, null);
+        _mockGameBoard2.Setup(x => x.PlaceShip(testShip))
+            .Returns(expectedResult);
 
-            var act = () => _battleshipEngine.PlaceShip(request);
-            
-            act.Should()
-                .Throw<GameOverException>()
-                .WithMessage("You can't place a ship after the game is finished");
-        }
-        
-        [Fact]
-        public void PlaceShip_ShouldReturnFailedPlacementResult_WhenBoardPlacementFails()
-        {
-            var failedCoordinates = new List<Coordinate> { new(0, 0), new Coordinate(0, 1) };
-            var testShip = new Ship(ShipType.PatrolBoat, failedCoordinates);
-            var request = new PlaceShipRequest(_player1.Id, testShip);
-            var expectedResult = new PlacementResult(false, failedCoordinates);
-            _mockGameBoard1.Setup(x => x.PlaceShip(testShip))
-                .Returns(expectedResult);
-            
-            var result = _battleshipEngine.PlaceShip(request);
-            
-            result.Should().Be(expectedResult);
-            _mockGameBoard1.Verify(x => x.PlaceShip(testShip), Times.Once);
-        }
-        
-        [Fact]
-        public void PlaceShip_ShouldThrowArgumentNullException_WhenRequestIsNull()
-        {
-            var act = () => _battleshipEngine.PlaceShip(null!);
+        var result = _battleshipEngine.PlaceShip(request);
 
-            act.Should().Throw<ArgumentNullException>().WithParameterName("request");
-        }
+        result.Should().Be(expectedResult);
+        _mockGameBoard2.Verify(x => x.PlaceShip(testShip), Times.Once);
+        _mockGameBoard1.Verify(x => x.PlaceShip(It.IsAny<IShip>()), Times.Never);
+    }
 
-        [Fact]
-        public void PlaceShip_ShouldThrowArgumentNullException_WhenShipInRequestIsNull()
-        {
-            var request = new PlaceShipRequest(_player1.Id, null!);
+    [Fact]
+    public void PlaceShip_ShouldThrowPlayerNotFoundException_WhenPlayerIdIsInvalid()
+    {
+        var testShip = new Ship(ShipType.PatrolBoat, [new Coordinate(0, 0), new Coordinate(0, 1)]);
+        var request = new PlaceShipRequest(Guid.NewGuid(), testShip);
 
-            var act = () => _battleshipEngine.PlaceShip(request);
+        var act = () => _battleshipEngine.PlaceShip(request);
 
-            act.Should().Throw<ArgumentNullException>().WithParameterName("request.Ship");
-        }
+        act.Should()
+            .Throw<PlayerNotFoundException>()
+            .WithMessage($"Player with id {request.PlayerId} not found.");
+    }
+
+    [Fact]
+    public void PlaceShip_ShouldThrowGameInProgressException_WhenGameIsPlaying()
+    {
+        var testShip = new Ship(ShipType.PatrolBoat, [new Coordinate(0, 0), new Coordinate(0, 1)]);
+        var request = new PlaceShipRequest(_player1.Id, testShip);
+        StartGame();
+
+        var act = () => _battleshipEngine.PlaceShip(request);
+
+        act.Should()
+            .Throw<GameInProgressException>()
+            .WithMessage("You can't place a ship after the game has started");
+    }
+
+    [Fact]
+    public void PlaceShip_ShouldThrowGameOverException_WhenGameIsFinished()
+    {
+        var testShip = new Ship(ShipType.PatrolBoat, [new Coordinate(0, 0), new Coordinate(0, 1)]);
+        var request = new PlaceShipRequest(_player1.Id, testShip);
+
+        StartGame();
+        _mockGameBoard1.Setup(x => x.AreAllShipsSunk()).Returns(true);
+        _battleshipEngine.GetWinner();
+
+        var act = () => _battleshipEngine.PlaceShip(request);
+
+        act.Should()
+            .Throw<GameOverException>()
+            .WithMessage("You can't place a ship after the game is finished");
+    }
+
+    [Fact]
+    public void PlaceShip_ShouldReturnFailedPlacementResult_WhenBoardPlacementFails()
+    {
+        var failedCoordinates = new List<Coordinate> { new(0, 0), new(0, 1) };
+        var testShip = new Ship(ShipType.PatrolBoat, failedCoordinates);
+        var request = new PlaceShipRequest(_player1.Id, testShip);
+        var expectedResult = new PlacementResult(false, failedCoordinates);
+        _mockGameBoard1.Setup(x => x.PlaceShip(testShip))
+            .Returns(expectedResult);
+
+        var result = _battleshipEngine.PlaceShip(request);
+
+        result.Should().Be(expectedResult);
+        _mockGameBoard1.Verify(x => x.PlaceShip(testShip), Times.Once);
+    }
+
+    [Fact]
+    public void PlaceShip_ShouldThrowArgumentNullException_WhenRequestIsNull()
+    {
+        var act = () => _battleshipEngine.PlaceShip(null!);
+
+        act.Should().Throw<ArgumentNullException>().WithParameterName("request");
+    }
+
+    [Fact]
+    public void PlaceShip_ShouldThrowArgumentNullException_WhenShipInRequestIsNull()
+    {
+        var request = new PlaceShipRequest(_player1.Id, null!);
+
+        var act = () => _battleshipEngine.PlaceShip(request);
+
+        act.Should().Throw<ArgumentNullException>().WithParameterName("request.Ship");
     }
 }

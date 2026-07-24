@@ -7,6 +7,6 @@ public interface IGameBoard
 {
     Tile GetTile(Coordinate coordinate);
     PlacementResult PlaceShip(IShip ship);
-    bool AreAllShipsSunk();     
+    bool AreAllShipsSunk();
     FleetValidationResult ValidateFleet();
 }

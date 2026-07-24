@@ -1,10 +1,9 @@
-﻿namespace Battleship.Api.GamePieces.Data
+﻿namespace Battleship.Api.GamePieces.Data;
+
+public enum ShotResult
 {
-    public enum ShotResult
-    {
-        Miss,
-        Hit,
-        Sunk,
-        Duplicate
-    }
+    Miss,
+    Hit,
+    Sunk,
+    Duplicate
 }

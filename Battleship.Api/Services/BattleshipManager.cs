@@ -17,13 +17,13 @@ public class BattleshipManager : IBattleshipManager
     {
         ArgumentNullException.ThrowIfNull(player1);
         CheckLobbyAndGame(player1);
-        
+
         string gameCode;
         do
         {
             gameCode = GenerateCode();
         } while (!_lobbies.TryAdd(gameCode, player1));
-    
+
         return gameCode;
     }
 
@@ -34,10 +34,10 @@ public class BattleshipManager : IBattleshipManager
         bool isPlayingInGame = _games.Values
             .Any(g => g.Players.Any(p => p.Id == player.Id));
 
-        if (isWaitingInLobby || isPlayingInGame) 
+        if (isWaitingInLobby || isPlayingInGame)
             throw new PlayerAlreadyInSessionException("Player is already in an active lobby or game.");
     }
-    
+
     protected virtual string GenerateCode()
     {
         return Guid.NewGuid().ToString("N")[..6].ToUpper();
@@ -49,34 +49,34 @@ public class BattleshipManager : IBattleshipManager
         CheckLobbyAndGame(player2);
         if (string.IsNullOrWhiteSpace(gameCode)) return null;
 
-        if (!_lobbies.TryRemove(gameCode, out var player1)) return null;
+        if (!_lobbies.TryRemove(gameCode, out Player? player1)) return null;
         var engine = new BattleshipEngine(new GameBoard(), new GameBoard(), player1, player2);
-        _games.TryAdd(gameCode, engine); 
-        
+        _games.TryAdd(gameCode, engine);
+
         return engine;
     }
-    
+
     public BattleshipEngine? GetGame(string? gameCode)
     {
         if (string.IsNullOrWhiteSpace(gameCode)) return null;
-        _games.TryGetValue(gameCode, out var engine);
+        _games.TryGetValue(gameCode, out BattleshipEngine? engine);
         return engine;
     }
 
     public bool AddConnection(AddConnectionRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.ConnectionId) || request.PlayerId == Guid.Empty) 
+        if (string.IsNullOrWhiteSpace(request.ConnectionId) || request.PlayerId == Guid.Empty)
             throw new ArgumentException("ConnectionId and/or Guid cannot be null or empty.");
-        
+
         return _connections.TryAdd(request.ConnectionId, request.PlayerId);
     }
-    
+
     public async Task<string?> HandleDisconnectAsync(string connectionId, TimeSpan delay = default)
     {
         if (string.IsNullOrWhiteSpace(connectionId))
             throw new ArgumentException("Connection ID cannot be null or whitespace");
 
-        if (!_connections.TryRemove(connectionId, out var playerId))
+        if (!_connections.TryRemove(connectionId, out Guid playerId))
             return null;
 
         await Task.Delay(delay);
@@ -84,7 +84,7 @@ public class BattleshipManager : IBattleshipManager
         if (_connections.Values.Contains(playerId))
             return null;
 
-        var lobbyKey = _lobbies
+        string? lobbyKey = _lobbies
             .FirstOrDefault(lobby => lobby.Value.Id == playerId)
             .Key;
 
@@ -94,7 +94,7 @@ public class BattleshipManager : IBattleshipManager
             return null;
         }
 
-        var gameKey = _games
+        string? gameKey = _games
             .FirstOrDefault(game => game.Value.Players
                 .Any(player => player.Id == playerId))
             .Key;

@@ -4,4 +4,4 @@ public record FleetValidationResult(
     bool IsValid,
     List<ShipType> MissingShips,
     List<ShipType> ExtraShips
-    );
+);

@@ -2,6 +2,11 @@
 
 public class GameNotStartedException : Exception
 {
-    public GameNotStartedException(){}
-    public GameNotStartedException(string message):base(message){}
+    public GameNotStartedException()
+    {
+    }
+
+    public GameNotStartedException(string message) : base(message)
+    {
+    }
 }

@@ -2,6 +2,11 @@
 
 public class NotYourTurnException : Exception
 {
-    public NotYourTurnException(){}
-    public NotYourTurnException(string message):base(message){}   
+    public NotYourTurnException()
+    {
+    }
+
+    public NotYourTurnException(string message) : base(message)
+    {
+    }
 }
