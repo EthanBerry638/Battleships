@@ -1,6 +1,4 @@
-﻿using Battleship.Api.GamePieces.Data;
-
-namespace Battleship.Api.GamePieces.Entities;
+﻿namespace Battleship.Api.GamePieces.Entities;
 
 public record Player
 {
