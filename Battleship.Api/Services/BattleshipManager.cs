@@ -4,6 +4,7 @@ using Battleship.Api.Engine;
 using Battleship.Api.Exceptions;
 using Battleship.Api.GamePieces.Entities;
 using Battleship.Api.GamePieces.Board;
+using Battleship.Api.GamePieces.Data;
 
 namespace Battleship.Api.Services;
 
@@ -104,5 +105,10 @@ public class BattleshipManager : IBattleshipManager
 
         _games.TryRemove(gameKey, out _);
         return gameKey;
+    }
+
+    public PlacementResult PlaceShip(PlaceShipRequest request)
+    {
+        throw new NotImplementedException();
     }
 }
