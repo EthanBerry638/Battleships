@@ -109,6 +109,6 @@ public class BattleshipManager : IBattleshipManager
 
     public PlacementResult PlaceShip(PlaceShipRequest request)
     {
-        throw new NotImplementedException();
+        return new PlacementResult(true);
     }
 }
