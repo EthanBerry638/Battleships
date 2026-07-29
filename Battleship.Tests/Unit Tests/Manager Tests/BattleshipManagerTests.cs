@@ -336,7 +336,7 @@ public class BattleshipManagerTests
 
         result.Should().Be(gameCode);
         activeGame.Should().BeNull();
-    }
+    } 
 }
 
 public class CollidingBattleshipManager : BattleshipManager
