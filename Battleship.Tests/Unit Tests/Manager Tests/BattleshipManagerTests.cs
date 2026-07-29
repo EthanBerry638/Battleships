@@ -1,9 +1,10 @@
-﻿using System.Diagnostics;
+﻿using Battleship.Api.Engine;
 using Battleship.Api.Exceptions;
 using Battleship.Api.Services;
 using FluentAssertions;
 using Battleship.Api.GamePieces.Entities;
 using Battleship.Api.DTOs;
+using Battleship.Api.GamePieces.Data;
 
 namespace Battleship.Tests.Unit_Tests.Manager_Tests;
 
@@ -12,7 +13,14 @@ public class BattleshipManagerTests
     private readonly BattleshipManager _manager = new();
     private readonly Player _dummyPlayer1 = new(Guid.NewGuid(), "Player 1");
     private readonly Player _dummyPlayer2 = new(Guid.NewGuid(), "Player 2");
-
+    
+    private (string gameCode, BattleshipEngine engine) CreateActiveGame()
+    {
+        string gameCode = _manager.CreateLobby(_dummyPlayer1);
+        var engine = _manager.JoinLobby(gameCode, _dummyPlayer2);
+        return (gameCode, engine)!;
+    }
+    
     [Fact]
     public void CreateLobby_ShouldReturnSixCharacterCode_WhenCalled()
     {
@@ -336,7 +344,19 @@ public class BattleshipManagerTests
 
         result.Should().Be(gameCode);
         activeGame.Should().BeNull();
-    } 
+    }
+
+    [Fact]
+    public void PlaceShip_ShouldReturnValidResult_WhenPlacementIsLegal()
+    {
+        (string gameCode, _) = CreateActiveGame();
+        var ship = new Ship(ShipType.PatrolBoat, [new Coordinate(0, 0), new Coordinate(0, 1)]);
+        var request = new PlaceShipRequest(_dummyPlayer1.Id, ship);
+
+        var result = _manager.PlaceShip(request);
+        
+        result.IsSuccessful.Should().BeTrue();
+    }
 }
 
 public class CollidingBattleshipManager : BattleshipManager
