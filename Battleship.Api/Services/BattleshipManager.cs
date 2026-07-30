@@ -10,7 +10,7 @@ namespace Battleship.Api.Services;
 
 public class BattleshipManager : IBattleshipManager
 {
-    private readonly ConcurrentDictionary<string, BattleshipEngine> _games = new();
+    private readonly ConcurrentDictionary<string, GameSession> _games = new();
     private readonly ConcurrentDictionary<string, Player> _lobbies = new();
     private readonly ConcurrentDictionary<string, Guid> _connections = new();
 
