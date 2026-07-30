@@ -356,22 +356,27 @@ public class BattleshipManagerTests
         
         result.IsSuccessful.Should().BeTrue();
     }
-
+    
     [Fact]
-    public void PlaceShip_ShouldReturnUnSuccessfulResult_WhenPlacementIsOverlapping()
+    public void PlaceShip_ShouldRouteToCorrectEngine_WhenMultipleGamesAreActive()
     {
-        CreateActiveGame();
-        var coordinates = new List<Coordinate> { new(0, 0), new(0, 1) };
-        var overlappingShip = new Ship(ShipType.PatrolBoat, coordinates);
-        var repeatedRequest = new PlaceShipRequest(_dummyPlayer1.Id, overlappingShip);
-        
-        var initialResult = _manager.PlaceShip(repeatedRequest);
-        var secondResult = _manager.PlaceShip(repeatedRequest);
+        var player1 = new Player(Guid.NewGuid(), "Player 1");
+        var player2 = new Player(Guid.NewGuid(), "Player 2");
+        var player3 = new Player(Guid.NewGuid(), "Player 3");
+        var player4 = new Player(Guid.NewGuid(), "Player 4");
+        string gameCode1 = _manager.CreateLobby(player1);
+        _manager.JoinLobby(gameCode1, player2);
+        string gameCode2 = _manager.CreateLobby(player3);
+        _manager.JoinLobby(gameCode2, player4);
+        var ship = new Ship(ShipType.PatrolBoat, [new Coordinate(0, 0), new Coordinate(0, 1)]);
+        var request = new PlaceShipRequest(player1.Id, ship);
 
-        initialResult.IsSuccessful.Should().BeTrue();
-        initialResult.InvalidCoordinates.Should().BeNull();
-        secondResult.IsSuccessful.Should().BeFalse();
-        secondResult.InvalidCoordinates.Should().BeEquivalentTo(coordinates);
+        var result = _manager.PlaceShip(request);
+        var duplicateResult = _manager.PlaceShip(request);
+        
+        result.IsSuccessful.Should().BeTrue();
+        duplicateResult.IsSuccessful.Should().BeFalse();
+        duplicateResult.InvalidCoordinates.Should().BeEquivalentTo(ship.Coordinates);
     }
 }
 
