@@ -109,6 +109,9 @@ public class BattleshipManager : IBattleshipManager
 
     public PlacementResult PlaceShip(PlaceShipRequest request)
     {
-        return new PlacementResult(true);
+        BattleshipEngine engine = _games.
+            First(game => game.Value.Players.
+                Any(player => player.Id == request.PlayerId)).Value;
+        return engine.PlaceShip(request);
     }
 }
