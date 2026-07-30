@@ -232,4 +232,17 @@ public class BattleshipHubTests
         result.Should().Be(expectedResult);
         _mockManager.Verify(m => m.PlaceShip(It.IsAny<PlaceShipRequest>()), Times.Once);
     }
+
+    [Fact]
+    public async Task PlaceShip_ShouldReturnFailureWithList_WhenManagerReturnsFailureWithList()
+    {
+        var expectedResult = new PlacementResult(false, [new Coordinate(0, 0), new Coordinate(1, 1)]);
+        _mockManager.Setup(m => m.PlaceShip(It.IsAny<PlaceShipRequest>())).Returns(expectedResult);
+        var mockShip = new Mock<IShip>();
+        
+        var result = await CreateHub().PlaceShip(new PlaceShipRequest(Guid.NewGuid(), mockShip.Object) );
+
+        result.Should().Be(expectedResult);
+        _mockManager.Verify(m => m.PlaceShip(It.IsAny<PlaceShipRequest>()), Times.Once);
+    }
 }
