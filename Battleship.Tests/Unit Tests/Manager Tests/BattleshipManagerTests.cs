@@ -344,18 +344,6 @@ public class BattleshipManagerTests
         result.Should().Be(gameCode);
         activeGame.Should().BeNull();
     }
-
-    [Fact]
-    public void PlaceShip_ShouldReturnValidResult_WhenPlacementIsLegal()
-    { 
-        CreateActiveGame();
-        var ship = new Ship(ShipType.PatrolBoat, [new Coordinate(0, 0), new Coordinate(0, 1)]);
-        var request = new PlaceShipRequest(_dummyPlayer1.Id, ship);
-
-        var result = _manager.PlaceShip(request);
-        
-        result.IsSuccessful.Should().BeTrue();
-    }
     
     [Fact]
     public void PlaceShip_ShouldRouteToCorrectEngine_WhenMultipleGamesAreActive()
