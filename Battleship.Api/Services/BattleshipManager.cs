@@ -33,7 +33,7 @@ public class BattleshipManager : IBattleshipManager
         bool isWaitingInLobby = _lobbies.Values
             .Any(p => p.Id == player.Id);
         bool isPlayingInGame = _games.Values
-            .Any(g => g.Players.Any(p => p.Id == player.Id));
+            .Any(g => g.Engine.Players.Any(p => p.Id == player.Id));
 
         if (isWaitingInLobby || isPlayingInGame)
             throw new PlayerAlreadyInSessionException("Player is already in an active lobby or game.");
@@ -52,7 +52,8 @@ public class BattleshipManager : IBattleshipManager
 
         if (!_lobbies.TryRemove(gameCode, out Player? player1)) return null;
         var engine = new BattleshipEngine(new GameBoard(), new GameBoard(), player1, player2);
-        _games.TryAdd(gameCode, engine);
+        var session = new GameSession(engine);
+        _games.TryAdd(gameCode, session);
 
         return engine;
     }
@@ -60,8 +61,8 @@ public class BattleshipManager : IBattleshipManager
     public BattleshipEngine? GetGame(string? gameCode)
     {
         if (string.IsNullOrWhiteSpace(gameCode)) return null;
-        _games.TryGetValue(gameCode, out BattleshipEngine? engine);
-        return engine;
+        _games.TryGetValue(gameCode, out GameSession? session);
+        return session?.Engine;
     }
 
     public bool AddConnection(AddConnectionRequest request)
@@ -96,7 +97,7 @@ public class BattleshipManager : IBattleshipManager
         }
 
         string? gameKey = _games
-            .FirstOrDefault(game => game.Value.Players
+            .FirstOrDefault(game => game.Value.Engine.Players
                 .Any(player => player.Id == playerId))
             .Key;
 
@@ -109,14 +110,14 @@ public class BattleshipManager : IBattleshipManager
     
     public PlacementResult PlaceShip(PlaceShipRequest request)
     {
-        BattleshipEngine? engine = _games
-            .FirstOrDefault(game => game.Value.Players
+        GameSession? session = _games
+            .FirstOrDefault(game => game.Value.Engine.Players
                 .Any(player => player.Id == request.PlayerId))
             .Value;
 
-        if (engine is null)
+        if (session is null)
             throw new PlayerNotFoundException($"No active game found for player with id {request.PlayerId}.");
-
-        return engine.PlaceShip(request);
+        
+        return session.Engine.PlaceShip(request);
     }
 }
