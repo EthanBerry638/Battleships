@@ -245,4 +245,18 @@ public class BattleshipHubTests
         result.Should().Be(expectedResult);
         _mockManager.Verify(m => m.PlaceShip(It.IsAny<PlaceShipRequest>()), Times.Once);
     }
+    
+    [Fact]
+    public async Task PlaceShip_ShouldPropagatePlayerNotFoundException_WhenManagerThrows()
+    {
+        Guid testGuid = Guid.NewGuid();
+        _mockManager.Setup(m => m.PlaceShip(It.IsAny<PlaceShipRequest>()))
+            .Throws(new PlayerNotFoundException($"No active game found for player with id {testGuid}."));
+        var mockShip = new Mock<IShip>();
+        
+        var act = () => CreateHub().PlaceShip(new PlaceShipRequest(testGuid, mockShip.Object) );
+        
+        await act.Should().ThrowAsync<PlayerNotFoundException>()
+            .WithMessage($"No active game found for player with id {testGuid}.");
+    }
 }
