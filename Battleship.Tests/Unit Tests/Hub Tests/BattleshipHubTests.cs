@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.SignalR;
 using Battleship.Api.DTOs;
 using FluentAssertions;
 using Moq;
+using Battleship.Api.GamePieces.Data;
 
 namespace Battleship.Tests.Unit_Tests.Hub_Tests;
 
@@ -217,5 +218,18 @@ public class BattleshipHubTests
         _mockClientProxy.Verify(
             p => p.SendCoreAsync(It.IsAny<string>(), It.IsAny<object[]>(), It.IsAny<CancellationToken>()),
             Times.Never);
+    }
+    
+    [Fact]
+    public async Task PlaceShip_ShouldReturnSuccess_WhenManagerReturnsSuccess()
+    {
+        var expectedResult = new PlacementResult(true);
+        _mockManager.Setup(m => m.PlaceShip(It.IsAny<PlaceShipRequest>())).Returns(expectedResult);
+        var mockShip = new Mock<IShip>();
+
+        var result = await CreateHub().PlaceShip(new PlaceShipRequest(Guid.NewGuid(), mockShip.Object) );
+
+        result.Should().Be(expectedResult);
+        _mockManager.Verify(m => m.PlaceShip(It.IsAny<PlaceShipRequest>()), Times.Once);
     }
 }
