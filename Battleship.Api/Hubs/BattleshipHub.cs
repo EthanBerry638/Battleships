@@ -49,8 +49,6 @@ public class BattleshipHub(IBattleshipManager battleshipManager) : Hub
 
     public async Task<PlacementResult> PlaceShip(PlaceShipRequest request)
     {
-        _battleshipManager.PlaceShip(request);
-        
-        return new PlacementResult(true);
+        return _battleshipManager.PlaceShip(request);
     }
 }
