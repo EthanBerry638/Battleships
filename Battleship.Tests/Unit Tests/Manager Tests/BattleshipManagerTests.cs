@@ -378,6 +378,19 @@ public class BattleshipManagerTests
         duplicateResult.IsSuccessful.Should().BeFalse();
         duplicateResult.InvalidCoordinates.Should().BeEquivalentTo(ship.Coordinates);
     }
+    
+    [Fact]
+    public void PlaceShip_ShouldThrowPlayerNotFoundException_WhenPlayerIsNotInAnyActiveGame()
+    {
+        var ship = new Ship(ShipType.PatrolBoat, [new Coordinate(0, 0), new Coordinate(0, 1)]);
+        var request = new PlaceShipRequest(Guid.NewGuid(), ship);
+
+        var act = () => _manager.PlaceShip(request);
+
+        act.Should()
+            .Throw<PlayerNotFoundException>()
+            .WithMessage($"No active game found for player with id {request.PlayerId}.");
+    }
 }
 
 public class CollidingBattleshipManager : BattleshipManager
