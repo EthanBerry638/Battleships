@@ -109,9 +109,14 @@ public class BattleshipManager : IBattleshipManager
 
     public PlacementResult PlaceShip(PlaceShipRequest request)
     {
-        BattleshipEngine engine = _games.
-            First(game => game.Value.Players.
-                Any(player => player.Id == request.PlayerId)).Value;
+        BattleshipEngine? engine = _games.
+            FirstOrDefault(game => game.Value.Players
+                .Any(player => player.Id == request.PlayerId))
+            .Value;
+        
+        if (engine is null)
+            throw new PlayerNotFoundException($"No active game found for player with id {request.PlayerId}.");
+
         return engine.PlaceShip(request);
     }
 }
