@@ -106,14 +106,14 @@ public class BattleshipManager : IBattleshipManager
         _games.TryRemove(gameKey, out _);
         return gameKey;
     }
-
+    
     public PlacementResult PlaceShip(PlaceShipRequest request)
     {
-        BattleshipEngine? engine = _games.
-            FirstOrDefault(game => game.Value.Players
+        BattleshipEngine? engine = _games
+            .FirstOrDefault(game => game.Value.Players
                 .Any(player => player.Id == request.PlayerId))
             .Value;
-        
+
         if (engine is null)
             throw new PlayerNotFoundException($"No active game found for player with id {request.PlayerId}.");
 
