@@ -232,7 +232,7 @@ public class BattleshipHubTests
         await CreateHub().PlaceShip(new PlaceShipRequest(Guid.NewGuid(), mockShip.Object));
 
         _mockManager.Verify(m => m.PlaceShip(It.IsAny<PlaceShipRequest>()), Times.Once);
-        _mockClientProxy.Verify(
+        _mockCallerProxy.Verify(
             p => p.SendCoreAsync(
                 "PlacementResult",
                 It.Is<object[]>(args => args.Length == 1 && (PlacementResult)args[0] == expectedResult),
@@ -251,7 +251,7 @@ public class BattleshipHubTests
         await CreateHub().PlaceShip(new PlaceShipRequest(Guid.NewGuid(), mockShip.Object));
 
         _mockManager.Verify(m => m.PlaceShip(It.IsAny<PlaceShipRequest>()), Times.Once);
-        _mockClientProxy.Verify(
+        _mockCallerProxy.Verify(
             p => p.SendCoreAsync(
                 "PlacementResult",
                 It.Is<object[]>(args => args.Length == 1 && (PlacementResult)args[0] == expectedResult),
