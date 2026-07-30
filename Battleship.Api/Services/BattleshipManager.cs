@@ -117,7 +117,10 @@ public class BattleshipManager : IBattleshipManager
 
         if (session is null)
             throw new PlayerNotFoundException($"No active game found for player with id {request.PlayerId}.");
-        
-        return session.Engine.PlaceShip(request);
+
+        lock (session.Lock)
+        {
+            return session.Engine.PlaceShip(request);
+        }
     }
 }
