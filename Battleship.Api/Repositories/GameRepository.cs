@@ -18,12 +18,12 @@ public class GameRepository : IGameRepository
         return _games.TryRemove(gameCode, out _);
     }
 
-    public bool FindKeyByPlayerId(Guid playerId, out string? gameCode)
+    public bool TryFindKeyByPlayerId(Guid playerId, out string? gameCode)
     {
         throw new NotImplementedException();
     }
 
-    public bool GetByCode(string gameCode, out GameSession? session)
+    public bool TryGetGameByCode(string gameCode, out GameSession? session)
     {
         throw new NotImplementedException();
     }
