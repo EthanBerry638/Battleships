@@ -20,7 +20,12 @@ public class GameRepository : IGameRepository
 
     public bool TryFindKeyByPlayerId(Guid playerId, out string? gameCode)
     {
-        throw new NotImplementedException();
+        gameCode = _games
+            .FirstOrDefault(g => g.Value.Engine.Players
+                .Any(p => p.Id == playerId))
+            .Key;
+        
+        return gameCode is not null;    
     }
 
     public bool TryGetGameByCode(string gameCode, out GameSession? session)

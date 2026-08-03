@@ -65,4 +65,38 @@ public class GameRepositoryTests
         result.Should().BeTrue();
     }
     
+    [Fact]
+    public void FindKeyByPlayerId_ShouldReturnTrueAndOutputCode_WhenPlayerIsInGame()
+    {
+        _gameRepository.TryAddGame("ABC123", CreateSession(_player1, _player2));
+
+        bool result = _gameRepository.TryFindKeyByPlayerId(_player1.Id, out string? gameCode);
+
+        result.Should().BeTrue();
+        gameCode.Should().Be("ABC123");
+    }
+
+    [Fact]
+    public void FindKeyByPlayerId_ShouldReturnFalse_WhenPlayerIsNotInAnyGame()
+    {
+        bool result = _gameRepository.TryFindKeyByPlayerId(_player1.Id, out string? gameCode);
+
+        result.Should().BeFalse();
+        gameCode.Should().BeNull();
+    }
+
+    [Fact]
+    public void FindKeyByPlayerId_ShouldReturnCorrectCode_WhenMultipleGamesExist()
+    {
+        Player player3 = new(Guid.NewGuid(), "Player 3");
+        Player player4 = new(Guid.NewGuid(), "Player 4");
+
+        _gameRepository.TryAddGame("ABC123", CreateSession(_player1, _player2));
+        _gameRepository.TryAddGame("XYZ789", CreateSession(player3, player4));
+
+        bool result = _gameRepository.TryFindKeyByPlayerId(player4.Id, out string? gameCode);
+
+        result.Should().BeTrue();
+        gameCode.Should().Be("XYZ789");
+    }
 }
