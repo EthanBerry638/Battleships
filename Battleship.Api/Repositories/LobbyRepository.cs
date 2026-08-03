@@ -28,6 +28,6 @@ public class LobbyRepository : ILobbyRepository
 
     public bool IsPlayerInLobby(Guid playerId)
     {
-        throw new NotImplementedException();
+        return _lobbies.Values.Any(p => p.Id == playerId);
     }
 }
