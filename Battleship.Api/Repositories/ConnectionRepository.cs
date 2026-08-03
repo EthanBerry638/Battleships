@@ -16,4 +16,9 @@ public class ConnectionRepository
     {
         return _connections.TryRemove(connectionId, out playerId);
     }
+    
+    public bool ContainsConnection(string connectionId)
+    {
+        throw new NotImplementedException();
+    }
 }
