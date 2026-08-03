@@ -91,4 +91,33 @@ public class LobbyRepositoryTests
         result.Should().BeTrue();
         gameCode.Should().Be("XYZ789");
     }
+    
+    [Fact]
+    public void IsPlayerInLobby_ShouldReturnTrue_WhenPlayerIsInLobby()
+    {
+        _lobbyRepository.TryAddLobby("ABC123", _player1);
+
+        bool result = _lobbyRepository.IsPlayerInLobby(_player1.Id);
+
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public void IsPlayerInLobby_ShouldReturnFalse_WhenPlayerIsNotInAnyLobby()
+    {
+        bool result = _lobbyRepository.IsPlayerInLobby(_player1.Id);
+
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public void IsPlayerInLobby_ShouldReturnFalse_WhenPlayerHasBeenRemoved()
+    {
+        _lobbyRepository.TryAddLobby("ABC123", _player1);
+        _lobbyRepository.TryRemoveLobby("ABC123", out _);
+
+        bool result = _lobbyRepository.IsPlayerInLobby(_player1.Id);
+
+        result.Should().BeFalse();
+    }
 }
