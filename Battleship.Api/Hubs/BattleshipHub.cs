@@ -1,5 +1,6 @@
 ﻿using Battleship.Api.DTOs;
 using Battleship.Api.Engine;
+using Battleship.Api.GamePieces.Data;
 using Battleship.Api.GamePieces.Entities;
 using Battleship.Api.Services;
 using Microsoft.AspNetCore.SignalR;
@@ -44,5 +45,12 @@ public class BattleshipHub(IBattleshipManager battleshipManager) : Hub
         await Clients.Group(gameCode).SendAsync("GameStarted", engine);
 
         return true;
+    }
+
+    public async Task<PlacementResult> PlaceShip(PlaceShipRequest request)
+    {
+        PlacementResult result = _battleshipManager.PlaceShip(request);
+        await Clients.Caller.SendCoreAsync("PlacementResult", [result]);
+        return result;
     }
 }

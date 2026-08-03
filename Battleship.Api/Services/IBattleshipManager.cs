@@ -1,6 +1,7 @@
 ﻿using Battleship.Api.Engine;
 using Battleship.Api.GamePieces.Entities;
 using Battleship.Api.DTOs;
+using Battleship.Api.GamePieces.Data;
 
 namespace Battleship.Api.Services;
 
@@ -10,4 +11,5 @@ public interface IBattleshipManager
     BattleshipEngine? JoinLobby(string gameCode, Player player2);
     bool AddConnection(AddConnectionRequest request);
     Task<string?> HandleDisconnectAsync(string connectionId, TimeSpan delay = default);
+    PlacementResult PlaceShip(PlaceShipRequest request);
 }

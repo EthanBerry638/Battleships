@@ -1,9 +1,10 @@
-﻿using System.Diagnostics;
+﻿using Battleship.Api.Engine;
 using Battleship.Api.Exceptions;
 using Battleship.Api.Services;
 using FluentAssertions;
 using Battleship.Api.GamePieces.Entities;
 using Battleship.Api.DTOs;
+using Battleship.Api.GamePieces.Data;
 
 namespace Battleship.Tests.Unit_Tests.Manager_Tests;
 
@@ -12,7 +13,13 @@ public class BattleshipManagerTests
     private readonly BattleshipManager _manager = new();
     private readonly Player _dummyPlayer1 = new(Guid.NewGuid(), "Player 1");
     private readonly Player _dummyPlayer2 = new(Guid.NewGuid(), "Player 2");
-
+    
+    private void CreateActiveGame()
+    {
+        string gameCode = _manager.CreateLobby(_dummyPlayer1);
+        _manager.JoinLobby(gameCode, _dummyPlayer2);
+    }
+    
     [Fact]
     public void CreateLobby_ShouldReturnSixCharacterCode_WhenCalled()
     {
@@ -336,6 +343,41 @@ public class BattleshipManagerTests
 
         result.Should().Be(gameCode);
         activeGame.Should().BeNull();
+    }
+    
+    [Fact]
+    public void PlaceShip_ShouldRouteToCorrectEngine_WhenMultipleGamesAreActive()
+    {
+        var player1 = new Player(Guid.NewGuid(), "Player 1");
+        var player2 = new Player(Guid.NewGuid(), "Player 2");
+        var player3 = new Player(Guid.NewGuid(), "Player 3");
+        var player4 = new Player(Guid.NewGuid(), "Player 4");
+        string gameCode1 = _manager.CreateLobby(player1);
+        _manager.JoinLobby(gameCode1, player2);
+        string gameCode2 = _manager.CreateLobby(player3);
+        _manager.JoinLobby(gameCode2, player4);
+        var ship = new Ship(ShipType.PatrolBoat, [new Coordinate(0, 0), new Coordinate(0, 1)]);
+        var request = new PlaceShipRequest(player1.Id, ship);
+
+        var result = _manager.PlaceShip(request);
+        var duplicateResult = _manager.PlaceShip(request);
+        
+        result.IsSuccessful.Should().BeTrue();
+        duplicateResult.IsSuccessful.Should().BeFalse();
+        duplicateResult.InvalidCoordinates.Should().BeEquivalentTo(ship.Coordinates);
+    }
+    
+    [Fact]
+    public void PlaceShip_ShouldThrowPlayerNotFoundException_WhenPlayerIsNotInAnyActiveGame()
+    {
+        var ship = new Ship(ShipType.PatrolBoat, [new Coordinate(0, 0), new Coordinate(0, 1)]);
+        var request = new PlaceShipRequest(Guid.NewGuid(), ship);
+
+        var act = () => _manager.PlaceShip(request);
+
+        act.Should()
+            .Throw<PlayerNotFoundException>()
+            .WithMessage($"No active game found for player with id {request.PlayerId}.");
     }
 }
 

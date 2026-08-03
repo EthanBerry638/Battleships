@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.SignalR;
 using Battleship.Api.DTOs;
 using FluentAssertions;
 using Moq;
+using Battleship.Api.GamePieces.Data;
 
 namespace Battleship.Tests.Unit_Tests.Hub_Tests;
 
@@ -18,6 +19,7 @@ public class BattleshipHubTests
     private readonly Mock<HubCallerContext> _mockContext = new();
     private readonly Mock<IHubCallerClients> _mockClients = new();
     private readonly Mock<IClientProxy> _mockClientProxy = new();
+    private readonly Mock<ISingleClientProxy> _mockCallerProxy = new();
 
     private BattleshipHub CreateHub()
     {
@@ -213,6 +215,63 @@ public class BattleshipHubTests
         await CreateHub().OnDisconnectedAsync(null);
 
         _mockManager.Verify(m => m.HandleDisconnectAsync("test-connection-id", It.IsAny<TimeSpan>()), Times.Once);
+        _mockClients.Verify(c => c.Group(It.IsAny<string>()), Times.Never);
+        _mockClientProxy.Verify(
+            p => p.SendCoreAsync(It.IsAny<string>(), It.IsAny<object[]>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+    
+    [Fact]
+    public async Task PlaceShip_ShouldSendSuccessResultToCaller_WhenManagerReturnsSuccess()
+    {
+        var expectedResult = new PlacementResult(true);
+        var mockShip = new Mock<IShip>();
+        _mockManager.Setup(m => m.PlaceShip(It.IsAny<PlaceShipRequest>())).Returns(expectedResult);
+        _mockClients.Setup(c => c.Caller).Returns(_mockCallerProxy.Object);
+
+        await CreateHub().PlaceShip(new PlaceShipRequest(Guid.NewGuid(), mockShip.Object));
+
+        _mockManager.Verify(m => m.PlaceShip(It.IsAny<PlaceShipRequest>()), Times.Once);
+        _mockCallerProxy.Verify(
+            p => p.SendCoreAsync(
+                "PlacementResult",
+                It.Is<object[]>(args => args.Length == 1 && (PlacementResult)args[0] == expectedResult),
+                CancellationToken.None),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task PlaceShip_ShouldSendFailureResultToCaller_WhenManagerReturnsFailure()
+    {
+        var expectedResult = new PlacementResult(false, [new Coordinate(0, 0), new Coordinate(1, 1)]);
+        var mockShip = new Mock<IShip>();
+        _mockManager.Setup(m => m.PlaceShip(It.IsAny<PlaceShipRequest>())).Returns(expectedResult);
+        _mockClients.Setup(c => c.Caller).Returns(_mockCallerProxy.Object);
+
+        await CreateHub().PlaceShip(new PlaceShipRequest(Guid.NewGuid(), mockShip.Object));
+
+        _mockManager.Verify(m => m.PlaceShip(It.IsAny<PlaceShipRequest>()), Times.Once);
+        _mockCallerProxy.Verify(
+            p => p.SendCoreAsync(
+                "PlacementResult",
+                It.Is<object[]>(args => args.Length == 1 && (PlacementResult)args[0] == expectedResult),
+                CancellationToken.None),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task PlaceShip_ShouldPropagatePlayerNotFoundException_WhenManagerThrows()
+    {
+        Guid testGuid = Guid.NewGuid();
+        var mockShip = new Mock<IShip>();
+        _mockManager.Setup(m => m.PlaceShip(It.IsAny<PlaceShipRequest>()))
+            .Throws(new PlayerNotFoundException($"No active game found for player with id {testGuid}."));
+
+        var act = () => CreateHub().PlaceShip(new PlaceShipRequest(testGuid, mockShip.Object));
+
+        await act.Should().ThrowAsync<PlayerNotFoundException>()
+            .WithMessage($"No active game found for player with id {testGuid}.");
+        _mockManager.Verify(m => m.PlaceShip(It.IsAny<PlaceShipRequest>()), Times.Once);
         _mockClients.Verify(c => c.Group(It.IsAny<string>()), Times.Never);
         _mockClientProxy.Verify(
             p => p.SendCoreAsync(It.IsAny<string>(), It.IsAny<object[]>(), It.IsAny<CancellationToken>()),
