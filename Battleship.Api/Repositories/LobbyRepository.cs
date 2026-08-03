@@ -9,7 +9,7 @@ public class LobbyRepository : ILobbyRepository
 
     public bool TryAddLobby(string gameCode, Player player)
     {
-        throw new NotImplementedException();
+        return _lobbies.TryAdd(gameCode, player);
     }
 
     public bool TryRemoveLobby(string gameCod, out Player player)
