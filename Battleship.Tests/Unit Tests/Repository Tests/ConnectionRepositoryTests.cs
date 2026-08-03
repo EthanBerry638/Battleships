@@ -28,4 +28,37 @@ public class ConnectionRepositoryTests
 
         result.Should().BeFalse();
     }
+    
+    [Fact]
+    public void TryRemoveConnection_ShouldReturnTrueAndOutputPlayerId_WhenConnectionExists()
+    {
+        var playerId = Guid.NewGuid();
+        _connectionRepository.TryAddConnection(new AddConnectionRequest("connection-1", playerId));
+
+        bool result = _connectionRepository.TryRemoveConnection("connection-1", out Guid removedPlayerId);
+
+        result.Should().BeTrue();
+        removedPlayerId.Should().Be(playerId);
+    }
+
+    [Fact]
+    public void TryRemoveConnection_ShouldReturnFalse_WhenConnectionDoesNotExist()
+    {
+        bool result = _connectionRepository.TryRemoveConnection("connection-1", out Guid removedPlayerId);
+
+        result.Should().BeFalse();
+        removedPlayerId.Should().Be(Guid.Empty);
+    }
+
+    [Fact]
+    public void TryRemoveConnection_ShouldAllowReuse_WhenConnectionHasBeenRemoved()
+    {
+        var request = new AddConnectionRequest("connection-1", Guid.NewGuid());
+        _connectionRepository.TryAddConnection(request);
+        _connectionRepository.TryRemoveConnection("connection-1", out _);
+
+        bool result = _connectionRepository.TryAddConnection(request);
+
+        result.Should().BeTrue();
+    }
 }
