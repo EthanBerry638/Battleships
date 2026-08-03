@@ -14,6 +14,6 @@ public class ConnectionRepository
     
     public bool TryRemoveConnection(string connectionId, out Guid playerId)
     {
-        throw new NotImplementedException();
+        return _connections.TryRemove(connectionId, out playerId);
     }
 }
