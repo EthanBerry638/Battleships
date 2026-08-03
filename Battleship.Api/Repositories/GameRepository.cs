@@ -30,7 +30,7 @@ public class GameRepository : IGameRepository
 
     public bool TryGetGameByCode(string gameCode, out GameSession? session)
     {
-        throw new NotImplementedException();
+        return _games.TryGetValue(gameCode, out session);   
     }
 
     public bool IsPlayerInGame(Guid playerId)

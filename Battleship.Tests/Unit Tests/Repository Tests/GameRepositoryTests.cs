@@ -99,4 +99,25 @@ public class GameRepositoryTests
         result.Should().BeTrue();
         gameCode.Should().Be("XYZ789");
     }
+    
+    [Fact]
+    public void GetByCode_ShouldReturnTrueAndOutputSession_WhenGameExists()
+    {
+        GameSession session = CreateSession(_player1, _player2);
+        _gameRepository.TryAddGame("ABC123", session);
+
+        bool result = _gameRepository.TryGetGameByCode("ABC123", out GameSession? retrievedSession);
+
+        result.Should().BeTrue();
+        retrievedSession.Should().Be(session);
+    }
+
+    [Fact]
+    public void GetByCode_ShouldReturnFalse_WhenGameDoesNotExist()
+    {
+        bool result = _gameRepository.TryGetGameByCode("ABC123", out GameSession? retrievedSession);
+
+        result.Should().BeFalse();
+        retrievedSession.Should().BeNull();
+    }
 }
