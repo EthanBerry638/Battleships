@@ -120,4 +120,33 @@ public class GameRepositoryTests
         result.Should().BeFalse();
         retrievedSession.Should().BeNull();
     }
+    
+    [Fact]
+    public void IsPlayerInGame_ShouldReturnTrue_WhenPlayerIsInGame()
+    {
+        _gameRepository.TryAddGame("ABC123", CreateSession(_player1, _player2));
+
+        bool result = _gameRepository.IsPlayerInGame(_player1.Id);
+
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public void IsPlayerInGame_ShouldReturnFalse_WhenPlayerIsNotInAnyGame()
+    {
+        bool result = _gameRepository.IsPlayerInGame(_player1.Id);
+
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public void IsPlayerInGame_ShouldReturnFalse_WhenPlayerHasBeenRemoved()
+    {
+        _gameRepository.TryAddGame("ABC123", CreateSession(_player1, _player2));
+        _gameRepository.TryRemoveGame("ABC123");
+
+        bool result = _gameRepository.IsPlayerInGame(_player1.Id);
+
+        result.Should().BeFalse();
+    }
 }

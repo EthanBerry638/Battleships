@@ -35,6 +35,8 @@ public class GameRepository : IGameRepository
 
     public bool IsPlayerInGame(Guid playerId)
     {
-        throw new NotImplementedException();
+        return _games.Values
+            .Any(g => g.Engine.Players
+                .Any(p => p.Id == playerId));
     }
 }
