@@ -3,7 +3,7 @@ using Battleship.Api.DTOs;
 
 namespace Battleship.Api.Repositories;
 
-public class ConnectionRepository
+public class ConnectionRepository : IConnectionRepository
 {
     private readonly ConcurrentDictionary<string, Guid> _connections = new();
 
