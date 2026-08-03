@@ -59,4 +59,36 @@ public class LobbyRepositoryTests
 
         result.Should().BeTrue();
     }
+    
+    [Fact]
+    public void TryFindCodeByPlayer_ShouldReturnTrueAndOutputCode_WhenPlayerIsInLobby()
+    {
+        _lobbyRepository.TryAddLobby("ABC123", _player1);
+
+        bool result = _lobbyRepository.TryFindCodeByPlayer(_player1.Id, out string? gameCode);
+
+        result.Should().BeTrue();
+        gameCode.Should().Be("ABC123");
+    }
+
+    [Fact]
+    public void TryFindCodeByPlayer_ShouldReturnFalse_WhenPlayerIsNotInAnyLobby()
+    {
+        bool result = _lobbyRepository.TryFindCodeByPlayer(_player1.Id, out string? gameCode);
+
+        result.Should().BeFalse();
+        gameCode.Should().BeNull();
+    }
+
+    [Fact]
+    public void TryFindCodeByPlayer_ShouldReturnCorrectCode_WhenMultipleLobbiesExist()
+    {
+        _lobbyRepository.TryAddLobby("ABC123", _player1);
+        _lobbyRepository.TryAddLobby("XYZ789", _player2);
+
+        bool result = _lobbyRepository.TryFindCodeByPlayer(_player2.Id, out string? gameCode);
+
+        result.Should().BeTrue();
+        gameCode.Should().Be("XYZ789");
+    }
 }
