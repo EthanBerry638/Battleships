@@ -61,4 +61,33 @@ public class ConnectionRepositoryTests
 
         result.Should().BeTrue();
     }
+    
+    [Fact]
+    public void ContainsConnection_ShouldReturnTrue_WhenConnectionExists()
+    {
+        _connectionRepository.TryAddConnection(new AddConnectionRequest("connection-1", Guid.NewGuid()));
+
+        bool result = _connectionRepository.ContainsConnection("connection-1");
+
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public void ContainsConnection_ShouldReturnFalse_WhenConnectionDoesNotExist()
+    {
+        bool result = _connectionRepository.ContainsConnection("connection-1");
+
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public void ContainsConnection_ShouldReturnFalse_WhenConnectionHasBeenRemoved()
+    {
+        _connectionRepository.TryAddConnection(new AddConnectionRequest("connection-1", Guid.NewGuid()));
+        _connectionRepository.TryRemoveConnection("connection-1", out _);
+
+        bool result = _connectionRepository.ContainsConnection("connection-1");
+
+        result.Should().BeFalse();
+    }
 }
