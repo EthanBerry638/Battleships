@@ -12,7 +12,7 @@ public class LobbyRepository : ILobbyRepository
         return _lobbies.TryAdd(gameCode, player);
     }
 
-    public bool TryRemoveLobby(string gameCode, out Player player)
+    public bool TryRemoveLobby(string gameCode, out Player? player)
     {
         return _lobbies.TryRemove(gameCode, out player);
     }

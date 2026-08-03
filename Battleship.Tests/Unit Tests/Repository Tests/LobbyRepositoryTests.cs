@@ -34,7 +34,7 @@ public class LobbyRepositoryTests
     {
         _lobbyRepository.TryAddLobby("ABC123", _player1);
 
-        bool result = _lobbyRepository.TryRemoveLobby("ABC123", out Player removedPlayer);
+        bool result = _lobbyRepository.TryRemoveLobby("ABC123", out Player? removedPlayer);
 
         result.Should().BeTrue();
         removedPlayer.Should().Be(_player1);
@@ -43,7 +43,7 @@ public class LobbyRepositoryTests
     [Fact]
     public void TryRemoveLobby_ShouldReturnFalse_WhenLobbyDoesNotExist()
     {
-        bool result = _lobbyRepository.TryRemoveLobby("ABC123", out Player removedPlayer);
+        bool result = _lobbyRepository.TryRemoveLobby("ABC123", out Player? removedPlayer);
 
         result.Should().BeFalse();
         removedPlayer.Should().BeNull();
