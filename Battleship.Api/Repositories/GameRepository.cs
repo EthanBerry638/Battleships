@@ -8,26 +8,26 @@ public class GameRepository : IGameRepository
 {
     private readonly ConcurrentDictionary<string, GameSession> _games = new();
 
-    public bool TryAddGame(string gameCode, Player player)
+    public bool TryAddGame(string gameCode, GameSession session)
     {
         throw new NotImplementedException();
     }
-    
-    public bool TryRemoveGame(string gameCode, out Player? player)
+
+    public bool TryRemoveGame(string gameCode)
     {
         throw new NotImplementedException();
     }
-    
-    public bool TryFindKeyByPlayer(Guid playerId, out string? gameCode)
+
+    public bool FindKeyByPlayerId(Guid playerId, out string? gameCode)
     {
         throw new NotImplementedException();
     }
-    
-    public bool GetGameByCode(string gameCode, out GameSession? game)
+
+    public bool GetByCode(string gameCode, out GameSession? session)
     {
         throw new NotImplementedException();
-    }   
-    
+    }
+
     public bool IsPlayerInGame(Guid playerId)
     {
         throw new NotImplementedException();

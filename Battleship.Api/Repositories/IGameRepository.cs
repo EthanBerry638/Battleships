@@ -5,9 +5,9 @@ namespace Battleship.Api.Repositories;
 
 public interface IGameRepository
 {
-    bool TryAddGame(string gameCode, Player player);
-    bool TryRemoveGame(string gameCode, out Player? player);
-    bool TryFindKeyByPlayer(Guid playerId, out string? gameCode);
-    bool GetGameByCode(string gameCode, out GameSession? game);
+    bool TryAddGame(string gameCode, GameSession session);
+    bool TryRemoveGame(string gameCode);
+    bool FindKeyByPlayerId(Guid playerId, out string? gameCode);
+    bool GetByCode(string gameCode, out GameSession? session);
     bool IsPlayerInGame(Guid playerId);
 }
