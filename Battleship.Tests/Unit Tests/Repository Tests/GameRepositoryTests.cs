@@ -36,4 +36,33 @@ public class GameRepositoryTests
 
         result.Should().BeFalse();
     }
+    [Fact]
+    public void TryRemoveGame_ShouldReturnTrue_WhenGameExists()
+    {
+        _gameRepository.TryAddGame("ABC123", CreateSession(_player1, _player2));
+
+        bool result = _gameRepository.TryRemoveGame("ABC123");
+
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public void TryRemoveGame_ShouldReturnFalse_WhenGameDoesNotExist()
+    {
+        bool result = _gameRepository.TryRemoveGame("ABC123");
+
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public void TryRemoveGame_ShouldAllowCodeReuse_WhenGameHasBeenRemoved()
+    {
+        _gameRepository.TryAddGame("ABC123", CreateSession(_player1, _player2));
+        _gameRepository.TryRemoveGame("ABC123");
+
+        bool result = _gameRepository.TryAddGame("ABC123", CreateSession(_player1, _player2));
+
+        result.Should().BeTrue();
+    }
+    
 }

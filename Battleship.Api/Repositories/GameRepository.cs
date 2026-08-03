@@ -15,7 +15,7 @@ public class GameRepository : IGameRepository
 
     public bool TryRemoveGame(string gameCode)
     {
-        throw new NotImplementedException();
+        return _games.TryRemove(gameCode, out _);
     }
 
     public bool FindKeyByPlayerId(Guid playerId, out string? gameCode)
