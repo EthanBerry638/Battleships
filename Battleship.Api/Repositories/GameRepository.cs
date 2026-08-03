@@ -10,7 +10,7 @@ public class GameRepository : IGameRepository
 
     public bool TryAddGame(string gameCode, GameSession session)
     {
-        throw new NotImplementedException();
+        return _games.TryAdd(gameCode, session);
     }
 
     public bool TryRemoveGame(string gameCode)
