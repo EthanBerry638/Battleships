@@ -9,6 +9,6 @@ public class ConnectionRepository
 
     public bool TryAddConnection(AddConnectionRequest request)
     {
-        throw new NotImplementedException();
+        return _connections.TryAdd(request.ConnectionId, request.PlayerId);
     }
 }
