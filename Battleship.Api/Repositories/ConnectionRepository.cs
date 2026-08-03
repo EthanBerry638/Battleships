@@ -19,6 +19,6 @@ public class ConnectionRepository
     
     public bool ContainsConnection(string connectionId)
     {
-        throw new NotImplementedException();
+        return _connections.ContainsKey(connectionId);
     }
 }
