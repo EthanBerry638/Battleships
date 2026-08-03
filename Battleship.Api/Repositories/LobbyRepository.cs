@@ -17,7 +17,7 @@ public class LobbyRepository : ILobbyRepository
         return _lobbies.TryRemove(gameCode, out player);
     }
 
-    public bool TryFindCodeByPlayer(Guid playerId, out string gameCode)
+    public bool TryFindCodeByPlayer(Guid playerId, out string? gameCode)
     {
         throw new NotImplementedException();
     }
