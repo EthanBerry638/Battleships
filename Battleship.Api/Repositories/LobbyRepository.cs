@@ -12,9 +12,9 @@ public class LobbyRepository : ILobbyRepository
         return _lobbies.TryAdd(gameCode, player);
     }
 
-    public bool TryRemoveLobby(string gameCod, out Player player)
+    public bool TryRemoveLobby(string gameCode, out Player player)
     {
-        throw new NotImplementedException();
+        return _lobbies.TryRemove(gameCode, out player);
     }
 
     public bool TryFindCodeByPlayer(Guid playerId, out string gameCode)
