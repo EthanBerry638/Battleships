@@ -19,7 +19,11 @@ public class LobbyRepository : ILobbyRepository
 
     public bool TryFindCodeByPlayer(Guid playerId, out string? gameCode)
     {
-        throw new NotImplementedException();
+        gameCode = _lobbies
+            .FirstOrDefault(lobby => lobby.Value.Id == playerId)
+            .Key;
+        
+        return gameCode is not null;
     }
 
     public bool IsPlayerInLobby(Guid playerId)
