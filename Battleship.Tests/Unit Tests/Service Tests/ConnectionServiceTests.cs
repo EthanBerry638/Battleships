@@ -9,11 +9,13 @@ namespace Battleship.Tests.Unit_Tests.Service_Tests;
 public class ConnectionServiceTests
 {
     private readonly Mock<IConnectionRepository> _connectionRepositoryMock = new();
+    private readonly Mock<IGameRepository> _gameRepositoryMock = new();
+    private readonly Mock<ILobbyRepository> _lobbyRepositoryMock = new();
     private readonly ConnectionService _connectionService;
 
     public ConnectionServiceTests()
     {
-        _connectionService = new ConnectionService(_connectionRepositoryMock.Object);
+        _connectionService = new ConnectionService(_connectionRepositoryMock.Object, _gameRepositoryMock.Object, _lobbyRepositoryMock.Object);
     }
 
     [Fact]
