@@ -1,5 +1,6 @@
 ﻿using Battleship.Api.Services;
 using Battleship.Api.DTOs;
+using Battleship.Api.GamePieces.Entities;
 using Battleship.Api.Repositories;
 using Moq;
 using FluentAssertions;
@@ -28,6 +29,8 @@ public class ConnectionServiceTests
         
         result.Should().BeTrue();
         _connectionRepositoryMock.Verify(r => r.TryAddConnection(request), Times.Once);
+        _gameRepositoryMock.Verify(r => r.TryAddGame(It.IsAny<string>(), It.IsAny<GameSession>()), Times.Never);
+        _lobbyRepositoryMock.Verify(r => r.TryAddLobby(It.IsAny<string>(), It.IsAny<Player>()), Times.Never);
     }
 
     [Fact]
@@ -80,7 +83,7 @@ public class ConnectionServiceTests
             .WithMessage("ConnectionId and/or Guid cannot be null or empty.");
         _connectionRepositoryMock.Verify(r => r.TryAddConnection(It.IsAny<AddConnectionRequest>()), Times.Never);
     }
-    
+
     [Fact]
     public void AddConnection_ShouldThrowArgumentNullException_WhenRequestIsNull()
     {
