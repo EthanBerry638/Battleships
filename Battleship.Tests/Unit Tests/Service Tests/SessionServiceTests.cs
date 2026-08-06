@@ -139,4 +139,92 @@ public class SessionServiceTests
         result.Should().Be(dummyEngine);
         _mockGameRepository.Verify(r => r.TryGetGameByCode("ABC123", out It.Ref<GameSession?>.IsAny), Times.Once);
     }
+    
+    [Fact]
+    public void JoinLobby_ShouldThrowArgumentNullException_WhenPlayerIsNull()
+    {
+        var act = () => _sessionService.JoinLobby("ABC123", null!);
+
+        act.Should().Throw<ArgumentNullException>();
+    }
+
+    [Fact]
+    public void JoinLobby_ShouldThrowPlayerAlreadyInSessionException_WhenPlayerAlreadyInLobby()
+    {
+        _mockLobbyRepository.Setup(r => r.IsPlayerInLobby(_dummyPlayer2.Id)).Returns(true);
+        _mockGameRepository.Setup(r => r.IsPlayerInGame(_dummyPlayer2.Id)).Returns(false);
+
+        var act = () => _sessionService.JoinLobby("ABC123", _dummyPlayer2);
+
+        act.Should().Throw<PlayerAlreadyInSessionException>()
+            .WithMessage("Player is already in an active lobby or game.");
+        _mockLobbyRepository.Verify(r => r.IsPlayerInLobby(_dummyPlayer2.Id), Times.Once);
+        _mockGameRepository.Verify(r => r.IsPlayerInGame(_dummyPlayer2.Id), Times.Once);
+    }
+
+    [Fact]
+    public void JoinLobby_ShouldThrowPlayerAlreadyInSessionException_WhenPlayerAlreadyInGame()
+    {
+        _mockLobbyRepository.Setup(r => r.IsPlayerInLobby(_dummyPlayer2.Id)).Returns(false);
+        _mockGameRepository.Setup(r => r.IsPlayerInGame(_dummyPlayer2.Id)).Returns(true);
+
+        var act = () => _sessionService.JoinLobby("ABC123", _dummyPlayer2);
+
+        act.Should().Throw<PlayerAlreadyInSessionException>()
+            .WithMessage("Player is already in an active lobby or game.");
+        _mockLobbyRepository.Verify(r => r.IsPlayerInLobby(_dummyPlayer2.Id), Times.Once);
+        _mockGameRepository.Verify(r => r.IsPlayerInGame(_dummyPlayer2.Id), Times.Once);
+    }
+    
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("     ")]
+    public void JoinLobby_ShouldReturnNull_WhenGameCodeIsNullOrWhitespace(string? gameCode)
+    {
+        _mockLobbyRepository.Setup(r => r.IsPlayerInLobby(_dummyPlayer2.Id)).Returns(false);
+        _mockGameRepository.Setup(r => r.IsPlayerInGame(_dummyPlayer2.Id)).Returns(false);
+
+        var result = _sessionService.JoinLobby(gameCode!, _dummyPlayer2);
+
+        result.Should().BeNull();
+        _mockLobbyRepository.Verify(r => r.IsPlayerInLobby(It.IsAny<Guid>()), Times.Once);
+        _mockGameRepository.Verify(r => r.IsPlayerInGame(It.IsAny<Guid>()), Times.Once);
+    }
+
+    [Fact]
+    public void JoinLobby_ShouldReturnNull_WhenLobbyNotFound()
+    {
+        _mockLobbyRepository.Setup(r => r.IsPlayerInLobby(_dummyPlayer2.Id)).Returns(false);
+        _mockGameRepository.Setup(r => r.IsPlayerInGame(_dummyPlayer2.Id)).Returns(false);
+        Player? nullPlayer = null;
+        _mockLobbyRepository.Setup(r => r.TryRemoveLobby("ABC123", out nullPlayer)).Returns(false);
+
+        var result = _sessionService.JoinLobby("ABC123", _dummyPlayer2);
+
+        result.Should().BeNull();
+        _mockLobbyRepository.Verify(r => r.IsPlayerInLobby(It.IsAny<Guid>()), Times.Once);
+        _mockGameRepository.Verify(r => r.IsPlayerInGame(It.IsAny<Guid>()), Times.Once);
+        _mockLobbyRepository.Verify(r => r.TryRemoveLobby(It.IsAny<string>(), out It.Ref<Player?>.IsAny), Times.Once);
+        _mockGameRepository.Verify(r => r.IsPlayerInGame(It.IsAny<Guid>()), Times.Once);
+    }
+
+    [Fact]
+    public void JoinLobby_ShouldReturnEngine_WhenLobbyFound()
+    {
+        _mockLobbyRepository.Setup(r => r.IsPlayerInLobby(_dummyPlayer2.Id)).Returns(false);
+        _mockGameRepository.Setup(r => r.IsPlayerInGame(_dummyPlayer2.Id)).Returns(false);
+        Player? player1 = _dummyPlayer1;
+        _mockLobbyRepository.Setup(r => r.TryRemoveLobby("ABC123", out player1)).Returns(true);
+        _mockGameRepository.Setup(r => r.TryAddGame(It.IsAny<string>(), It.IsAny<GameSession>())).Returns(true);
+
+        var result = _sessionService.JoinLobby("ABC123", _dummyPlayer2);
+
+        result.Should().NotBeNull();
+        result.Should().BeOfType<BattleshipEngine>();
+        _mockLobbyRepository.Verify(r => r.IsPlayerInLobby(It.IsAny<Guid>()), Times.Once);
+        _mockGameRepository.Verify(r => r.IsPlayerInGame(It.IsAny<Guid>()), Times.Once);
+        _mockLobbyRepository.Verify(r => r.TryRemoveLobby(It.IsAny<string>(), out It.Ref<Player?>.IsAny), Times.Once);
+        _mockGameRepository.Verify(r => r.TryAddGame(It.IsAny<string>(), It.IsAny<GameSession>()), Times.Once);
+    }
 }
