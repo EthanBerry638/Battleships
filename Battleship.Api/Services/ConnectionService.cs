@@ -20,6 +20,27 @@ public class ConnectionService (IConnectionRepository connectionRepository, IGam
     
     public async Task<string?> HandleDisconnectAsync(string connectionId, TimeSpan delay = default)
     {
-        throw new NotImplementedException();
+        if (string.IsNullOrWhiteSpace(connectionId))
+            throw new ArgumentException("Connection ID cannot be null or whitespace");
+
+        if (!_connectionRepository.TryRemoveConnection(connectionId, out Guid playerId))
+            return null;
+
+        await Task.Delay(delay);
+
+        if (_connectionRepository.ContainsPlayer(playerId))
+            return null;
+
+        if (_lobbyRepository.TryFindCodeByPlayer(playerId, out string? lobbyCode) && lobbyCode is not null)
+        {
+            _lobbyRepository.TryRemoveLobby(lobbyCode, out _);
+            return null;
+        }
+
+        if (!_gameRepository.TryFindKeyByPlayerId(playerId, out string? gameCode) || gameCode is null)
+            return null;
+
+        _gameRepository.TryRemoveGame(gameCode);
+        return gameCode;
     }
 }
