@@ -90,4 +90,48 @@ public class ConnectionRepositoryTests
 
         result.Should().BeFalse();
     }
+    
+    [Fact]
+    public void ContainsPlayer_ShouldReturnTrue_WhenPlayerExists()
+    {
+        var playerId = Guid.NewGuid();
+        _connectionRepository.TryAddConnection(new AddConnectionRequest("connection-1", playerId));
+
+        bool result = _connectionRepository.ContainsPlayer(playerId);
+
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public void ContainsPlayer_ShouldReturnFalse_WhenPlayerDoesNotExist()
+    {
+        bool result = _connectionRepository.ContainsPlayer(Guid.NewGuid());
+
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public void ContainsPlayer_ShouldReturnFalse_WhenPlayerHasBeenRemoved()
+    {
+        var playerId = Guid.NewGuid();
+        _connectionRepository.TryAddConnection(new AddConnectionRequest("connection-1", playerId));
+        _connectionRepository.TryRemoveConnection("connection-1", out _);
+
+        bool result = _connectionRepository.ContainsPlayer(playerId);
+
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public void ContainsPlayer_ShouldReturnTrue_WhenPlayerHasMultipleConnections()
+    {
+        var playerId = Guid.NewGuid();
+        _connectionRepository.TryAddConnection(new AddConnectionRequest("connection-1", playerId));
+        _connectionRepository.TryAddConnection(new AddConnectionRequest("connection-2", playerId));
+        _connectionRepository.TryRemoveConnection("connection-1", out _);
+
+        bool result = _connectionRepository.ContainsPlayer(playerId);
+
+        result.Should().BeTrue();
+    }
 }
