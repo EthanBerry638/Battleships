@@ -2,6 +2,8 @@
 using Battleship.Api.Repositories;
 using Battleship.Api.Exceptions;
 using Battleship.Api.GamePieces.Entities;
+using Battleship.Api.Engine;
+using Battleship.Api.GamePieces.Board;
 using Moq;
 using FluentAssertions;
 
@@ -94,5 +96,46 @@ public class SessionServiceTests
         act.Should().Throw<PlayerAlreadyInSessionException>()
             .WithMessage("Player is already in an active lobby or game.");
         _mockGameRepository.Verify(r => r.IsPlayerInGame(_dummyPlayer1.Id), Times.Once);
+    }
+    
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("     ")]
+    public void GetGame_ShouldReturnNull_WhenGameCodeIsNullOrWhitespace(string? gameCode)
+    {
+        var result = _sessionService.GetGame(gameCode!);
+
+        result.Should().BeNull();
+        _mockGameRepository.Verify(r => r.TryGetGameByCode(It.IsAny<string>(), out It.Ref<GameSession?>.IsAny), Times.Never);
+    }
+
+    [Fact]
+    public void GetGame_ShouldReturnNull_WhenGameSessionNotFound()
+    {
+        GameSession? nullSession = null;
+        _mockGameRepository
+            .Setup(r => r.TryGetGameByCode(It.IsAny<string>(), out nullSession))
+            .Returns(false);
+
+        var result = _sessionService.GetGame("ABC123");
+
+        result.Should().BeNull();
+        _mockGameRepository.Verify(r => r.TryGetGameByCode(It.IsAny<string>(), out It.Ref<GameSession?>.IsAny), Times.Once);
+    }
+
+    [Fact]
+    public void GetGame_ShouldReturnEngine_WhenGameSessionFound()
+    {
+        var dummyEngine = new BattleshipEngine(new GameBoard(), new GameBoard(), _dummyPlayer1, _dummyPlayer1);
+        var dummySession = new GameSession (dummyEngine);
+        _mockGameRepository
+            .Setup(r => r.TryGetGameByCode("ABC123", out dummySession))
+            .Returns(true);
+
+        var result = _sessionService.GetGame("ABC123");
+
+        result.Should().Be(dummyEngine);
+        _mockGameRepository.Verify(r => r.TryGetGameByCode("ABC123", out It.Ref<GameSession?>.IsAny), Times.Once);
     }
 }

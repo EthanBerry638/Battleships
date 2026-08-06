@@ -1,6 +1,7 @@
 ﻿using Battleship.Api.Repositories;
 using Battleship.Api.GamePieces.Entities;
 using Battleship.Api.Exceptions;
+using Battleship.Api.Engine;
 
 namespace Battleship.Api.Services;
 
@@ -30,5 +31,12 @@ public class SessionService (ILobbyRepository lobbyRepository, IGameRepository g
 
         if (isWaitingInLobby || isPlayingInGame)
             throw new PlayerAlreadyInSessionException("Player is already in an active lobby or game.");
+    }
+
+    public BattleshipEngine? GetGame(string gameCode)
+    {
+        if (string.IsNullOrWhiteSpace(gameCode)) return null;
+        _gameRepository.TryGetGameByCode(gameCode, out GameSession? session);
+        return session?.Engine;
     }
 }
