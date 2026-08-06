@@ -15,7 +15,8 @@ public class SessionServiceTests
     private readonly Mock<IGameRepository> _mockGameRepository = new();
     private readonly SessionService _sessionService;
     private readonly Player _dummyPlayer1 = new(Guid.NewGuid(), "Player 1");
-
+    private readonly Player _dummyPlayer2 = new(Guid.NewGuid(), "Player 2");
+    
     public SessionServiceTests()
     {
         _sessionService = new SessionService(_mockLobbyRepository.Object, _mockGameRepository.Object);
@@ -127,7 +128,7 @@ public class SessionServiceTests
     [Fact]
     public void GetGame_ShouldReturnEngine_WhenGameSessionFound()
     {
-        var dummyEngine = new BattleshipEngine(new GameBoard(), new GameBoard(), _dummyPlayer1, _dummyPlayer1);
+        var dummyEngine = new BattleshipEngine(new GameBoard(), new GameBoard(), _dummyPlayer1, _dummyPlayer2);
         var dummySession = new GameSession (dummyEngine);
         _mockGameRepository
             .Setup(r => r.TryGetGameByCode("ABC123", out dummySession))
