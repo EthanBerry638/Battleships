@@ -21,4 +21,9 @@ public class ConnectionRepository : IConnectionRepository
     {
         return _connections.ContainsKey(connectionId);
     }
+    
+    public bool ContainsPlayer(Guid playerId)
+    {
+        throw new NotImplementedException();
+    }
 }

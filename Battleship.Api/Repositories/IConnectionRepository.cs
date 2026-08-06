@@ -7,4 +7,5 @@ public interface IConnectionRepository
     bool TryAddConnection(AddConnectionRequest request);
     bool TryRemoveConnection(string connectionId, out Guid playerId);
     bool ContainsConnection(string connectionId);
+    bool ContainsPlayer(Guid playerId);
 }
