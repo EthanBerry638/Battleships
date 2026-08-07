@@ -9,7 +9,7 @@ builder.Services.AddSingleton<IGameRepository, GameRepository>();
 builder.Services.AddSingleton<IConnectionRepository, ConnectionRepository>();
 
 builder.Services.AddTransient<SessionService>();
-builder.Services.AddTransient<GameService>();
+builder.Services.AddTransient<IGameService, GameService>();
 builder.Services.AddTransient<ConnectionService>();
 
 builder.Services.AddSignalR();
