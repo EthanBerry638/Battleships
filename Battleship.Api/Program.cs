@@ -10,7 +10,7 @@ builder.Services.AddSingleton<IConnectionRepository, ConnectionRepository>();
 
 builder.Services.AddTransient<SessionService>();
 builder.Services.AddTransient<IGameService, GameService>();
-builder.Services.AddTransient<ConnectionService>();
+builder.Services.AddTransient<IConnectionService, ConnectionService>();
 
 builder.Services.AddSignalR();
 
