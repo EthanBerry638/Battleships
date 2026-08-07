@@ -8,7 +8,7 @@ builder.Services.AddSingleton<ILobbyRepository, LobbyRepository>();
 builder.Services.AddSingleton<IGameRepository, GameRepository>();
 builder.Services.AddSingleton<IConnectionRepository, ConnectionRepository>();
 
-builder.Services.AddTransient<SessionService>();
+builder.Services.AddTransient<ISessionService, SessionService>();
 builder.Services.AddTransient<IGameService, GameService>();
 builder.Services.AddTransient<IConnectionService, ConnectionService>();
 
