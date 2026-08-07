@@ -3,7 +3,7 @@ using Battleship.Api.DTOs;
 
 namespace Battleship.Api.Services;
 
-public class ConnectionService (IConnectionRepository connectionRepository, IGameRepository gameRepository, ILobbyRepository lobbyRepository )
+public class ConnectionService (IConnectionRepository connectionRepository, IGameRepository gameRepository, ILobbyRepository lobbyRepository) : IConnectionService
 {
     private readonly IConnectionRepository _connectionRepository = connectionRepository;
     private readonly IGameRepository _gameRepository = gameRepository;
