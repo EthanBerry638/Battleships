@@ -1,0 +1,46 @@
+﻿using Battleship.Api.Repositories;
+using Battleship.Api.DTOs;
+
+namespace Battleship.Api.Services;
+
+public class ConnectionService (IConnectionRepository connectionRepository, IGameRepository gameRepository, ILobbyRepository lobbyRepository) : IConnectionService
+{
+    private readonly IConnectionRepository _connectionRepository = connectionRepository;
+    private readonly IGameRepository _gameRepository = gameRepository;
+    private readonly ILobbyRepository _lobbyRepository = lobbyRepository;
+    
+    public bool AddConnection(AddConnectionRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        if (string.IsNullOrWhiteSpace(request.ConnectionId) || request.PlayerId == Guid.Empty)
+            throw new ArgumentException("ConnectionId and/or Guid cannot be null or empty.");
+
+        return _connectionRepository.TryAddConnection(request);
+    }
+    
+    public async Task<string?> HandleDisconnectAsync(string connectionId, TimeSpan delay = default)
+    {
+        if (string.IsNullOrWhiteSpace(connectionId))
+            throw new ArgumentException("Connection ID cannot be null or whitespace");
+
+        if (!_connectionRepository.TryRemoveConnection(connectionId, out Guid playerId))
+            return null;
+
+        await Task.Delay(delay);
+
+        if (_connectionRepository.ContainsPlayer(playerId))
+            return null;
+
+        if (_lobbyRepository.TryFindCodeByPlayer(playerId, out string? lobbyCode) && lobbyCode is not null)
+        {
+            _lobbyRepository.TryRemoveLobby(lobbyCode, out _);
+            return null;
+        }
+
+        if (!_gameRepository.TryFindKeyByPlayerId(playerId, out string? gameCode) || gameCode is null)
+            return null;
+
+        _gameRepository.TryRemoveGame(gameCode);
+        return gameCode;
+    }
+}

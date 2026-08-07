@@ -7,14 +7,16 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace Battleship.Api.Hubs;
 
-public class BattleshipHub(IBattleshipManager battleshipManager) : Hub
+public class BattleshipHub(IGameService gameService, IConnectionService connectionService, ISessionService sessionService) : Hub
 {
-    private readonly IBattleshipManager _battleshipManager = battleshipManager;
+    private readonly IGameService _gameService = gameService;
+    private readonly IConnectionService _connectionService = connectionService;
+    private readonly ISessionService _sessionService = sessionService;
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
         string? gameCode =
-            await _battleshipManager.HandleDisconnectAsync(Context.ConnectionId, TimeSpan.FromSeconds(30));
+            await _connectionService.HandleDisconnectAsync(Context.ConnectionId, TimeSpan.FromSeconds(30));
 
         if (gameCode is not null)
             await Clients.Group(gameCode).SendCoreAsync("OpponentDisconnected", []);
@@ -26,9 +28,9 @@ public class BattleshipHub(IBattleshipManager battleshipManager) : Hub
     {
         var player = new Player(request.PlayerId, request.PlayerName);
 
-        string gameCode = _battleshipManager.CreateLobby(player);
+        string gameCode = _sessionService.CreateLobby(player);
 
-        _battleshipManager.AddConnection(new AddConnectionRequest(Context.ConnectionId, player.Id));
+        _connectionService.AddConnection(new AddConnectionRequest(Context.ConnectionId, player.Id));
         await Groups.AddToGroupAsync(Context.ConnectionId, gameCode);
         return gameCode;
     }
@@ -36,11 +38,11 @@ public class BattleshipHub(IBattleshipManager battleshipManager) : Hub
     public async Task<bool> JoinLobby(string gameCode, JoinLobbyRequest request)
     {
         var player = new Player(request.PlayerId, request.PlayerName);
-        BattleshipEngine? engine = _battleshipManager.JoinLobby(gameCode, player);
+        BattleshipEngine? engine = _sessionService.JoinLobby(gameCode, player);
 
         if (engine is null) return false;
 
-        _battleshipManager.AddConnection(new AddConnectionRequest(Context.ConnectionId, player.Id));
+        _connectionService.AddConnection(new AddConnectionRequest(Context.ConnectionId, player.Id));
         await Groups.AddToGroupAsync(Context.ConnectionId, gameCode);
         await Clients.Group(gameCode).SendAsync("GameStarted", engine);
 
@@ -49,7 +51,7 @@ public class BattleshipHub(IBattleshipManager battleshipManager) : Hub
 
     public async Task<PlacementResult> PlaceShip(PlaceShipRequest request)
     {
-        PlacementResult result = _battleshipManager.PlaceShip(request);
+        PlacementResult result = _gameService.PlaceShip(request);
         await Clients.Caller.SendCoreAsync("PlacementResult", [result]);
         return result;
     }
