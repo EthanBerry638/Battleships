@@ -6,7 +6,7 @@ using Battleship.Api.GamePieces.Board;
 
 namespace Battleship.Api.Services;
 
-public class SessionService (ILobbyRepository lobbyRepository, IGameRepository gameRepository)
+public class SessionService (ILobbyRepository lobbyRepository, IGameRepository gameRepository) : ISessionService
 {
     private readonly ILobbyRepository _lobbyRepository = lobbyRepository;
     private readonly IGameRepository _gameRepository = gameRepository;
