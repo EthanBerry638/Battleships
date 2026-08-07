@@ -5,7 +5,7 @@ using Battleship.Api.GamePieces.Data;
 
 namespace Battleship.Api.Services;
 
-public class GameService (IGameRepository gameRepository)
+public class GameService (IGameRepository gameRepository) : IGameService
 {
     private readonly IGameRepository _gameRepository = gameRepository;
     
