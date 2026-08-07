@@ -77,15 +77,8 @@ dotnet test
 
 ---
 
-## Current Work 🔧
-
-Actively splitting `BattleshipManager` apart into dedicated **services** and **repositories**, so lobby/game/connection storage is decoupled from the coordination logic that sits on top of it. This is prep work for swapping the in-memory stores out for real persistence.
-
----
-
 ## Roadmap 🛣️
 
-- **Manager Refactor:** Finish splitting `BattleshipManager` into services + repositories
 - **Data Persistence:** Transition lobby/game/connection storage to PostgreSQL
 - **Front End:** Develop a modern, responsive UI (React) that talks to the SignalR hub
 - **AI Opponent:** Optional single-player mode against a basic AI, reusing the existing engine
