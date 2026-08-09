@@ -19,7 +19,7 @@ public class BattleshipHub(IGameService gameService, IConnectionService connecti
             await _connectionService.HandleDisconnectAsync(Context.ConnectionId, TimeSpan.FromSeconds(30));
 
         if (gameCode is not null)
-            await Clients.Group(gameCode).SendCoreAsync("OpponentDisconnected", []);
+            await Clients.Group(gameCode).SendAsync("OpponentDisconnected");
 
         await base.OnDisconnectedAsync(exception);
     }
@@ -52,7 +52,7 @@ public class BattleshipHub(IGameService gameService, IConnectionService connecti
     public async Task<PlacementResult> PlaceShip(PlaceShipRequest request)
     {
         PlacementResult result = _gameService.PlaceShip(request);
-        await Clients.Caller.SendCoreAsync("PlacementResult", [result]);
+        await Clients.Caller.SendAsync("PlacementResult", result);
         return result;
     }
 }
