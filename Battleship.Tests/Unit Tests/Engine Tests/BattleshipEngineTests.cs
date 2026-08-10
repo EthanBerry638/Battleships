@@ -329,7 +329,7 @@ public class BattleshipEngineTests
     }
 
     [Fact]
-    public void TryStartGame_ShouldReturnFalse_WhenGameIsAlreadyStarted()
+    public void TryStartGame_ShouldReturnAlreadyStarted_WhenGameIsAlreadyStarted()
     {
         _mockGameBoard1.Setup(x => x.ValidateFleet()).Returns(new FleetValidationResult(true, [], []));
         _mockGameBoard2.Setup(x => x.ValidateFleet()).Returns(new FleetValidationResult(true, [], []));
@@ -337,7 +337,7 @@ public class BattleshipEngineTests
         _battleshipEngine.TryStartGame();
         var result = _battleshipEngine.TryStartGame();
 
-        result.Success.Should().BeFalse();
+        result.Status.Should().Be(GameStartStatus.AlreadyStarted);
         result.ValidationErrors.Should().BeNull();
         _battleshipEngine.GameState.Should().Be(GameState.Playing);
         _mockGameBoard1.Verify(x => x.ValidateFleet(), Times.Once);
@@ -346,7 +346,7 @@ public class BattleshipEngineTests
 
     [Theory]
     [MemberData(nameof(InvalidFleetTestData))]
-    public void TryStartGame_ShouldReturnFalse_WhenAnyFleetIsInvalid(
+    public void TryStartGame_ShouldReturnInvalidFleet_WhenAnyFleetIsInvalid(
         FleetValidationResult board1Result,
         FleetValidationResult board2Result)
     {
@@ -355,7 +355,7 @@ public class BattleshipEngineTests
 
         var result = _battleshipEngine.TryStartGame();
 
-        result.Success.Should().BeFalse();
+        result.Status.Should().Be(GameStartStatus.InvalidFleet);
         result.ValidationErrors.Should().NotBeNull();
         _battleshipEngine.GameState.Should().Be(GameState.Setup);
         _mockGameBoard1.Verify(x => x.ValidateFleet(), Times.Once);
@@ -373,7 +373,7 @@ public class BattleshipEngineTests
     }
 
     [Fact]
-    public void TryStartGame_ShouldReturnTrue_WhenBothFleetsAreValid()
+    public void TryStartGame_ShouldReturnStarted_WhenBothFleetsAreValid()
     {
         var validateFleetResult = new FleetValidationResult(true, [], []);
         _mockGameBoard1.Setup(x => x.ValidateFleet()).Returns(validateFleetResult);
@@ -381,7 +381,7 @@ public class BattleshipEngineTests
 
         var result = _battleshipEngine.TryStartGame();
 
-        result.Success.Should().BeTrue();
+        result.Status.Should().Be(GameStartStatus.Started);
         result.ValidationErrors.Should().BeNull();
         _battleshipEngine.GameState.Should().Be(GameState.Playing);
         _mockGameBoard1.Verify(x => x.ValidateFleet(), Times.Once);
