@@ -2,4 +2,4 @@
 
 namespace Battleship.Api.DTOs;
 
-public record StartGameOutcome(string? GameCode, GameStartResult Result);
+public record StartGameOutcome(string GameCode, GameStartResult Result);
