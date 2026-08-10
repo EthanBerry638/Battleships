@@ -223,7 +223,7 @@ public class GameServiceTests
     }
 
     [Fact]
-    public void TryStartGame_ShouldReturnWaitingForOpponent_WhenOnlyOnePlayerIsReady()
+    public void TryStartGame_ShouldReturnWaitingForOpponent_WhenOnlyPlayerOneIsReady()
     {
         var (session, player1, _, _, _) = CreateSession();
         string gameCode = "GAME1";
@@ -234,6 +234,21 @@ public class GameServiceTests
         result.Status.Should().Be(GameStartStatus.WaitingForOpponent);
         result.ValidationErrors.Should().BeNull();
         _gameRepositoryMock.Verify(r => r.TryFindKeyByPlayerId(player1.Id, out gameCode!), Times.Once);
+        _gameRepositoryMock.Verify(r => r.TryGetGameByCode(gameCode, out session), Times.Once);
+    }
+    
+    [Fact]
+    public void TryStartGame_ShouldReturnWaitingForOpponent_WhenOnlyPlayerTwoIsReady()
+    {
+        var (session, _, player2, _, _) = CreateSession();
+        string gameCode = "GAME1";
+        SetupPlayerFoundInGame(player2.Id, gameCode, session);
+
+        var result = _gameService.TryStartGame(player2.Id);
+
+        result.Status.Should().Be(GameStartStatus.WaitingForOpponent);
+        result.ValidationErrors.Should().BeNull();
+        _gameRepositoryMock.Verify(r => r.TryFindKeyByPlayerId(player2.Id, out gameCode!), Times.Once);
         _gameRepositoryMock.Verify(r => r.TryGetGameByCode(gameCode, out session), Times.Once);
     }
 
