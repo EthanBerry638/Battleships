@@ -40,9 +40,14 @@ public class GameService (IGameRepository gameRepository) : IGameService
             session.SetPlayerReady(playerId);
 
             if (!session.BothPlayersReady)
-                return new StartGameOutcome(gameCode, GameStartResult.WaitingForOpponent());
+                return new StartGameOutcome(gameCode!, GameStartResult.WaitingForOpponent());
 
-            return new StartGameOutcome(gameCode, session.Engine.TryStartGame());
+            return new StartGameOutcome(gameCode!, session.Engine.TryStartGame());
         }
+    }
+
+    public Player GetWinner(string gameCode)
+    {
+        throw new NotImplementedException();
     }
 }
