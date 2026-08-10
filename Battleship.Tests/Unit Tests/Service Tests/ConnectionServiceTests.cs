@@ -2,6 +2,7 @@
 using Battleship.Api.DTOs;
 using Battleship.Api.GamePieces.Entities;
 using Battleship.Api.Repositories;
+using Battleship.Api.Engine;
 using Moq;
 using FluentAssertions;
 

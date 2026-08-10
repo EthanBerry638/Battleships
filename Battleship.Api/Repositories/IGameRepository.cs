@@ -1,5 +1,4 @@
-﻿using Battleship.Api.GamePieces.Entities;
-using Battleship.Api.Services;
+﻿using Battleship.Api.Engine;
 
 namespace Battleship.Api.Repositories;
 

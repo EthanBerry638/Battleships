@@ -1,6 +1,4 @@
-﻿using Battleship.Api.Engine;
-
-namespace Battleship.Api.Services;
+﻿namespace Battleship.Api.Engine;
 
 public class GameSession
 {

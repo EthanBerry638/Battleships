@@ -2,6 +2,7 @@
 using Battleship.Api.DTOs;
 using Battleship.Api.Exceptions;
 using Battleship.Api.GamePieces.Data;
+using Battleship.Api.Engine;
 
 namespace Battleship.Api.Services;
 

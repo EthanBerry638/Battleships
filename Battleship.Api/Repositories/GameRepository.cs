@@ -1,5 +1,5 @@
 ﻿using System.Collections.Concurrent;
-using Battleship.Api.Services;
+using Battleship.Api.Engine;
 
 namespace Battleship.Api.Repositories;
 
