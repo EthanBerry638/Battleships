@@ -329,19 +329,15 @@ public class BattleshipEngineTests
     }
 
     [Fact]
-    public void TryStartGame_ShouldReturnAlreadyStarted_WhenGameIsAlreadyStarted()
+    public void TryStartGame_ShouldThrowGameInProgressException_WhenGameIsAlreadyStarted()
     {
-        _mockGameBoard1.Setup(x => x.ValidateFleet()).Returns(new FleetValidationResult(true, [], []));
-        _mockGameBoard2.Setup(x => x.ValidateFleet()).Returns(new FleetValidationResult(true, [], []));
-
-        _battleshipEngine.TryStartGame();
-        var result = _battleshipEngine.TryStartGame();
-
-        result.Status.Should().Be(GameStartStatus.AlreadyStarted);
-        result.ValidationErrors.Should().BeNull();
-        _battleshipEngine.GameState.Should().Be(GameState.Playing);
-        _mockGameBoard1.Verify(x => x.ValidateFleet(), Times.Once);
-        _mockGameBoard2.Verify(x => x.ValidateFleet(), Times.Once);
+        StartGame();
+        
+        var act = () => _battleshipEngine.TryStartGame();
+        
+        act.Should()
+            .Throw<GameInProgressException>()
+            .WithMessage("Cannot start a game that is already in progress.");
     }
 
     [Theory]
