@@ -51,11 +51,9 @@ public class BattleshipHub(IGameService gameService, IConnectionService connecti
         return true;
     }
 
-    public async Task<PlacementResult> PlaceShip(PlaceShipRequest request)
+    public PlacementResult PlaceShip(PlaceShipRequest request)
     {
-        PlacementResult result = _gameService.PlaceShip(request);
-        await Clients.Caller.SendAsync("PlacementResult", result);
-        return result;
+        return _gameService.PlaceShip(request);
     }
 
     public async Task TryStartGame(Guid playerId)
