@@ -29,6 +29,20 @@ public class GameService (IGameRepository gameRepository) : IGameService
     
     public GameStartResult TryStartGame(Guid playerId)
     {
-        throw new NotImplementedException();
+        if (!_gameRepository.TryFindKeyByPlayerId(playerId, out string? gameCode))
+            throw new PlayerNotFoundException($"No active game found for player with id {playerId}.");
+
+        if (!_gameRepository.TryGetGameByCode(gameCode!, out GameSession? session))
+            throw new GameNotFoundException($"Game by game code: {gameCode} not found.");
+
+        lock (session!.Lock)
+        {
+            session.SetPlayerReady(playerId);
+
+            if (!session.BothPlayersReady)
+                return GameStartResult.WaitingForOpponent();
+
+            return session.Engine.TryStartGame();
+        }
     }
 }
