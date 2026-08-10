@@ -367,4 +367,102 @@ public class GameServiceTests
             .Throw<GameInProgressException>()
             .WithMessage("Cannot start a game that is already in progress.");
     }
+    
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("     ")]
+    public void GetWinner_ShouldThrowArgumentException_WhenGameCodeIsNullOrWhitespace(string gameCode)
+    {
+        var act = () => _gameService.GetWinner(gameCode);
+
+        act.Should().Throw<ArgumentException>();
+        _gameRepositoryMock.Verify(g => g.TryGetGameByCode(gameCode, out It.Ref<GameSession?>.IsAny), Times.Never);
+    }
+    
+    [Fact]
+    public void GetWinner_ShouldThrowGameNotFoundException_WhenGameNotFound()
+    {
+        var act = () => _gameService.GetWinner("GAME1");
+
+        act.Should()
+            .Throw<GameNotFoundException>()
+            .WithMessage("Game by game code: GAME1 not found.");
+        _gameRepositoryMock.Verify(g => g.TryGetGameByCode("GAME1", out It.Ref<GameSession?>.IsAny), Times.Once);
+    }
+    
+    [Fact]
+    public void GetWinner_ShouldReturnPlayer2_WhenPlayer1FleetIsAllSunk()
+    {
+        var (session, player1, player2, board1Mock, _) = CreateSession();
+        string gameCode = "GAME1";
+        GameSession? outSession = session;
+        _gameRepositoryMock
+            .Setup(r => r.TryGetGameByCode(gameCode, out outSession))
+            .Returns(true);
+        session.Engine.TryStartGame();
+        board1Mock.Setup(b => b.AreAllShipsSunk()).Returns(true);
+
+        var result = _gameService.GetWinner(gameCode);
+
+        result.Should().Be(player2);
+        _gameRepositoryMock.Verify(g => g.TryGetGameByCode(gameCode, out It.Ref<GameSession?>.IsAny), Times.Once);
+        board1Mock.Verify(b => b.AreAllShipsSunk(), Times.Once);
+    }
+
+    [Fact]
+    public void GetWinner_ShouldReturnPlayer1_WhenPlayer2FleetIsAllSunk()
+    {
+        var (session, player1, _, _, board2Mock) = CreateSession();
+        string gameCode = "GAME1";
+        GameSession? outSession = session;
+        _gameRepositoryMock
+            .Setup(r => r.TryGetGameByCode(gameCode, out outSession))
+            .Returns(true);
+        session.Engine.TryStartGame();
+        board2Mock.Setup(b => b.AreAllShipsSunk()).Returns(true);
+        
+        var result = _gameService.GetWinner(gameCode);
+        
+        result.Should().Be(player1);
+        _gameRepositoryMock.Verify(g => g.TryGetGameByCode(gameCode, out It.Ref<GameSession?>.IsAny), Times.Once);
+        board2Mock.Verify(b => b.AreAllShipsSunk(), Times.Once);
+    }
+
+    [Fact]
+    public void GetWinner_ShouldReturnNull_WhenNeitherPlayersFleetsAreSunk()
+    {
+        var (session, _, _, board1Mock, board2Mock) = CreateSession();
+        string gameCode = "GAME1";
+        GameSession? outSession = session;
+        _gameRepositoryMock
+            .Setup(r => r.TryGetGameByCode(gameCode, out outSession))
+            .Returns(true);
+        session.Engine.TryStartGame();
+        board1Mock.Setup(b => b.AreAllShipsSunk()).Returns(false);
+        board2Mock.Setup(b => b.AreAllShipsSunk()).Returns(false);
+        
+        var result = _gameService.GetWinner(gameCode);
+
+        result.Should().BeNull();
+        _gameRepositoryMock.Verify(g => g.TryGetGameByCode(gameCode, out It.Ref<GameSession?>.IsAny), Times.Once);
+        board1Mock.Verify(b => b.AreAllShipsSunk(), Times.Once);
+        board2Mock.Verify(b => b.AreAllShipsSunk(), Times.Once);
+    }
+    
+    [Fact]
+    public void GetWinner_ShouldReturnNull_WhenGameHasNotStarted()
+    {
+        var (session, _, _, _, _) = CreateSession();
+        string gameCode = "GAME1";
+        GameSession? outSession = session;
+        _gameRepositoryMock
+            .Setup(r => r.TryGetGameByCode(gameCode, out outSession))
+            .Returns(true);
+
+        var result = _gameService.GetWinner(gameCode);
+
+        result.Should().BeNull();
+        _gameRepositoryMock.Verify(g => g.TryGetGameByCode(gameCode, out It.Ref<GameSession?>.IsAny), Times.Once);
+    }
 }

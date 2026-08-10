@@ -40,9 +40,22 @@ public class GameService (IGameRepository gameRepository) : IGameService
             session.SetPlayerReady(playerId);
 
             if (!session.BothPlayersReady)
-                return new StartGameOutcome(gameCode, GameStartResult.WaitingForOpponent());
+                return new StartGameOutcome(gameCode!, GameStartResult.WaitingForOpponent());
 
-            return new StartGameOutcome(gameCode, session.Engine.TryStartGame());
+            return new StartGameOutcome(gameCode!, session.Engine.TryStartGame());
+        }
+    }
+
+    public Player? GetWinner(string gameCode)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(gameCode);
+
+        if (!_gameRepository.TryGetGameByCode(gameCode, out GameSession? session))
+            throw new GameNotFoundException($"Game by game code: {gameCode} not found.");
+
+        lock (session!.Lock)
+        {
+            return session.Engine.GetWinner();
         }
     }
 }
