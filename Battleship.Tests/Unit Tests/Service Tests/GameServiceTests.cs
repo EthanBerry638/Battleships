@@ -231,8 +231,9 @@ public class GameServiceTests
 
         var result = _gameService.TryStartGame(player1.Id);
 
-        result.Status.Should().Be(GameStartStatus.WaitingForOpponent);
-        result.ValidationErrors.Should().BeNull();
+        result.GameCode.Should().Be(gameCode);
+        result.Result.Status.Should().Be(GameStartStatus.WaitingForOpponent);
+        result.Result.ValidationErrors.Should().BeNull();
         _gameRepositoryMock.Verify(r => r.TryFindKeyByPlayerId(player1.Id, out gameCode!), Times.Once);
         _gameRepositoryMock.Verify(r => r.TryGetGameByCode(gameCode, out session), Times.Once);
     }
@@ -246,8 +247,9 @@ public class GameServiceTests
 
         var result = _gameService.TryStartGame(player2.Id);
 
-        result.Status.Should().Be(GameStartStatus.WaitingForOpponent);
-        result.ValidationErrors.Should().BeNull();
+        result.GameCode.Should().Be(gameCode);
+        result.Result.Status.Should().Be(GameStartStatus.WaitingForOpponent);
+        result.Result.ValidationErrors.Should().BeNull();
         _gameRepositoryMock.Verify(r => r.TryFindKeyByPlayerId(player2.Id, out gameCode!), Times.Once);
         _gameRepositoryMock.Verify(r => r.TryGetGameByCode(gameCode, out session), Times.Once);
     }
@@ -263,8 +265,9 @@ public class GameServiceTests
         _gameService.TryStartGame(player1.Id);
         var result = _gameService.TryStartGame(player2.Id);
 
-        result.Status.Should().Be(GameStartStatus.Started);
-        result.ValidationErrors.Should().BeNull();
+        result.GameCode.Should().Be(gameCode);
+        result.Result.Status.Should().Be(GameStartStatus.Started);
+        result.Result.ValidationErrors.Should().BeNull();
     }
 
     [Fact]
@@ -280,10 +283,12 @@ public class GameServiceTests
         var result1 = _gameService.TryStartGame(player1.Id);
         var result2 = _gameService.TryStartGame(player3.Id);
         
-        result1.Status.Should().Be(GameStartStatus.WaitingForOpponent);
-        result1.ValidationErrors.Should().BeNull();
-        result2.Status.Should().Be(GameStartStatus.WaitingForOpponent);
-        result2.ValidationErrors.Should().BeNull();
+        result1.GameCode.Should().Be(gameCode1);
+        result1.Result.Status.Should().Be(GameStartStatus.WaitingForOpponent);
+        result1.Result.ValidationErrors.Should().BeNull();
+        result2.GameCode.Should().Be(gameCode2);
+        result2.Result.Status.Should().Be(GameStartStatus.WaitingForOpponent);
+        result2.Result.ValidationErrors.Should().BeNull();
         _gameRepositoryMock.Verify(r => r.TryFindKeyByPlayerId(player1.Id, out gameCode1!), Times.Once);
         _gameRepositoryMock.Verify(r => r.TryGetGameByCode(gameCode1, out session1), Times.Once);
         _gameRepositoryMock.Verify(r => r.TryFindKeyByPlayerId(player3.Id, out gameCode2!), Times.Once);
@@ -302,9 +307,10 @@ public class GameServiceTests
         _gameService.TryStartGame(player1.Id);
         var result = _gameService.TryStartGame(player2.Id);
 
-        result.Status.Should().Be(GameStartStatus.InvalidFleet);
-        result.ValidationErrors.Should().NotBeNull();
-        result.ValidationErrors.Should().HaveCount(2);
+        result.GameCode.Should().Be(gameCode);
+        result.Result.Status.Should().Be(GameStartStatus.InvalidFleet);
+        result.Result.ValidationErrors.Should().NotBeNull();
+        result.Result.ValidationErrors.Should().HaveCount(2);
     }
 
     [Fact]
@@ -319,9 +325,10 @@ public class GameServiceTests
         _gameService.TryStartGame(player1.Id);
         var result = _gameService.TryStartGame(player2.Id);
 
-        result.Status.Should().Be(GameStartStatus.InvalidFleet);
-        result.ValidationErrors.Should().NotBeNull();
-        result.ValidationErrors.Should().HaveCount(2);
+        result.GameCode.Should().Be(gameCode);
+        result.Result.Status.Should().Be(GameStartStatus.InvalidFleet);
+        result.Result.ValidationErrors.Should().NotBeNull();
+        result.Result.ValidationErrors.Should().HaveCount(2);
     }
 
     [Fact]
@@ -337,9 +344,10 @@ public class GameServiceTests
         _gameService.TryStartGame(player1.Id);
         var result = _gameService.TryStartGame(player2.Id);
 
-        result.Status.Should().Be(GameStartStatus.InvalidFleet);
-        result.ValidationErrors.Should().NotBeNull();
-        result.ValidationErrors.Should().HaveCount(2);
+        result.GameCode.Should().Be(gameCode);
+        result.Result.Status.Should().Be(GameStartStatus.InvalidFleet);
+        result.Result.ValidationErrors.Should().NotBeNull();
+        result.Result.ValidationErrors.Should().HaveCount(2);
     }
     
     [Fact]

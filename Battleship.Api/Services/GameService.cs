@@ -27,7 +27,7 @@ public class GameService (IGameRepository gameRepository) : IGameService
         }
     }
     
-    public GameStartResult TryStartGame(Guid playerId)
+    public StartGameOutcome TryStartGame(Guid playerId)
     {
         if (!_gameRepository.TryFindKeyByPlayerId(playerId, out string? gameCode))
             throw new PlayerNotFoundException($"No active game found for player with id {playerId}.");
@@ -40,9 +40,9 @@ public class GameService (IGameRepository gameRepository) : IGameService
             session.SetPlayerReady(playerId);
 
             if (!session.BothPlayersReady)
-                return GameStartResult.WaitingForOpponent();
+                return new StartGameOutcome(gameCode, GameStartResult.WaitingForOpponent());
 
-            return session.Engine.TryStartGame();
+            return new StartGameOutcome(gameCode, session.Engine.TryStartGame());
         }
     }
 }
