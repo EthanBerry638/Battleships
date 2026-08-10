@@ -24,4 +24,9 @@ public class GameService (IGameRepository gameRepository) : IGameService
             return session.Engine.PlaceShip(request.PlayerId, ship);
         }
     }
+    
+    public GameStartResult TryStartGame(Guid playerId)
+    {
+        throw new NotImplementedException();
+    }
 }
