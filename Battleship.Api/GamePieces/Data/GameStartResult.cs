@@ -2,7 +2,7 @@
 
 public record GameStartResult
 {
-    public GameStartStatus Status;
+    public readonly GameStartStatus Status;
     public FleetValidationResult[]? ValidationErrors { get; }
 
     private GameStartResult(GameStartStatus status, FleetValidationResult[]? errors)
@@ -13,7 +13,6 @@ public record GameStartResult
 
     public static GameStartResult Ok() => new(GameStartStatus.Started, null);
     public static GameStartResult WaitingForOpponent() => new(GameStartStatus.WaitingForOpponent, null);
-    public static GameStartResult AlreadyStarted() => new(GameStartStatus.AlreadyStarted, null);
     public static GameStartResult Invalid(FleetValidationResult[] errors) => new(GameStartStatus.InvalidFleet, errors);
 }
 
