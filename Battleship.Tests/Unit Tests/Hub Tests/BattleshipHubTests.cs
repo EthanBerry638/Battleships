@@ -51,11 +51,11 @@ public class BattleshipHubTests
     [InlineData(null)]
     public async Task JoinLobby_ShouldReturnFalseAndNotAddUserToGroup_WhenLobbyDoesNotExist(string? gameCode)
     {
-        var request = new JoinLobbyRequest(Guid.NewGuid(), "Player 2");
+        var request = new JoinLobbyRequest(gameCode!, Guid.NewGuid(), "Player 2");
         _mockSessionService.Setup(s => s.JoinLobby(It.IsAny<string>(), It.IsAny<Player>()))
             .Returns((BattleshipEngine?)null);
 
-        bool result = await CreateHub().JoinLobby(gameCode!, request);
+        bool result = await CreateHub().JoinLobby(request);
 
         result.Should().BeFalse();
 
@@ -72,7 +72,7 @@ public class BattleshipHubTests
     [InlineData("123ABC")]
     public async Task JoinLobby_ShouldReturnTrueAndAddUserToGroupAndNotifyGroup_WhenLobbyExists(string gameCode)
     {
-        var request = new JoinLobbyRequest(Guid.NewGuid(), "Player 2");
+        var request = new JoinLobbyRequest(gameCode, Guid.NewGuid(), "Player 2");
         var expectedEngine = CreateEngine();
         _mockSessionService.Setup(s => s.JoinLobby(gameCode, It.IsAny<Player>()))
             .Returns(expectedEngine);
@@ -84,7 +84,7 @@ public class BattleshipHubTests
             .Returns(Task.CompletedTask);
         _mockClients.Setup(c => c.Group(gameCode)).Returns(_mockClientProxy.Object);
 
-        bool result = await CreateHub().JoinLobby(gameCode, request);
+        bool result = await CreateHub().JoinLobby(request);
 
         result.Should().BeTrue();
         _mockSessionService.Verify(s => s.JoinLobby(gameCode, It.IsAny<Player>()), Times.Once);
@@ -111,11 +111,11 @@ public class BattleshipHubTests
     [Fact]
     public async Task JoinLobby_ShouldPropagatePlayerAlreadyInSessionException_WhenServiceThrows()
     {
-        var request = new JoinLobbyRequest(Guid.NewGuid(), "Player 2");
+        var request = new JoinLobbyRequest("gameCode",Guid.NewGuid(), "Player 2");
         _mockSessionService.Setup(s => s.JoinLobby(It.IsAny<string>(), It.IsAny<Player>()))
             .Throws(new PlayerAlreadyInSessionException("Player is already in an active lobby or game."));
 
-        var act = () => CreateHub().JoinLobby("ABC123", request);
+        var act = () => CreateHub().JoinLobby(request);
 
         await act.Should().ThrowAsync<PlayerAlreadyInSessionException>()
             .WithMessage("Player is already in an active lobby or game.");
@@ -169,7 +169,7 @@ public class BattleshipHubTests
     public async Task CreateLobbyAndJoinLobby_ShouldPropagateArgumentException_WhenAddConnectionThrows()
     {
         var createRequest = new CreateLobbyRequest(Guid.NewGuid(), "Player 1");
-        var joinRequest = new JoinLobbyRequest(Guid.NewGuid(), "Player 2");
+        var joinRequest = new JoinLobbyRequest("gameCode",Guid.NewGuid(), "Player 2");
         _mockSessionService.Setup(s => s.CreateLobby(It.IsAny<Player>())).Returns("ABC123");
         _mockSessionService.Setup(s => s.JoinLobby(It.IsAny<string>(), It.IsAny<Player>())).Returns(CreateEngine());
         _mockContext.Setup(c => c.ConnectionId).Returns("test-connection-id");
@@ -177,7 +177,7 @@ public class BattleshipHubTests
             .Throws<ArgumentException>();
 
         var createAct = () => CreateHub().CreateLobby(createRequest);
-        var joinAct = () => CreateHub().JoinLobby("ABC123", joinRequest);
+        var joinAct = () => CreateHub().JoinLobby(joinRequest);
 
         await createAct.Should().ThrowAsync<ArgumentException>();
         await joinAct.Should().ThrowAsync<ArgumentException>();
