@@ -92,7 +92,8 @@ public class BattleshipEngine
 
     public GameStartResult TryStartGame()
     {
-        if (_gameState is GameState.Playing) return GameStartResult.AlreadyStarted();
+        if (_gameState is GameState.Playing) 
+            throw new GameInProgressException("Cannot start a game that is already in progress.");
 
         FleetValidationResult board1Check = _gameBoards[0].ValidateFleet();
         FleetValidationResult board2Check = _gameBoards[1].ValidateFleet();
