@@ -97,7 +97,7 @@ public class BattleshipHubTests
         _mockClients.Verify(c => c.Group(gameCode), Times.Once);
         _mockClientProxy.Verify(
             p => p.SendCoreAsync(
-                "GameStarted",
+                "GameCreated",
                 It.Is<object[]>(args =>
                     args.Length == 1 &&
                     args[0] is GameCreatedResponse &&
