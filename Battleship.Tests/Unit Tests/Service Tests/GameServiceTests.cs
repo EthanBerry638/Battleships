@@ -33,6 +33,9 @@ public class GameServiceTests
         board1.Setup(b => b.PlaceShip(It.IsAny<Ship>())).Returns(new PlacementResult(true));
         board2.Setup(b => b.PlaceShip(It.IsAny<Ship>())).Returns(new PlacementResult(true));
 
+        board1.Setup(b => b.ValidateFleet()).Returns(new FleetValidationResult(true, [], []));
+        board2.Setup(b => b.ValidateFleet()).Returns(new FleetValidationResult(true, [], []));
+
         var engine = new BattleshipEngine(board1.Object, board2.Object, player1, player2);
         var session = new GameSession(engine);
 
@@ -177,5 +180,98 @@ public class GameServiceTests
         result.InvalidCoordinates.Should().BeEquivalentTo(coordinates);
         _gameRepositoryMock.Verify(r => r.TryFindKeyByPlayerId(player2.Id, out gameCode!), Times.Once);
         _gameRepositoryMock.Verify(r => r.TryGetGameByCode(gameCode, out session), Times.Once);
+    }
+
+    [Fact]
+    public void TryStartGame_ShouldThrowPlayerNotFoundException_WhenPlayerIsNotInAnyActiveGame()
+    {
+        var playerId = Guid.NewGuid();
+        string? nullCode = null;
+        _gameRepositoryMock
+            .Setup(r => r.TryFindKeyByPlayerId(playerId, out nullCode))
+            .Returns(false);
+
+        var act = () => _gameService.TryStartGame(playerId);
+
+        act.Should()
+            .Throw<PlayerNotFoundException>()
+            .WithMessage($"No active game found for player with id {playerId}.");
+        _gameRepositoryMock.Verify(r => r.TryFindKeyByPlayerId(playerId, out nullCode), Times.Once);
+        _gameRepositoryMock.Verify(r => r.TryGetGameByCode(It.IsAny<string>(), out It.Ref<GameSession?>.IsAny), Times.Never);
+    }
+
+    [Fact]
+    public void TryStartGame_ShouldThrowGameNotFoundException_WhenGameCodeExistsButSessionNotFound()
+    {
+        var playerId = Guid.NewGuid();
+        string? gameCode = "GHOST";
+        GameSession? nullSession = null;
+        _gameRepositoryMock
+            .Setup(r => r.TryFindKeyByPlayerId(playerId, out gameCode))
+            .Returns(true);
+        _gameRepositoryMock
+            .Setup(r => r.TryGetGameByCode(gameCode, out nullSession))
+            .Returns(false);
+
+        var act = () => _gameService.TryStartGame(playerId);
+
+        act.Should()
+            .Throw<GameNotFoundException>()
+            .WithMessage($"Game by game code: {gameCode} not found.");
+        _gameRepositoryMock.Verify(r => r.TryFindKeyByPlayerId(playerId, out gameCode), Times.Once);
+        _gameRepositoryMock.Verify(r => r.TryGetGameByCode(gameCode, out nullSession), Times.Once);
+    }
+
+    [Fact]
+    public void TryStartGame_ShouldReturnWaitingForOpponent_WhenOnlyOnePlayerIsReady()
+    {
+        var (session, player1, _, _, _) = CreateSession();
+        string gameCode = "GAME1";
+        SetupPlayerFoundInGame(player1.Id, gameCode, session);
+
+        var result = _gameService.TryStartGame(player1.Id);
+
+        result.Status.Should().Be(GameStartStatus.WaitingForOpponent);
+        result.ValidationErrors.Should().BeNull();
+        _gameRepositoryMock.Verify(r => r.TryFindKeyByPlayerId(player1.Id, out gameCode!), Times.Once);
+        _gameRepositoryMock.Verify(r => r.TryGetGameByCode(gameCode, out session), Times.Once);
+    }
+
+    [Fact]
+    public void TryStartGame_ShouldStartGame_WhenBothPlayersAreReady()
+    {
+        var (session, player1, player2, _, _) = CreateSession();
+        string gameCode = "GAME1";
+        SetupPlayerFoundInGame(player1.Id, gameCode, session);
+        SetupPlayerFoundInGame(player2.Id, gameCode, session);
+
+        _gameService.TryStartGame(player1.Id);
+        var result = _gameService.TryStartGame(player2.Id);
+
+        result.Status.Should().Be(GameStartStatus.Started);
+        result.ValidationErrors.Should().BeNull();
+    }
+
+    [Fact]
+    public void TryStartGame_ShouldRouteToCorrectSession_WhenMultipleGamesAreActive()
+    {
+        var (session1, player1, _, _, _) = CreateSession();
+        var (session2, player3, _, _, _) = CreateSession();
+        string gameCode1 = "GAME1";
+        string gameCode2 = "GAME2";
+        SetupPlayerFoundInGame(player1.Id, gameCode1, session1);
+        SetupPlayerFoundInGame(player3.Id, gameCode2, session2);
+
+        var result1 = _gameService.TryStartGame(player1.Id);
+        var result2 = _gameService.TryStartGame(player3.Id);
+        
+        result1.Status.Should().Be(GameStartStatus.WaitingForOpponent);
+        result1.ValidationErrors.Should().BeNull();
+        result2.Status.Should().Be(GameStartStatus.WaitingForOpponent);
+        result2.ValidationErrors.Should().BeNull();
+        _gameRepositoryMock.Verify(r => r.TryFindKeyByPlayerId(player1.Id, out gameCode1!), Times.Once);
+        _gameRepositoryMock.Verify(r => r.TryGetGameByCode(gameCode1, out session1), Times.Once);
+        _gameRepositoryMock.Verify(r => r.TryFindKeyByPlayerId(player3.Id, out gameCode2!), Times.Once);
+        _gameRepositoryMock.Verify(r => r.TryGetGameByCode(gameCode2, out session2), Times.Once);
     }
 }
