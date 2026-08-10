@@ -66,7 +66,7 @@ public class BattleshipHub(IGameService gameService, IConnectionService connecti
             await Clients.Caller.SendAsync("GameNotStarted", outcome.Result);
     }
 
-    public Player GetWinner(string gameCode)
+    public Player? GetWinner(string gameCode)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(gameCode);
 
