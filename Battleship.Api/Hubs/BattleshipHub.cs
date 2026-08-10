@@ -44,7 +44,9 @@ public class BattleshipHub(IGameService gameService, IConnectionService connecti
 
         _connectionService.AddConnection(new AddConnectionRequest(Context.ConnectionId, player.Id));
         await Groups.AddToGroupAsync(Context.ConnectionId, gameCode);
-        await Clients.Group(gameCode).SendAsync("GameStarted", engine);
+        
+        var message = new GameStartedMessage(engine.CurrentPlayer, engine.Players[0].Id, engine.Players[1].Id);
+        await Clients.Group(gameCode).SendAsync("GameStarted", message);
 
         return true;
     }
