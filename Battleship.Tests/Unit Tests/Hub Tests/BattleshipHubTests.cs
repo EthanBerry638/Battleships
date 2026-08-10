@@ -413,4 +413,15 @@ public class BattleshipHubTests
         act.Should().Throw<ArgumentException>();
         _mockGameService.Verify(g => g.GetWinner("validGameCode"), Times.Once);
     }
+    
+    [Fact]
+    public void GetWinner_ShouldReturnNull_WhenGameServiceReturnsNull()
+    {
+        _mockGameService.Setup(g => g.GetWinner(It.IsAny<string>())).Returns((Player?)null);
+    
+        var result = CreateHub().GetWinner("validGameCode");
+
+        result.Should().BeNull();
+        _mockGameService.Verify(g => g.GetWinner("validGameCode"), Times.Once);
+    }
 }
