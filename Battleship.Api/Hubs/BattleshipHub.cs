@@ -60,6 +60,11 @@ public class BattleshipHub(IGameService gameService, IConnectionService connecti
 
     public async Task TryStartGame(Guid playerId)
     {
-        throw new NotImplementedException();
+        StartGameOutcome outcome = _gameService.TryStartGame(playerId);
+        
+        if (outcome.Result.Status is GameStartStatus.Started)
+            await Clients.Group(outcome.GameCode).SendAsync("GameStarted", outcome.Result);
+        else
+            await Clients.Caller.SendAsync("GameNotStarted", outcome.Result);
     }
 }
