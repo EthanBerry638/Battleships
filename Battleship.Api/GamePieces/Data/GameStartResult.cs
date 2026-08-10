@@ -20,6 +20,5 @@ public enum GameStartStatus
 {
     Started,
     WaitingForOpponent,
-    AlreadyStarted,
     InvalidFleet
 }
