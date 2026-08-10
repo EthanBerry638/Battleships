@@ -45,7 +45,7 @@ public class BattleshipHub(IGameService gameService, IConnectionService connecti
         _connectionService.AddConnection(new AddConnectionRequest(Context.ConnectionId, player.Id));
         await Groups.AddToGroupAsync(Context.ConnectionId, gameCode);
         
-        var message = new GameStartedMessage(engine.CurrentPlayer, engine.Players[0].Id, engine.Players[1].Id);
+        var message = new GameCreatedMessage(engine.CurrentPlayer, engine.Players[0].Id, engine.Players[1].Id);
         await Clients.Group(gameCode).SendAsync("GameStarted", message);
 
         return true;
@@ -56,5 +56,10 @@ public class BattleshipHub(IGameService gameService, IConnectionService connecti
         PlacementResult result = _gameService.PlaceShip(request);
         await Clients.Caller.SendAsync("PlacementResult", result);
         return result;
+    }
+
+    public async Task<GameStartResult> TryStartGame(StartGameRequest request)
+    {
+        throw new NotImplementedException();
     }
 }
