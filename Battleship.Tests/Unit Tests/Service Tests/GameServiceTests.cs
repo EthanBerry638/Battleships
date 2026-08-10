@@ -127,7 +127,7 @@ public class GameServiceTests
     }
 
     [Fact]
-    public void PlaceShip_ShouldThrowPlayerNotFoundException_WhenGameCodeExistsButSessionNotFound()
+    public void PlaceShip_ShouldThrowGameNotFoundException_WhenGameCodeExistsButSessionNotFound()
     {
         var playerId = Guid.NewGuid();
         string? gameCode = "GHOST";
@@ -143,8 +143,8 @@ public class GameServiceTests
         var act = () => _gameService.PlaceShip(request);
 
         act.Should()
-            .Throw<PlayerNotFoundException>()
-            .WithMessage($"No active game found for player with id {playerId}.");
+            .Throw<GameNotFoundException>()
+            .WithMessage($"Game by game code: {gameCode} not found.");
         _gameRepositoryMock.Verify(r => r.TryFindKeyByPlayerId(playerId, out gameCode), Times.Once);
         _gameRepositoryMock.Verify(r => r.TryGetGameByCode(gameCode, out nullSession), Times.Once);
     }

@@ -13,9 +13,11 @@ public class GameService (IGameRepository gameRepository) : IGameService
     
     public PlacementResult PlaceShip(PlaceShipRequest request)
     {
-        if (!_gameRepository.TryFindKeyByPlayerId(request.PlayerId, out string? gameCode) ||
-            !_gameRepository.TryGetGameByCode(gameCode!, out GameSession? session))
+        if (!_gameRepository.TryFindKeyByPlayerId(request.PlayerId, out string? gameCode))
             throw new PlayerNotFoundException($"No active game found for player with id {request.PlayerId}.");
+            
+        if (!_gameRepository.TryGetGameByCode(gameCode!, out GameSession? session))
+            throw new GameNotFoundException($"Game by game code: {gameCode} not found.");
 
         IShip ship = new Ship(request.Type, request.Coordinates);
         
