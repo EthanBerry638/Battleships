@@ -6,4 +6,5 @@ namespace Battleship.Api.Services;
 public interface IGameService
 {
     PlacementResult PlaceShip(PlaceShipRequest request);
+    GameStartResult TryStartGame(Guid playerId);
 }
