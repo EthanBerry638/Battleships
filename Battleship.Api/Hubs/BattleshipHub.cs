@@ -65,4 +65,11 @@ public class BattleshipHub(IGameService gameService, IConnectionService connecti
         else
             await Clients.Caller.SendAsync("GameNotStarted", outcome.Result);
     }
+
+    public Player GetWinner(string gameCode)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(gameCode);
+
+        return _gameService.GetWinner(gameCode);
+    }
 }
