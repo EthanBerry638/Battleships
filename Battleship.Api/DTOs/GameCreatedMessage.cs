@@ -2,7 +2,7 @@
 
 namespace Battleship.Api.DTOs;
 
-public record GameStartedMessage(
+public record GameCreatedMessage(
     Player StartingPlayer,
     Guid Player1Id,
     Guid Player2Id);
