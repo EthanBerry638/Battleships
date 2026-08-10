@@ -289,4 +289,74 @@ public class GameServiceTests
         _gameRepositoryMock.Verify(r => r.TryFindKeyByPlayerId(player3.Id, out gameCode2!), Times.Once);
         _gameRepositoryMock.Verify(r => r.TryGetGameByCode(gameCode2, out session2), Times.Once);
     }
+
+    [Fact]
+    public void TryStartGame_ShouldReturnInvalidFleet_WhenBothPlayersAreReadyButPlayer1FleetIsInvalid()
+    {
+        var (session, player1, player2, board1Mock, _) = CreateSession();
+        string gameCode = "GAME1";
+        board1Mock.Setup(b => b.ValidateFleet()).Returns(new FleetValidationResult(false, [], []));
+        SetupPlayerFoundInGame(player1.Id, gameCode, session);
+        SetupPlayerFoundInGame(player2.Id, gameCode, session);
+
+        _gameService.TryStartGame(player1.Id);
+        var result = _gameService.TryStartGame(player2.Id);
+
+        result.Status.Should().Be(GameStartStatus.InvalidFleet);
+        result.ValidationErrors.Should().NotBeNull();
+        result.ValidationErrors.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public void TryStartGame_ShouldReturnInvalidFleet_WhenBothPlayersAreReadyButPlayer2FleetIsInvalid()
+    {
+        var (session, player1, player2, _, board2Mock) = CreateSession();
+        string gameCode = "GAME1";
+        board2Mock.Setup(b => b.ValidateFleet()).Returns(new FleetValidationResult(false, [], []));
+        SetupPlayerFoundInGame(player1.Id, gameCode, session);
+        SetupPlayerFoundInGame(player2.Id, gameCode, session);
+
+        _gameService.TryStartGame(player1.Id);
+        var result = _gameService.TryStartGame(player2.Id);
+
+        result.Status.Should().Be(GameStartStatus.InvalidFleet);
+        result.ValidationErrors.Should().NotBeNull();
+        result.ValidationErrors.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public void TryStartGame_ShouldReturnInvalidFleet_WhenBothPlayersAreReadyButBothFleetsAreInvalid()
+    {
+        var (session, player1, player2, board1Mock, board2Mock) = CreateSession();
+        string gameCode = "GAME1";
+        board1Mock.Setup(b => b.ValidateFleet()).Returns(new FleetValidationResult(false, [], []));
+        board2Mock.Setup(b => b.ValidateFleet()).Returns(new FleetValidationResult(false, [], []));
+        SetupPlayerFoundInGame(player1.Id, gameCode, session);
+        SetupPlayerFoundInGame(player2.Id, gameCode, session);
+
+        _gameService.TryStartGame(player1.Id);
+        var result = _gameService.TryStartGame(player2.Id);
+
+        result.Status.Should().Be(GameStartStatus.InvalidFleet);
+        result.ValidationErrors.Should().NotBeNull();
+        result.ValidationErrors.Should().HaveCount(2);
+    }
+    
+    [Fact]
+    public void TryStartGame_ShouldPropagateGameInProgressException_WhenGameHasAlreadyStarted()
+    {
+        var (session, player1, player2, _, _) = CreateSession();
+        string gameCode = "GAME1";
+        SetupPlayerFoundInGame(player1.Id, gameCode, session);
+        SetupPlayerFoundInGame(player2.Id, gameCode, session);
+
+        _gameService.TryStartGame(player1.Id);
+        _gameService.TryStartGame(player2.Id);
+
+        var act = () => _gameService.TryStartGame(player2.Id);
+
+        act.Should()
+            .Throw<GameInProgressException>()
+            .WithMessage("Cannot start a game that is already in progress.");
+    }
 }
