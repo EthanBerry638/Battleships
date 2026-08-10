@@ -45,16 +45,24 @@ public class BattleshipHub(IGameService gameService, IConnectionService connecti
         _connectionService.AddConnection(new AddConnectionRequest(Context.ConnectionId, player.Id));
         await Groups.AddToGroupAsync(Context.ConnectionId, gameCode);
         
-        var message = new GameStartedMessage(engine.CurrentPlayer, engine.Players[0].Id, engine.Players[1].Id);
-        await Clients.Group(gameCode).SendAsync("GameStarted", message);
+        var message = new GameCreatedResponse(engine.CurrentPlayer, engine.Players[0].Id, engine.Players[1].Id);
+        await Clients.Group(gameCode).SendAsync("GameCreated", message);
 
         return true;
     }
 
-    public async Task<PlacementResult> PlaceShip(PlaceShipRequest request)
+    public PlacementResult PlaceShip(PlaceShipRequest request)
     {
-        PlacementResult result = _gameService.PlaceShip(request);
-        await Clients.Caller.SendAsync("PlacementResult", result);
-        return result;
+        return _gameService.PlaceShip(request);
+    }
+
+    public async Task TryStartGame(Guid playerId)
+    {
+        StartGameOutcome outcome = _gameService.TryStartGame(playerId);
+        
+        if (outcome.Result.Status is GameStartStatus.Started)
+            await Clients.Group(outcome.GameCode).SendAsync("GameStarted", outcome.Result);
+        else
+            await Clients.Caller.SendAsync("GameNotStarted", outcome.Result);
     }
 }

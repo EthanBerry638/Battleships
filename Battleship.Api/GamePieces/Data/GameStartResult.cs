@@ -2,27 +2,23 @@
 
 public record GameStartResult
 {
-    public bool Success { get; }
+    public readonly GameStartStatus Status;
     public FleetValidationResult[]? ValidationErrors { get; }
 
-    private GameStartResult(bool success, FleetValidationResult[]? errors)
+    private GameStartResult(GameStartStatus status, FleetValidationResult[]? errors)
     {
-        Success = success;
+        Status = status;
         ValidationErrors = errors;
     }
 
-    public static GameStartResult Ok()
-    {
-        return new GameStartResult(true, null);
-    }
+    public static GameStartResult Ok() => new(GameStartStatus.Started, null);
+    public static GameStartResult WaitingForOpponent() => new(GameStartStatus.WaitingForOpponent, null);
+    public static GameStartResult Invalid(FleetValidationResult[] errors) => new(GameStartStatus.InvalidFleet, errors);
+}
 
-    public static GameStartResult Invalid(FleetValidationResult[] errors)
-    {
-        return new GameStartResult(false, errors);
-    }
-
-    public static GameStartResult AlreadyStarted()
-    {
-        return new GameStartResult(false, null);
-    }
+public enum GameStartStatus
+{
+    Started,
+    WaitingForOpponent,
+    InvalidFleet
 }

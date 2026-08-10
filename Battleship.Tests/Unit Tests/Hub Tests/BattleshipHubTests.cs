@@ -97,13 +97,13 @@ public class BattleshipHubTests
         _mockClients.Verify(c => c.Group(gameCode), Times.Once);
         _mockClientProxy.Verify(
             p => p.SendCoreAsync(
-                "GameStarted",
+                "GameCreated",
                 It.Is<object[]>(args =>
                     args.Length == 1 &&
-                    args[0] is GameStartedMessage &&
-                    ((GameStartedMessage)args[0]).StartingPlayer == expectedEngine.CurrentPlayer &&
-                    ((GameStartedMessage)args[0]).Player1Id == expectedEngine.Players[0].Id &&
-                    ((GameStartedMessage)args[0]).Player2Id == expectedEngine.Players[1].Id),
+                    args[0] is GameCreatedResponse &&
+                    ((GameCreatedResponse)args[0]).StartingPlayer == expectedEngine.CurrentPlayer &&
+                    ((GameCreatedResponse)args[0]).Player1Id == expectedEngine.Players[0].Id &&
+                    ((GameCreatedResponse)args[0]).Player2Id == expectedEngine.Players[1].Id),
                 CancellationToken.None),
             Times.Once);
     }
@@ -230,45 +230,34 @@ public class BattleshipHubTests
     }
     
     [Fact]
-    public async Task PlaceShip_ShouldSendSuccessResultToCaller_WhenGameServiceReturnsSuccess()
+    public void PlaceShip_ShouldSendSuccessResultToCaller_WhenGameServiceReturnsSuccess()
     {
         var expectedResult = new PlacementResult(true);
         _mockGameService.Setup(g => g.PlaceShip(It.IsAny<PlaceShipRequest>())).Returns(expectedResult);
-        _mockClients.Setup(c => c.Caller).Returns(_mockCallerProxy.Object);
 
-        await CreateHub().PlaceShip(new PlaceShipRequest(Guid.NewGuid(), ShipType.Carrier,
+        var result = CreateHub().PlaceShip(new PlaceShipRequest(Guid.NewGuid(), ShipType.Carrier,
             [new Coordinate(0, 0), new Coordinate(0, 1)]));
 
+        result.Should().Be(expectedResult);
         _mockGameService.Verify(g => g.PlaceShip(It.IsAny<PlaceShipRequest>()), Times.Once);
-        _mockCallerProxy.Verify(
-            p => p.SendCoreAsync(
-                "PlacementResult",
-                It.Is<object[]>(args => args.Length == 1 && (PlacementResult)args[0] == expectedResult),
-                CancellationToken.None),
-            Times.Once);
     }
 
     [Fact]
-    public async Task PlaceShip_ShouldSendFailureResultToCaller_WhenGameServiceReturnsFailure()
+    public void PlaceShip_ShouldSendFailureResultToCaller_WhenGameServiceReturnsFailure()
     {
         var expectedResult = new PlacementResult(false, [new Coordinate(0, 0), new Coordinate(1, 1)]);
         _mockGameService.Setup(g => g.PlaceShip(It.IsAny<PlaceShipRequest>())).Returns(expectedResult);
         _mockClients.Setup(c => c.Caller).Returns(_mockCallerProxy.Object);
 
-        await CreateHub().PlaceShip(new PlaceShipRequest(Guid.NewGuid(), ShipType.Carrier,
+        var result = CreateHub().PlaceShip(new PlaceShipRequest(Guid.NewGuid(), ShipType.Carrier,
             [new Coordinate(0, 0), new Coordinate(0, 1)]));
 
+        result.Should().Be(expectedResult);
         _mockGameService.Verify(g => g.PlaceShip(It.IsAny<PlaceShipRequest>()), Times.Once);
-        _mockCallerProxy.Verify(
-            p => p.SendCoreAsync(
-                "PlacementResult",
-                It.Is<object[]>(args => args.Length == 1 && (PlacementResult)args[0] == expectedResult),
-                CancellationToken.None),
-            Times.Once);
     }
 
     [Fact]
-    public async Task PlaceShip_ShouldPropagatePlayerNotFoundException_WhenGameServiceThrows()
+    public void PlaceShip_ShouldPropagatePlayerNotFoundException_WhenGameServiceThrows()
     {
         Guid testGuid = Guid.NewGuid();
         _mockGameService.Setup(g => g.PlaceShip(It.IsAny<PlaceShipRequest>()))
@@ -277,11 +266,115 @@ public class BattleshipHubTests
         var act = () => CreateHub().PlaceShip(new PlaceShipRequest(testGuid, ShipType.Carrier,
             [new Coordinate(0, 0), new Coordinate(0, 1)]));
 
-        await act.Should().ThrowAsync<PlayerNotFoundException>()
+        act.Should().Throw<PlayerNotFoundException>()
             .WithMessage($"No active game found for player with id {testGuid}.");
         _mockGameService.Verify(g => g.PlaceShip(It.IsAny<PlaceShipRequest>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task TryStartGame_ShouldSendResultToGroup_WhenGameStarted()
+    {
+        var playerId = Guid.NewGuid();
+        var expectedResult = GameStartResult.Ok();
+        var outcome = new StartGameOutcome("ABC123", expectedResult);
+        _mockGameService.Setup(g => g.TryStartGame(playerId)).Returns(outcome);
+        _mockClients.Setup(c => c.Group("ABC123")).Returns(_mockClientProxy.Object);
+        
+        await CreateHub().TryStartGame(playerId);
+
+        _mockGameService.Verify(g => g.TryStartGame(playerId), Times.Once);
+        _mockClients.Verify(c => c.Group("ABC123"), Times.Once);
+        _mockClientProxy.Verify(
+            p => p.SendCoreAsync(
+                "GameStarted",
+                It.Is<object[]>(args => args.Length == 1 && (GameStartResult)args[0] == expectedResult),
+                CancellationToken.None),
+            Times.Once);
+        _mockCallerProxy.Verify(
+            p => p.SendCoreAsync(It.IsAny<string>(), It.IsAny<object[]>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task TryStartGame_ShouldSendResultToCaller_WhenWaitingForOpponent()
+    {
+        var playerId = Guid.NewGuid();
+        var expectedResult = GameStartResult.WaitingForOpponent();
+        var outcome = new StartGameOutcome("ABC123", expectedResult);
+        _mockGameService.Setup(g => g.TryStartGame(playerId)).Returns(outcome);
+        _mockClients.Setup(c => c.Caller).Returns(_mockCallerProxy.Object);
+
+        await CreateHub().TryStartGame(playerId);
+
+        _mockGameService.Verify(g => g.TryStartGame(playerId), Times.Once);
+        _mockCallerProxy.Verify(
+            p => p.SendCoreAsync(
+                "GameNotStarted",
+                It.Is<object[]>(args => args.Length == 1 && (GameStartResult)args[0] == expectedResult),
+                CancellationToken.None),
+            Times.Once);
         _mockClients.Verify(c => c.Group(It.IsAny<string>()), Times.Never);
         _mockClientProxy.Verify(
+            p => p.SendCoreAsync(It.IsAny<string>(), It.IsAny<object[]>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task TryStartGame_ShouldSendResultToCaller_WhenFleetIsInvalid()
+    {
+        var playerId = Guid.NewGuid();
+        var expectedResult = GameStartResult.Invalid([new FleetValidationResult(false, [ShipType.Carrier], [])]);
+        var outcome = new StartGameOutcome("ABC123", expectedResult);
+        _mockGameService.Setup(g => g.TryStartGame(playerId)).Returns(outcome);
+        _mockClients.Setup(c => c.Caller).Returns(_mockCallerProxy.Object);
+
+        await CreateHub().TryStartGame(playerId);
+
+        _mockGameService.Verify(g => g.TryStartGame(playerId), Times.Once);
+        _mockCallerProxy.Verify(
+            p => p.SendCoreAsync(
+                "GameNotStarted",
+                It.Is<object[]>(args => args.Length == 1 && (GameStartResult)args[0] == expectedResult),
+                CancellationToken.None),
+            Times.Once);
+        _mockClients.Verify(c => c.Group(It.IsAny<string>()), Times.Never);
+        _mockClientProxy.Verify(
+            p => p.SendCoreAsync(It.IsAny<string>(), It.IsAny<object[]>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task TryStartGame_ShouldPropagatePlayerNotFoundException_WhenGameServiceThrows()
+    {
+        Guid playerId = Guid.NewGuid();
+        _mockGameService.Setup(g => g.TryStartGame(playerId))
+            .Throws(new PlayerNotFoundException($"No active game found for player with id {playerId}."));
+
+        var act = () => CreateHub().TryStartGame(playerId);
+
+        await act.Should().ThrowAsync<PlayerNotFoundException>()
+            .WithMessage($"No active game found for player with id {playerId}.");
+        _mockGameService.Verify(g => g.TryStartGame(playerId), Times.Once);
+        _mockClients.Verify(c => c.Group(It.IsAny<string>()), Times.Never);
+        _mockCallerProxy.Verify(
+            p => p.SendCoreAsync(It.IsAny<string>(), It.IsAny<object[]>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task TryStartGame_ShouldPropagateGameNotFoundException_WhenGameServiceThrows()
+    {
+        Guid playerId = Guid.NewGuid();
+        _mockGameService.Setup(g => g.TryStartGame(playerId))
+            .Throws(new GameNotFoundException($"Game not found for player with id {playerId}."));
+
+        var act = () => CreateHub().TryStartGame(playerId);
+
+        await act.Should().ThrowAsync<GameNotFoundException>()
+            .WithMessage($"Game not found for player with id {playerId}.");
+        _mockGameService.Verify(g => g.TryStartGame(playerId), Times.Once);
+        _mockClients.Verify(c => c.Group(It.IsAny<string>()), Times.Never);
+        _mockCallerProxy.Verify(
             p => p.SendCoreAsync(It.IsAny<string>(), It.IsAny<object[]>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
