@@ -1,7 +1,9 @@
-﻿using Battleship.Api.GamePieces.Entities;
+﻿using Battleship.Api.GamePieces.Data;
+using Battleship.Api.GamePieces.Entities;
 
 namespace Battleship.Api.DTOs;
 
 public record PlaceShipRequest(
     Guid PlayerId,
-    IShip Ship);
+    ShipType Type,
+    List<Coordinate> Coordinates);

@@ -233,11 +233,11 @@ public class BattleshipHubTests
     public async Task PlaceShip_ShouldSendSuccessResultToCaller_WhenGameServiceReturnsSuccess()
     {
         var expectedResult = new PlacementResult(true);
-        var mockShip = new Mock<IShip>();
         _mockGameService.Setup(g => g.PlaceShip(It.IsAny<PlaceShipRequest>())).Returns(expectedResult);
         _mockClients.Setup(c => c.Caller).Returns(_mockCallerProxy.Object);
 
-        await CreateHub().PlaceShip(new PlaceShipRequest(Guid.NewGuid(), mockShip.Object));
+        await CreateHub().PlaceShip(new PlaceShipRequest(Guid.NewGuid(), ShipType.Carrier,
+            [new Coordinate(0, 0), new Coordinate(0, 1)]));
 
         _mockGameService.Verify(g => g.PlaceShip(It.IsAny<PlaceShipRequest>()), Times.Once);
         _mockCallerProxy.Verify(
@@ -252,11 +252,11 @@ public class BattleshipHubTests
     public async Task PlaceShip_ShouldSendFailureResultToCaller_WhenGameServiceReturnsFailure()
     {
         var expectedResult = new PlacementResult(false, [new Coordinate(0, 0), new Coordinate(1, 1)]);
-        var mockShip = new Mock<IShip>();
         _mockGameService.Setup(g => g.PlaceShip(It.IsAny<PlaceShipRequest>())).Returns(expectedResult);
         _mockClients.Setup(c => c.Caller).Returns(_mockCallerProxy.Object);
 
-        await CreateHub().PlaceShip(new PlaceShipRequest(Guid.NewGuid(), mockShip.Object));
+        await CreateHub().PlaceShip(new PlaceShipRequest(Guid.NewGuid(), ShipType.Carrier,
+            [new Coordinate(0, 0), new Coordinate(0, 1)]));
 
         _mockGameService.Verify(g => g.PlaceShip(It.IsAny<PlaceShipRequest>()), Times.Once);
         _mockCallerProxy.Verify(
@@ -271,11 +271,11 @@ public class BattleshipHubTests
     public async Task PlaceShip_ShouldPropagatePlayerNotFoundException_WhenGameServiceThrows()
     {
         Guid testGuid = Guid.NewGuid();
-        var mockShip = new Mock<IShip>();
         _mockGameService.Setup(g => g.PlaceShip(It.IsAny<PlaceShipRequest>()))
             .Throws(new PlayerNotFoundException($"No active game found for player with id {testGuid}."));
 
-        var act = () => CreateHub().PlaceShip(new PlaceShipRequest(testGuid, mockShip.Object));
+        var act = () => CreateHub().PlaceShip(new PlaceShipRequest(testGuid, ShipType.Carrier,
+            [new Coordinate(0, 0), new Coordinate(0, 1)]));
 
         await act.Should().ThrowAsync<PlayerNotFoundException>()
             .WithMessage($"No active game found for player with id {testGuid}.");

@@ -110,10 +110,9 @@ public class BattleshipEngine
         return _gameState is not GameState.Finished ? null : _winner;
     }
 
-    public PlacementResult PlaceShip(PlaceShipRequest request)
+    public PlacementResult PlaceShip(Guid playerId, IShip ship)
     {
-        ArgumentNullException.ThrowIfNull(request);
-        ArgumentNullException.ThrowIfNull(request.Ship);
+        ArgumentNullException.ThrowIfNull(ship);
 
         if (_gameState is GameState.Finished)
             throw new GameOverException("You can't place a ship after the game is finished");
@@ -121,9 +120,9 @@ public class BattleshipEngine
         if (_gameState is GameState.Playing)
             throw new GameInProgressException("You can't place a ship after the game has started");
 
-        int playerIndex = Array.FindIndex(_players, p => p.Id == request.PlayerId);
-        if (playerIndex == -1) throw new PlayerNotFoundException($"Player with id {request.PlayerId} not found.");
+        int playerIndex = Array.FindIndex(_players, p => p.Id == playerId);
+        if (playerIndex == -1) throw new PlayerNotFoundException($"Player with id {playerId} not found.");
 
-        return _gameBoards[playerIndex].PlaceShip(request.Ship);
+        return _gameBoards[playerIndex].PlaceShip(ship);
     }
 }

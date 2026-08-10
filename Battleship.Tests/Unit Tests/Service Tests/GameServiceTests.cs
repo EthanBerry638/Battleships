@@ -56,8 +56,7 @@ public class GameServiceTests
         var (session, player1, _, _, _) = CreateSession();
         string gameCode = "GAME1";
         SetupPlayerFoundInGame(player1.Id, gameCode, session);
-        var ship = new Ship(ShipType.PatrolBoat, [new Coordinate(0, 0), new Coordinate(0, 1)]);
-        var request = new PlaceShipRequest(player1.Id, ship);
+        var request = new PlaceShipRequest(player1.Id, ShipType.PatrolBoat, [new Coordinate(0, 0), new Coordinate(0, 1)]);
 
         var result = _gameService.PlaceShip(request);
 
@@ -72,14 +71,14 @@ public class GameServiceTests
         var (session, player1, _, board1Mock, _) = CreateSession();
         string gameCode = "GAME1";
         SetupPlayerFoundInGame(player1.Id, gameCode, session);
-        var ship = new Ship(ShipType.PatrolBoat, [new Coordinate(0, 0), new Coordinate(0, 1)]);
-        var failureResult = new PlacementResult(false, ship.Coordinates);
-        board1Mock.Setup(b => b.PlaceShip(ship)).Returns(failureResult);
+        var coordinates = new List<Coordinate> { new Coordinate(0, 0), new Coordinate(0, 1) };
+        var failureResult = new PlacementResult(false, coordinates);
+        board1Mock.Setup(b => b.PlaceShip(It.IsAny<Ship>())).Returns(failureResult);
 
-        var result = _gameService.PlaceShip(new PlaceShipRequest(player1.Id, ship));
+        var result = _gameService.PlaceShip(new PlaceShipRequest(player1.Id, ShipType.PatrolBoat, coordinates));
 
         result.IsSuccessful.Should().BeFalse();
-        result.InvalidCoordinates.Should().BeEquivalentTo(ship.Coordinates);
+        result.InvalidCoordinates.Should().BeEquivalentTo(coordinates);
         _gameRepositoryMock.Verify(r => r.TryFindKeyByPlayerId(player1.Id, out gameCode!), Times.Once);
         _gameRepositoryMock.Verify(r => r.TryGetGameByCode(gameCode, out session), Times.Once);
     }
@@ -93,10 +92,9 @@ public class GameServiceTests
         string gameCode2 = "GAME2";
         SetupPlayerFoundInGame(player1.Id, gameCode1, session1);
         SetupPlayerFoundInGame(player3.Id, gameCode2, session2);
-        var ship = new Ship(ShipType.PatrolBoat, [new Coordinate(0, 0), new Coordinate(0, 1)]);
 
-        var result = _gameService.PlaceShip(new PlaceShipRequest(player1.Id, ship));
-        var resultInOtherGame = _gameService.PlaceShip(new PlaceShipRequest(player3.Id, ship));
+        var result = _gameService.PlaceShip(new PlaceShipRequest(player1.Id, ShipType.PatrolBoat, [new Coordinate(0, 0), new Coordinate(0, 1)]));
+        var resultInOtherGame = _gameService.PlaceShip(new PlaceShipRequest(player3.Id, ShipType.PatrolBoat, [new Coordinate(0, 0), new Coordinate(0, 1)]));
 
         result.IsSuccessful.Should().BeTrue();
         resultInOtherGame.IsSuccessful.Should().BeTrue();
@@ -114,8 +112,7 @@ public class GameServiceTests
         _gameRepositoryMock
             .Setup(r => r.TryFindKeyByPlayerId(playerId, out nullCode))
             .Returns(false);
-        var ship = new Ship(ShipType.PatrolBoat, [new Coordinate(0, 0), new Coordinate(0, 1)]);
-        var request = new PlaceShipRequest(playerId, ship);
+        var request = new PlaceShipRequest(playerId, ShipType.PatrolBoat, [new Coordinate(0, 0), new Coordinate(0, 1)]);
 
         var act = () => _gameService.PlaceShip(request);
 
@@ -138,8 +135,7 @@ public class GameServiceTests
         _gameRepositoryMock
             .Setup(r => r.TryGetGameByCode(gameCode, out nullSession))
             .Returns(false);
-        var ship = new Ship(ShipType.PatrolBoat, [new Coordinate(0, 0), new Coordinate(0, 1)]);
-        var request = new PlaceShipRequest(playerId, ship);
+        var request = new PlaceShipRequest(playerId, ShipType.PatrolBoat, [new Coordinate(0, 0), new Coordinate(0, 1)]);
 
         var act = () => _gameService.PlaceShip(request);
 
@@ -149,15 +145,14 @@ public class GameServiceTests
         _gameRepositoryMock.Verify(r => r.TryFindKeyByPlayerId(playerId, out gameCode), Times.Once);
         _gameRepositoryMock.Verify(r => r.TryGetGameByCode(gameCode, out nullSession), Times.Once);
     }
-    
+
     [Fact]
     public void PlaceShip_ShouldReturnSuccessfulResult_WhenPlayer2PlacesShipOnValidCoordinates()
     {
         var (session, _, player2, _, _) = CreateSession();
         string gameCode = "GAME1";
         SetupPlayerFoundInGame(player2.Id, gameCode, session);
-        var ship = new Ship(ShipType.PatrolBoat, [new Coordinate(0, 0), new Coordinate(0, 1)]);
-        var request = new PlaceShipRequest(player2.Id, ship);
+        var request = new PlaceShipRequest(player2.Id, ShipType.PatrolBoat, [new Coordinate(0, 0), new Coordinate(0, 1)]);
 
         var result = _gameService.PlaceShip(request);
 
@@ -172,14 +167,14 @@ public class GameServiceTests
         var (session, _, player2, _, board2Mock) = CreateSession();
         string gameCode = "GAME1";
         SetupPlayerFoundInGame(player2.Id, gameCode, session);
-        var ship = new Ship(ShipType.PatrolBoat, [new Coordinate(0, 0), new Coordinate(0, 1)]);
-        var failureResult = new PlacementResult(false, ship.Coordinates);
-        board2Mock.Setup(b => b.PlaceShip(ship)).Returns(failureResult);
+        var coordinates = new List<Coordinate> { new Coordinate(0, 0), new Coordinate(0, 1) };
+        var failureResult = new PlacementResult(false, coordinates);
+        board2Mock.Setup(b => b.PlaceShip(It.IsAny<Ship>())).Returns(failureResult);
 
-        var result = _gameService.PlaceShip(new PlaceShipRequest(player2.Id, ship));
+        var result = _gameService.PlaceShip(new PlaceShipRequest(player2.Id, ShipType.PatrolBoat, coordinates));
 
         result.IsSuccessful.Should().BeFalse();
-        result.InvalidCoordinates.Should().BeEquivalentTo(ship.Coordinates);
+        result.InvalidCoordinates.Should().BeEquivalentTo(coordinates);
         _gameRepositoryMock.Verify(r => r.TryFindKeyByPlayerId(player2.Id, out gameCode!), Times.Once);
         _gameRepositoryMock.Verify(r => r.TryGetGameByCode(gameCode, out session), Times.Once);
     }

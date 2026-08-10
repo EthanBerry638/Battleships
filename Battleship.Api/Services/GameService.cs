@@ -3,6 +3,7 @@ using Battleship.Api.DTOs;
 using Battleship.Api.Exceptions;
 using Battleship.Api.GamePieces.Data;
 using Battleship.Api.Engine;
+using Battleship.Api.GamePieces.Entities;
 
 namespace Battleship.Api.Services;
 
@@ -16,9 +17,11 @@ public class GameService (IGameRepository gameRepository) : IGameService
             !_gameRepository.TryGetGameByCode(gameCode!, out GameSession? session))
             throw new PlayerNotFoundException($"No active game found for player with id {request.PlayerId}.");
 
+        IShip ship = new Ship(request.Type, request.Coordinates);
+        
         lock (session!.Lock)
         {
-            return session.Engine.PlaceShip(request);
+            return session.Engine.PlaceShip(request.PlayerId, ship);
         }
     }
 }
