@@ -2,4 +2,5 @@
 
 public record StartGameRequest(
     Guid Player1Id,
-    Guid Player2Id);
+    Guid Player2Id,
+    string GameCode);
