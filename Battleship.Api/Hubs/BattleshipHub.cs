@@ -58,7 +58,7 @@ public class BattleshipHub(IGameService gameService, IConnectionService connecti
         return result;
     }
 
-    public async Task<GameStartResult> TryStartGame(StartGameRequest request)
+    public async Task TryStartGame(Guid playerId)
     {
         throw new NotImplementedException();
     }
