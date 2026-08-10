@@ -8,5 +8,5 @@ public interface IGameService
 {
     PlacementResult PlaceShip(PlaceShipRequest request);
     StartGameOutcome TryStartGame(Guid playerId);
-    Player GetWinner(string gameCode);
+    Player? GetWinner(string gameCode);
 }
