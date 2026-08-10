@@ -98,7 +98,12 @@ public class BattleshipHubTests
         _mockClientProxy.Verify(
             p => p.SendCoreAsync(
                 "GameStarted",
-                It.Is<object[]>(args => args.Length == 1 && args[0] == expectedEngine),
+                It.Is<object[]>(args =>
+                    args.Length == 1 &&
+                    args[0] is GameStartedMessage &&
+                    ((GameStartedMessage)args[0]).StartingPlayer == expectedEngine.CurrentPlayer &&
+                    ((GameStartedMessage)args[0]).Player1Id == expectedEngine.Players[0].Id &&
+                    ((GameStartedMessage)args[0]).Player2Id == expectedEngine.Players[1].Id),
                 CancellationToken.None),
             Times.Once);
     }
