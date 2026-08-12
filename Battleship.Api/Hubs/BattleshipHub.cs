@@ -58,9 +58,9 @@ public class BattleshipHub(IGameService gameService, IConnectionService connecti
         return _gameService.PlaceShip(request);
     }
 
-    public async Task TryStartGame(Guid playerId)
+    public async Task TryStartGame(TryStartGameRequest request)
     {
-        StartGameResponse response = _gameService.TryStartGame(playerId);
+        StartGameResponse response = _gameService.TryStartGame(request.PlayerId);
         
         if (response.Result.Status is GameStartStatus.Started)
             await Clients.Group(response.GameCode).SendAsync("GameStarted", response.Result);

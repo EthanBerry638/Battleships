@@ -5,7 +5,6 @@ using Battleship.Api.Exceptions;
 using Battleship.Api.GamePieces.Board;
 using Battleship.Api.GamePieces.Entities;
 using Microsoft.AspNetCore.SignalR;
-using Battleship.Api.DTOs;
 using Battleship.Api.DTOs.Requests;
 using Battleship.Api.DTOs.Responses;
 using FluentAssertions;
@@ -282,7 +281,7 @@ public class BattleshipHubTests
         _mockGameService.Setup(g => g.TryStartGame(playerId)).Returns(outcome);
         _mockClients.Setup(c => c.Group("ABC123")).Returns(_mockClientProxy.Object);
         
-        await CreateHub().TryStartGame(playerId);
+        await CreateHub().TryStartGame(new TryStartGameRequest(playerId));
 
         _mockGameService.Verify(g => g.TryStartGame(playerId), Times.Once);
         _mockClients.Verify(c => c.Group("ABC123"), Times.Once);
@@ -306,7 +305,7 @@ public class BattleshipHubTests
         _mockGameService.Setup(g => g.TryStartGame(playerId)).Returns(outcome);
         _mockClients.Setup(c => c.Caller).Returns(_mockCallerProxy.Object);
 
-        await CreateHub().TryStartGame(playerId);
+        await CreateHub().TryStartGame(new TryStartGameRequest(playerId));
 
         _mockGameService.Verify(g => g.TryStartGame(playerId), Times.Once);
         _mockCallerProxy.Verify(
@@ -330,7 +329,7 @@ public class BattleshipHubTests
         _mockGameService.Setup(g => g.TryStartGame(playerId)).Returns(outcome);
         _mockClients.Setup(c => c.Caller).Returns(_mockCallerProxy.Object);
 
-        await CreateHub().TryStartGame(playerId);
+        await CreateHub().TryStartGame(new TryStartGameRequest(playerId));
 
         _mockGameService.Verify(g => g.TryStartGame(playerId), Times.Once);
         _mockCallerProxy.Verify(
@@ -352,7 +351,7 @@ public class BattleshipHubTests
         _mockGameService.Setup(g => g.TryStartGame(playerId))
             .Throws(new PlayerNotFoundException($"No active game found for player with id {playerId}."));
 
-        var act = () => CreateHub().TryStartGame(playerId);
+        var act = () => CreateHub().TryStartGame(new TryStartGameRequest(playerId));
 
         await act.Should().ThrowAsync<PlayerNotFoundException>()
             .WithMessage($"No active game found for player with id {playerId}.");
@@ -370,7 +369,7 @@ public class BattleshipHubTests
         _mockGameService.Setup(g => g.TryStartGame(playerId))
             .Throws(new GameNotFoundException($"Game not found for player with id {playerId}."));
 
-        var act = () => CreateHub().TryStartGame(playerId);
+        var act = () => CreateHub().TryStartGame(new TryStartGameRequest(playerId));
 
         await act.Should().ThrowAsync<GameNotFoundException>()
             .WithMessage($"Game not found for player with id {playerId}.");
