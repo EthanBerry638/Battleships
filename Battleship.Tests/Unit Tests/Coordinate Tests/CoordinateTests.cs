@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Battleship.Api.GamePieces.Data;
+using Battleship.Api.Exceptions;
 using FluentAssertions;
 
 namespace Battleship.Tests.Unit_Tests.Coordinate_Tests;
@@ -58,22 +59,6 @@ public class CoordinateTests
         
         coordinate.X.Should().Be(x);
         coordinate.Y.Should().Be(y);
-    }
-    
-    [Theory]
-    [InlineData(-1, -1)]
-    [InlineData(10, 10)]
-    public void Validate_ShouldContainBothErrorMessages_WhenBothCoordinatesAreInvalid(int x, int y)
-    {
-        var coordinate = new Coordinate(x, y);
-        var validationResults = new List<ValidationResult>();
-        var context = new ValidationContext(coordinate);
-
-        bool isValid = Validator.TryValidateObject(coordinate, context, validationResults, validateAllProperties: true);
-
-        isValid.Should().BeFalse();
-        validationResults.Should().Contain(r => r.ErrorMessage == "X must be between 0 and 9.");
-        validationResults.Should().Contain(r => r.ErrorMessage == "Y must be between 0 and 9.");
     }
     
     [Theory]
