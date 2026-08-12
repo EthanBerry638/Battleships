@@ -1,32 +1,38 @@
 ﻿using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.AspNetCore.Http.Connections;
+using Microsoft.AspNetCore.SignalR;
 using Battleship.Api.DTOs.Requests;
 using FluentAssertions;
-using Microsoft.AspNetCore.SignalR;
 
 namespace Battleship.Tests.Integration_Tests;
 
-public class BattleshipHubValidationFilterTests(WebApplicationFactory<Program> factory)
-    : IClassFixture<WebApplicationFactory<Program>>, IAsyncLifetime
+public class BattleshipHubValidationFilterTests : IAsyncLifetime
 {
-    private readonly WebApplicationFactory<Program> _factory = factory;   
+    private WebApplicationFactory<Program> _factory = null!;
     private HubConnection _connection = null!;
 
     public async Task InitializeAsync()
     {
+        _factory = new WebApplicationFactory<Program>();
+
         _connection = new HubConnectionBuilder()
-            .WithUrl("http://localhost:5179/gameHub", options =>
+            .WithUrl("http://localhost/gameHub", options =>
             {
                 options.HttpMessageHandlerFactory = _ => _factory.Server.CreateHandler();
+                options.Transports = HttpTransportType.LongPolling;
             })
             .Build();
-
-        await _connection.StartAsync(); 
+        
+        await _connection.StartAsync();
     }
 
-    public async Task DisposeAsync() => await _connection.DisposeAsync();
-    
-    
+    public async Task DisposeAsync()
+    {
+        await _connection.DisposeAsync();
+        await _factory.DisposeAsync();
+    }
+
     [Fact]
     public async Task CreateLobby_ShouldThrowHubException_WhenPlayerNameIsInvalid()
     {
