@@ -1,6 +1,8 @@
 using Battleship.Api.Hubs;
 using Battleship.Api.Repositories;
 using Battleship.Api.Services;
+using Battleship.Api.DTOs.Validators;
+using FluentValidation;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +13,8 @@ builder.Services.AddSingleton<IConnectionRepository, ConnectionRepository>();
 builder.Services.AddTransient<ISessionService, SessionService>();
 builder.Services.AddTransient<IGameService, GameService>();
 builder.Services.AddTransient<IConnectionService, ConnectionService>();
+
+builder.Services.AddValidatorsFromAssemblyContaining<CreateLobbyRequestValidator>();
 
 builder.Services.AddSignalR();
 
