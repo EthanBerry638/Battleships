@@ -1,3 +1,3 @@
 ﻿namespace Battleship.Api.Exceptions;
 
-public class GameInProgressException(string message) : Exception(message);
+public class GameInProgressException(string message) : BattleshipException(message);
