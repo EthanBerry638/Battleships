@@ -1,5 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using Battleship.Api.GamePieces.Data;
+﻿using Battleship.Api.GamePieces.Data;
 using Battleship.Api.Exceptions;
 using FluentAssertions;
 
