@@ -23,7 +23,10 @@ public class ValidationHubFilter(IServiceProvider serviceProvider) : IHubFilter
             {
                 bool isNullable = NullabilityContext.Create(parameter).WriteState is NullabilityState.Nullable;
                 if (!isNullable)
-                    throw new ValidationException($"{parameter.Name} is required and cannot be null.");
+                    throw new ValidationException(
+                    [
+                        new ValidationFailure(parameter.Name, $"{parameter.Name} is required and cannot be null.")
+                    ]);
 
                 continue;
             }
