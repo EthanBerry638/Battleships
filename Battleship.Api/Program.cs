@@ -29,3 +29,5 @@ WebApplication app = builder.Build();
 app.MapHub<BattleshipHub>("/gameHub");
 
 app.Run();
+
+public partial class Program {}
