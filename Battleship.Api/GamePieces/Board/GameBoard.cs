@@ -26,9 +26,6 @@ public class GameBoard : IGameBoard
 
     public Tile GetTile(Coordinate coordinate)
     {
-        if (coordinate.X < 0 || coordinate.X >= 10 || coordinate.Y < 0 || coordinate.Y >= 10)
-            throw new InvalidCoordinateException($"Invalid coordinate: {coordinate}");
-
         return _board[coordinate.X, coordinate.Y];
     }
 

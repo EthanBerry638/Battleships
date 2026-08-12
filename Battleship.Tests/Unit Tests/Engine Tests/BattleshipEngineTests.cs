@@ -241,20 +241,6 @@ public class BattleshipEngineTests
         _mockGameBoard2.Verify(x => x.GetTile(firstCoordinate), Times.Once);
     }
 
-    [Fact]
-    public void Shoot_PropagatesInvalidCoordinateException_WhenBoardThrowsIt()
-    {
-        StartGame();
-        var coordinate = new Coordinate(-1, 5);
-        _mockGameBoard2
-            .Setup(x => x.GetTile(coordinate))
-            .Throws(new InvalidCoordinateException($"Invalid coordinate: {coordinate}"));
-
-        var act = () => _battleshipEngine.Shoot(_player1, coordinate);
-
-        act.Should().Throw<InvalidCoordinateException>().WithMessage($"Invalid coordinate: {coordinate}");
-    }
-
     [Theory]
     [InlineData(true, false)]
     [InlineData(false, true)]

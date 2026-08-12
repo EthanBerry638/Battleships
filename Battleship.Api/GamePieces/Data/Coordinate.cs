@@ -1,10 +1,20 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Battleship.Api.Exceptions;
 
 namespace Battleship.Api.GamePieces.Data;
 
-public record Coordinate(
-    [property: Range(0, 9, ErrorMessage = "X must be between 0 and 9.")]
-    int X,
-    [property: Range(0, 9, ErrorMessage = "Y must be between 0 and 9.")]
-    int Y
-);
+public record Coordinate
+{
+    public int X { get; }
+    public int Y { get; }
+
+    public Coordinate(int x, int y)
+    {
+        if (x is < 0 or > 9)
+            throw new InvalidCoordinateException($"X must be between 0 and 9. Got {x}.");
+        if (y is < 0 or > 9)
+            throw new InvalidCoordinateException($"Y must be between 0 and 9. Got {y}.");
+
+        X = x;
+        Y = y;
+    }
+}

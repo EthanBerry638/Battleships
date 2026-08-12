@@ -42,24 +42,6 @@ public class GameBoardTests
         secondResult.Should().BeSameAs(firstResult);
     }
 
-    [Theory]
-    [InlineData(-1, 0)]
-    [InlineData(10, 0)]
-    [InlineData(0, -1)]
-    [InlineData(0, 10)]
-    [InlineData(-1, -1)]
-    [InlineData(10, 10)]
-    public void GetTile_ThrowsException_WhenCoordinateIsOutsideBoard(int x, int y)
-    {
-        var gameBoard = new GameBoard();
-        var coordinate = new Coordinate(x, y);
-
-        var action = () => gameBoard.GetTile(coordinate);
-
-        action.Should().Throw<InvalidCoordinateException>()
-            .WithMessage($"Invalid coordinate: {coordinate}");
-    }
-
     [Fact]
     public void PlaceShip_ReturnsSuccess_WhenTilesAreEmpty()
     {
@@ -131,24 +113,6 @@ public class GameBoardTests
         gameBoard.GetTile(new Coordinate(0, 0)).OccupyingShip.Should().BeNull();
         gameBoard.GetTile(new Coordinate(0, 1)).OccupyingShip.Should().BeNull();
         gameBoard.GetTile(new Coordinate(0, 2)).OccupyingShip.Should().Be(existingShip);
-    }
-
-    [Theory]
-    [InlineData(0, 0, -1, 0)]
-    [InlineData(9, 0, 10, 0)]
-    [InlineData(0, 0, 0, -1)]
-    [InlineData(0, 9, 0, 10)]
-    public void PlaceShip_DoesNotPartiallyPlaceShip_WhenCoordinateIsOutOfBounds(int startX, int startY, int invalidX,
-        int invalidY)
-    {
-        var gameBoard = new GameBoard();
-        List<Coordinate> coordinates = [new(startX, startY), new(invalidX, invalidY)];
-        var ship = new Ship(ShipType.PatrolBoat, coordinates);
-
-        var action = () => gameBoard.PlaceShip(ship);
-
-        action.Should().Throw<InvalidCoordinateException>(); // Thrown through GetTile
-        gameBoard.GetTile(new Coordinate(0, 0)).OccupyingShip.Should().BeNull();
     }
 
     [Fact]

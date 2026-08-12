@@ -1,5 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
-using Battleship.Api.GamePieces.Data;
+﻿using Battleship.Api.GamePieces.Data;
+using Battleship.Api.Exceptions;
 using FluentAssertions;
 
 namespace Battleship.Tests.Unit_Tests.Coordinate_Tests;
@@ -14,36 +14,27 @@ public class CoordinateTests
     [InlineData(4, 5)]
     public void Validate_WithValidCoordinates_ShouldPassValidation(int x, int y)
     {
-        var coordinate = new Coordinate(x, y);
-        var validationResults = new List<ValidationResult>();
-        var context = new ValidationContext(coordinate);
-        
-        bool isValid = Validator.TryValidateObject(coordinate, context, validationResults, validateAllProperties: true);
-        
-        isValid.Should().BeTrue();
-        validationResults.Should().BeEmpty();
+        var act = () => new Coordinate(x, y);
+
+        act.Should().NotThrow();
     }
 
     [Theory]
-    [InlineData(-1, 5, "X must be between 0 and 9.")]
-    [InlineData(10, 5, "X must be between 0 and 9.")]
-    [InlineData(5, -1, "Y must be between 0 and 9.")]
-    [InlineData(5, 10, "Y must be between 0 and 9.")]
-    [InlineData(-1, -1, "X must be between 0 and 9.")]
-    [InlineData(10, 10, "X must be between 0 and 9.")]
+    [InlineData(-1, 5, "X must be between 0 and 9. Got -1.")]
+    [InlineData(10, 5, "X must be between 0 and 9. Got 10.")]
+    [InlineData(5, -1, "Y must be between 0 and 9. Got -1.")]
+    [InlineData(5, 10, "Y must be between 0 and 9. Got 10.")]
+    [InlineData(-1, -1, "X must be between 0 and 9. Got -1.")]
+    [InlineData(10, 10, "X must be between 0 and 9. Got 10.")]
     public void Validate_WithInvalidCoordinates_ShouldFailValidationWithExpectedErrorMessage(
         int x,
         int y,
         string expectedErrorMessage)
     {
-        var coordinate = new Coordinate(x, y);
-        var validationResults = new List<ValidationResult>();
-        var context = new ValidationContext(coordinate);
+        var act = () => new Coordinate(x, y);
 
-        bool isValid = Validator.TryValidateObject(coordinate, context, validationResults, validateAllProperties: true);
-
-        isValid.Should().BeFalse();
-        validationResults.Should().Contain(r => r.ErrorMessage == expectedErrorMessage);
+        act.Should().Throw<InvalidCoordinateException>()
+            .WithMessage(expectedErrorMessage);
     }
     
     [Theory]
@@ -58,22 +49,6 @@ public class CoordinateTests
         
         coordinate.X.Should().Be(x);
         coordinate.Y.Should().Be(y);
-    }
-    
-    [Theory]
-    [InlineData(-1, -1)]
-    [InlineData(10, 10)]
-    public void Validate_ShouldContainBothErrorMessages_WhenBothCoordinatesAreInvalid(int x, int y)
-    {
-        var coordinate = new Coordinate(x, y);
-        var validationResults = new List<ValidationResult>();
-        var context = new ValidationContext(coordinate);
-
-        bool isValid = Validator.TryValidateObject(coordinate, context, validationResults, validateAllProperties: true);
-
-        isValid.Should().BeFalse();
-        validationResults.Should().Contain(r => r.ErrorMessage == "X must be between 0 and 9.");
-        validationResults.Should().Contain(r => r.ErrorMessage == "Y must be between 0 and 9.");
     }
     
     [Theory]
