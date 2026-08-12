@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace Battleship.Tests.Integration_Tests;
 
-public class BattleshipHubIntegrationTests(WebApplicationFactory<Program> factory)
+public class BattleshipHubValidationFilterTests(WebApplicationFactory<Program> factory)
     : IClassFixture<WebApplicationFactory<Program>>, IAsyncLifetime
 {
     private readonly WebApplicationFactory<Program> _factory = factory;   
