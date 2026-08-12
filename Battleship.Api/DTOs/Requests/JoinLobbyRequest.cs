@@ -1,4 +1,4 @@
-﻿namespace Battleship.Api.DTOs;
+﻿namespace Battleship.Api.DTOs.Requests;
 
 public record JoinLobbyRequest(
     string GameCode,

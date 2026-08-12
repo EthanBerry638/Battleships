@@ -1,5 +1,6 @@
 ﻿using FluentValidation.TestHelper;
 using Battleship.Api.DTOs;
+using Battleship.Api.DTOs.Requests;
 using Battleship.Api.DTOs.Validators;
 
 namespace Battleship.Tests.Unit_Tests.Validator_Tests;

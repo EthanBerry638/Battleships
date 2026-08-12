@@ -1,4 +1,5 @@
 ﻿using Battleship.Api.DTOs;
+using Battleship.Api.DTOs.Requests;
 using Battleship.Api.Engine;
 using Battleship.Api.Exceptions;
 using Battleship.Api.GamePieces.Board;

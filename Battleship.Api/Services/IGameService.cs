@@ -1,5 +1,7 @@
 ﻿using Battleship.Api.GamePieces.Data;
 using Battleship.Api.DTOs;
+using Battleship.Api.DTOs.Requests;
+using Battleship.Api.DTOs.Responses;
 using Battleship.Api.GamePieces.Entities;
 
 namespace Battleship.Api.Services;

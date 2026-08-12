@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿using Battleship.Api.DTOs.Requests;
+using FluentValidation;
 
 namespace Battleship.Api.DTOs.Validators;
 

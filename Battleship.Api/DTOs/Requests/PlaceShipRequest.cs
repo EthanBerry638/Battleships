@@ -1,7 +1,6 @@
 ﻿using Battleship.Api.GamePieces.Data;
-using Battleship.Api.GamePieces.Entities;
 
-namespace Battleship.Api.DTOs;
+namespace Battleship.Api.DTOs.Requests;
 
 public record PlaceShipRequest(
     Guid PlayerId,
