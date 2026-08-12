@@ -20,6 +20,7 @@ builder.Services.AddValidatorsFromAssemblyContaining<CreateLobbyRequestValidator
 
 builder.Services.AddSignalR(options =>
 {
+    options.AddFilter<ExceptionHandlingHubFilter>();         
     options.AddFilter<ValidationHubFilter>();         
 });
 
