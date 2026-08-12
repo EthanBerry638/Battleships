@@ -9,13 +9,12 @@ public class ConnectionService (IConnectionRepository connectionRepository, IGam
     private readonly IGameRepository _gameRepository = gameRepository;
     private readonly ILobbyRepository _lobbyRepository = lobbyRepository;
     
-    public bool AddConnection(AddConnectionRequest request)
+    public bool AddConnection(string connectionId, Guid playerId)
     {
-        ArgumentNullException.ThrowIfNull(request);
-        if (string.IsNullOrWhiteSpace(request.ConnectionId) || request.PlayerId == Guid.Empty)
+        if (string.IsNullOrWhiteSpace(connectionId) || playerId == Guid.Empty)
             throw new ArgumentException("ConnectionId and/or Guid cannot be null or empty.");
 
-        return _connectionRepository.TryAddConnection(request);
+        return _connectionRepository.TryAddConnection(connectionId, playerId);
     }
     
     public async Task<string?> HandleDisconnectAsync(string connectionId, TimeSpan delay = default)

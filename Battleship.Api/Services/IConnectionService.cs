@@ -4,6 +4,6 @@ namespace Battleship.Api.Services;
 
 public interface IConnectionService
 {
-    bool AddConnection(AddConnectionRequest request);
+    bool AddConnection(string connectionId, Guid playerId);
     Task<string?> HandleDisconnectAsync(string connectionId, TimeSpan delay = default);
 }

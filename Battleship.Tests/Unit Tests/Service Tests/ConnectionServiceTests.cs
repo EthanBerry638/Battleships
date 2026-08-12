@@ -1,5 +1,4 @@
 ﻿using Battleship.Api.Services;
-using Battleship.Api.DTOs;
 using Battleship.Api.GamePieces.Entities;
 using Battleship.Api.Repositories;
 using Battleship.Api.Engine;
@@ -24,27 +23,27 @@ public class ConnectionServiceTests
     [Fact]
     public void AddConnection_ShouldReturnTrue_WhenConnectionIsValid()
     {
-        var request = new AddConnectionRequest(ConnectionId, Guid.NewGuid());
-        _connectionRepositoryMock.Setup(r => r.TryAddConnection(request)).Returns(true);
+        Guid id = Guid.NewGuid();
+        _connectionRepositoryMock.Setup(r => r.TryAddConnection(ConnectionId, id)).Returns(true);
 
-        bool result = _connectionService.AddConnection(request);
+        bool result = _connectionService.AddConnection(ConnectionId, id);
         
         result.Should().BeTrue();
-        _connectionRepositoryMock.Verify(r => r.TryAddConnection(request), Times.Once);
+        _connectionRepositoryMock.Verify(r => r.TryAddConnection(ConnectionId, id), Times.Once);
         _gameRepositoryMock.Verify(r => r.TryAddGame(It.IsAny<string>(), It.IsAny<GameSession>()), Times.Never);
         _lobbyRepositoryMock.Verify(r => r.TryAddLobby(It.IsAny<string>(), It.IsAny<Player>()), Times.Never);
     }
-
+    
     [Fact]
     public void AddConnection_ShouldReturnFalse_WhenConnectionAlreadyExists()
     {
-        var request = new AddConnectionRequest(ConnectionId, Guid.NewGuid());
-        _connectionRepositoryMock.Setup(r => r.TryAddConnection(request)).Returns(false);
+        Guid id = Guid.NewGuid();
+        _connectionRepositoryMock.Setup(r => r.TryAddConnection(ConnectionId, id)).Returns(false);
 
-        bool result = _connectionService.AddConnection(request);
+        bool result = _connectionService.AddConnection(ConnectionId, id);
 
         result.Should().BeFalse();
-        _connectionRepositoryMock.Verify(r => r.TryAddConnection(request), Times.Once);
+        _connectionRepositoryMock.Verify(r => r.TryAddConnection(ConnectionId, id), Times.Once);
     }
 
     [Theory]
@@ -53,46 +52,31 @@ public class ConnectionServiceTests
     [InlineData("   ")]
     public void AddConnection_ShouldThrowArgumentException_WhenConnectionIdIsNullOrWhiteSpace(string? connectionId)
     {
-        var request = new AddConnectionRequest(connectionId!, Guid.NewGuid());
-
-        var act = () => _connectionService.AddConnection(request);
+        var act = () => _connectionService.AddConnection(connectionId!, Guid.NewGuid());
 
         act.Should().Throw<ArgumentException>()
             .WithMessage("ConnectionId and/or Guid cannot be null or empty.");
-        _connectionRepositoryMock.Verify(r => r.TryAddConnection(It.IsAny<AddConnectionRequest>()), Times.Never);
+        _connectionRepositoryMock.Verify(r => r.TryAddConnection(It.IsAny<string>(), It.IsAny<Guid>()), Times.Never);
     }
 
     [Fact]
     public void AddConnection_ShouldThrowArgumentException_WhenPlayerIdIsEmpty()
     {
-        var request = new AddConnectionRequest(ConnectionId, Guid.Empty);
-
-        var act = () => _connectionService.AddConnection(request);
+        var act = () => _connectionService.AddConnection(ConnectionId, Guid.Empty);
 
         act.Should().Throw<ArgumentException>()
             .WithMessage("ConnectionId and/or Guid cannot be null or empty.");
-        _connectionRepositoryMock.Verify(r => r.TryAddConnection(It.IsAny<AddConnectionRequest>()), Times.Never);
+        _connectionRepositoryMock.Verify(r => r.TryAddConnection(It.IsAny<string>(), It.IsAny<Guid>()), Times.Never);
     }
-    
+
     [Fact]
     public void AddConnection_ShouldThrowArgumentException_WhenBothConnectionIdAndPlayerIdAreInvalid()
     {
-        var request = new AddConnectionRequest(null!, Guid.Empty);
-
-        var act = () => _connectionService.AddConnection(request);
+        var act = () => _connectionService.AddConnection(null!, Guid.Empty);
 
         act.Should().Throw<ArgumentException>()
             .WithMessage("ConnectionId and/or Guid cannot be null or empty.");
-        _connectionRepositoryMock.Verify(r => r.TryAddConnection(It.IsAny<AddConnectionRequest>()), Times.Never);
-    }
-
-    [Fact]
-    public void AddConnection_ShouldThrowArgumentNullException_WhenRequestIsNull()
-    {
-        var act = () => _connectionService.AddConnection(null!);
-
-        act.Should().Throw<ArgumentNullException>();
-        _connectionRepositoryMock.Verify(r => r.TryAddConnection(It.IsAny<AddConnectionRequest>()), Times.Never);
+        _connectionRepositoryMock.Verify(r => r.TryAddConnection(It.IsAny<string>(), It.IsAny<Guid>()), Times.Never);
     }
     
     [Theory]

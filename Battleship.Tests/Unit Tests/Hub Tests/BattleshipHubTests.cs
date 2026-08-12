@@ -76,7 +76,7 @@ public class BattleshipHubTests
         var expectedEngine = CreateEngine();
         _mockSessionService.Setup(s => s.JoinLobby(gameCode, It.IsAny<Player>()))
             .Returns(expectedEngine);
-        _mockConnectionService.Setup(c => c.AddConnection(new AddConnectionRequest("test-connection-id", request.PlayerId)));
+        _mockConnectionService.Setup(c => c.AddConnection("test-connection-id", request.PlayerId));
         _mockContext.Setup(c => c.ConnectionId).Returns("test-connection-id");
         _mockGroups
             .Setup(g => g.AddToGroupAsync(It.IsAny<string>(), It.IsAny<string>(),
@@ -88,7 +88,7 @@ public class BattleshipHubTests
 
         result.Should().BeTrue();
         _mockSessionService.Verify(s => s.JoinLobby(gameCode, It.IsAny<Player>()), Times.Once);
-        _mockConnectionService.Verify(c => c.AddConnection(new AddConnectionRequest("test-connection-id", request.PlayerId)),
+        _mockConnectionService.Verify(c => c.AddConnection("test-connection-id", request.PlayerId),
             Times.Once);
         _mockContext.Verify(c => c.ConnectionId, Times.Exactly(2));
         _mockGroups.Verify(g => g.AddToGroupAsync(
@@ -131,7 +131,7 @@ public class BattleshipHubTests
         var request = new CreateLobbyRequest(Guid.NewGuid(), "Player 1");
         _mockSessionService.Setup(s => s.CreateLobby(It.IsAny<Player>()))
             .Returns("ABC123");
-        _mockConnectionService.Setup(c => c.AddConnection(new AddConnectionRequest("test-connection-id", request.PlayerId)));
+        _mockConnectionService.Setup(c => c.AddConnection("test-connection-id", request.PlayerId));
         _mockContext.Setup(c => c.ConnectionId).Returns("test-connection-id");
         _mockGroups
             .Setup(g => g.AddToGroupAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
@@ -141,7 +141,7 @@ public class BattleshipHubTests
 
         result.Should().Be("ABC123");
         _mockSessionService.Verify(s => s.CreateLobby(It.IsAny<Player>()), Times.Once);
-        _mockConnectionService.Verify(c => c.AddConnection(new AddConnectionRequest("test-connection-id", request.PlayerId)),
+        _mockConnectionService.Verify(c => c.AddConnection("test-connection-id", request.PlayerId),
             Times.Once);
         _mockContext.Verify(c => c.ConnectionId, Times.Exactly(2));
         _mockGroups.Verify(g => g.AddToGroupAsync(
@@ -173,7 +173,7 @@ public class BattleshipHubTests
         _mockSessionService.Setup(s => s.CreateLobby(It.IsAny<Player>())).Returns("ABC123");
         _mockSessionService.Setup(s => s.JoinLobby(It.IsAny<string>(), It.IsAny<Player>())).Returns(CreateEngine());
         _mockContext.Setup(c => c.ConnectionId).Returns("test-connection-id");
-        _mockConnectionService.Setup(c => c.AddConnection(It.IsAny<AddConnectionRequest>()))
+        _mockConnectionService.Setup(c => c.AddConnection(It.IsAny<string>(), It.IsAny<Guid>()))
             .Throws<ArgumentException>();
 
         var createAct = () => CreateHub().CreateLobby(createRequest);

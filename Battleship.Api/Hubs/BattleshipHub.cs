@@ -30,7 +30,7 @@ public class BattleshipHub(IGameService gameService, IConnectionService connecti
 
         string gameCode = _sessionService.CreateLobby(player);
 
-        _connectionService.AddConnection(new AddConnectionRequest(Context.ConnectionId, player.Id));
+        _connectionService.AddConnection(Context.ConnectionId, player.Id);
         await Groups.AddToGroupAsync(Context.ConnectionId, gameCode);
         return gameCode;
     }
@@ -42,7 +42,7 @@ public class BattleshipHub(IGameService gameService, IConnectionService connecti
 
         if (engine is null) return false;
 
-        _connectionService.AddConnection(new AddConnectionRequest(Context.ConnectionId, player.Id));
+        _connectionService.AddConnection(Context.ConnectionId, player.Id);
         await Groups.AddToGroupAsync(Context.ConnectionId, request.GameCode);
         
         var message = new GameCreatedResponse(engine.CurrentPlayer, engine.Players[0].Id, engine.Players[1].Id);
