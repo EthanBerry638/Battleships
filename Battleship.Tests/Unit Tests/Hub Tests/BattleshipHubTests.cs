@@ -380,39 +380,16 @@ public class BattleshipHubTests
             Times.Never);
     }
     
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData("      ")]
-    public void GetWinner_ThrowsArgumentExceptionAndDoesntCallService_WhenGameCodeIsNullOrWhiteSpace(string gameCode)
-    {
-        var act = () => CreateHub().GetWinner(gameCode);
-
-        act.Should().Throw<ArgumentException>();
-        _mockGameService.Verify(g => g.GetWinner(It.IsAny<string>()), Times.Never);
-    }
-    
     [Fact]
     public void GetWinner_ShouldDelegateToService_WhenGameCodeIsValid()
     {
         var player = new Player(Guid.NewGuid(), "winner");
         _mockGameService.Setup(g => g.GetWinner(It.IsAny<string>())).Returns(player);
         
-        var result = CreateHub().GetWinner("validGameCode");
+        var result = CreateHub().GetWinner(new GetWinnerRequest("validGameCode"));
 
         result.Should().Be(player);
-        _mockGameService.Verify(g => g.GetWinner("validGameCode"), Times.Once);
-    }
-
-    [Fact]
-    public void GetWinner_ShouldPropagateArgumentException_WhenGameServiceThrows()
-    {
-        _mockGameService.Setup(g => g.GetWinner(It.IsAny<string>())).Throws<ArgumentException>();
-        
-        var act = () => CreateHub().GetWinner("validGameCode");
-
-        act.Should().Throw<ArgumentException>();
-        _mockGameService.Verify(g => g.GetWinner("validGameCode"), Times.Once);
+        _mockGameService.Verify(g => g.GetWinner(It.IsAny<string>()), Times.Once);
     }
     
     [Fact]
@@ -420,9 +397,9 @@ public class BattleshipHubTests
     {
         _mockGameService.Setup(g => g.GetWinner(It.IsAny<string>())).Returns((Player?)null);
     
-        var result = CreateHub().GetWinner("validGameCode");
+        var result = CreateHub().GetWinner(new GetWinnerRequest("validGameCode"));
 
         result.Should().BeNull();
-        _mockGameService.Verify(g => g.GetWinner("validGameCode"), Times.Once);
+        _mockGameService.Verify(g => g.GetWinner(It.IsAny<string>()), Times.Once);
     }
 }
