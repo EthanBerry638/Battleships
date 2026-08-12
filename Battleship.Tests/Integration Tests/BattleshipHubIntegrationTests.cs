@@ -45,7 +45,7 @@ public class BattleshipHubIntegrationTests : IAsyncLifetime
     [Fact]
     public async Task CreateLobby_ShouldThrowHubException_WhenRequestIsNull()
     {
-        Func<Task> act = () => _connection.InvokeAsync<string>("CreateLobby", (CreateLobbyRequest)null!);
+        Func<Task> act = () => _connection.InvokeAsync<string>("CreateLobby", null!);
 
         var exception = await act.Should().ThrowAsync<HubException>();
         exception.Which.Message.Should().Contain("request is required and cannot be null");
