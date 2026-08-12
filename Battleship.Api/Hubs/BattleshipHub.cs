@@ -58,12 +58,12 @@ public class BattleshipHub(IGameService gameService, IConnectionService connecti
 
     public async Task TryStartGame(Guid playerId)
     {
-        StartGameOutcome outcome = _gameService.TryStartGame(playerId);
+        StartGameResponse response = _gameService.TryStartGame(playerId);
         
-        if (outcome.Result.Status is GameStartStatus.Started)
-            await Clients.Group(outcome.GameCode).SendAsync("GameStarted", outcome.Result);
+        if (response.Result.Status is GameStartStatus.Started)
+            await Clients.Group(response.GameCode).SendAsync("GameStarted", response.Result);
         else
-            await Clients.Caller.SendAsync("GameNotStarted", outcome.Result);
+            await Clients.Caller.SendAsync("GameNotStarted", response.Result);
     }
 
     public Player? GetWinner(string gameCode)

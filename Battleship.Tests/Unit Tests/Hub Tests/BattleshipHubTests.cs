@@ -276,7 +276,7 @@ public class BattleshipHubTests
     {
         var playerId = Guid.NewGuid();
         var expectedResult = GameStartResult.Ok();
-        var outcome = new StartGameOutcome("ABC123", expectedResult);
+        var outcome = new StartGameResponse("ABC123", expectedResult);
         _mockGameService.Setup(g => g.TryStartGame(playerId)).Returns(outcome);
         _mockClients.Setup(c => c.Group("ABC123")).Returns(_mockClientProxy.Object);
         
@@ -300,7 +300,7 @@ public class BattleshipHubTests
     {
         var playerId = Guid.NewGuid();
         var expectedResult = GameStartResult.WaitingForOpponent();
-        var outcome = new StartGameOutcome("ABC123", expectedResult);
+        var outcome = new StartGameResponse("ABC123", expectedResult);
         _mockGameService.Setup(g => g.TryStartGame(playerId)).Returns(outcome);
         _mockClients.Setup(c => c.Caller).Returns(_mockCallerProxy.Object);
 
@@ -324,7 +324,7 @@ public class BattleshipHubTests
     {
         var playerId = Guid.NewGuid();
         var expectedResult = GameStartResult.Invalid([new FleetValidationResult(false, [ShipType.Carrier], [])]);
-        var outcome = new StartGameOutcome("ABC123", expectedResult);
+        var outcome = new StartGameResponse("ABC123", expectedResult);
         _mockGameService.Setup(g => g.TryStartGame(playerId)).Returns(outcome);
         _mockClients.Setup(c => c.Caller).Returns(_mockCallerProxy.Object);
 
