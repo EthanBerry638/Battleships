@@ -6,15 +6,14 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace Battleship.Tests.Integration_Tests;
 
-public class BattleshipHubIntegrationTests : IAsyncLifetime
+public class BattleshipHubIntegrationTests(WebApplicationFactory<Program> factory)
+    : IClassFixture<WebApplicationFactory<Program>>, IAsyncLifetime
 {
-    private WebApplicationFactory<Program> _factory = null!;
+    private readonly WebApplicationFactory<Program> _factory = factory;   
     private HubConnection _connection = null!;
 
     public async Task InitializeAsync()
     {
-        _factory = new WebApplicationFactory<Program>();
-
         _connection = new HubConnectionBuilder()
             .WithUrl("http://localhost:5179/gameHub", options =>
             {
@@ -22,15 +21,12 @@ public class BattleshipHubIntegrationTests : IAsyncLifetime
             })
             .Build();
 
-        await _connection.StartAsync();
+        await _connection.StartAsync(); 
     }
 
-    public async Task DisposeAsync()
-    {
-        await _connection.DisposeAsync();
-        await _factory.DisposeAsync();
-    }
-
+    public async Task DisposeAsync() => await _connection.DisposeAsync();
+    
+    
     [Fact]
     public async Task CreateLobby_ShouldThrowHubException_WhenPlayerNameIsInvalid()
     {
