@@ -20,12 +20,12 @@ public class CoordinateTests
     }
 
     [Theory]
-    [InlineData(-1, 5, $"X must be between 0 and 9. Got -1.")]
-    [InlineData(10, 5, $"X must be between 0 and 9. Got 10.")]
-    [InlineData(5, -1, $"Y must be between 0 and 9. Got -1.")]
-    [InlineData(5, 10, $"Y must be between 0 and 9. Got 10.")]
-    [InlineData(-1, -1, $"X must be between 0 and 9. Got -1.")]
-    [InlineData(10, 10, $"X must be between 0 and 9. Got 10.")]
+    [InlineData(-1, 5, "X must be between 0 and 9. Got -1.")]
+    [InlineData(10, 5, "X must be between 0 and 9. Got 10.")]
+    [InlineData(5, -1, "Y must be between 0 and 9. Got -1.")]
+    [InlineData(5, 10, "Y must be between 0 and 9. Got 10.")]
+    [InlineData(-1, -1, "X must be between 0 and 9. Got -1.")]
+    [InlineData(10, 10, "X must be between 0 and 9. Got 10.")]
     public void Validate_WithInvalidCoordinates_ShouldFailValidationWithExpectedErrorMessage(
         int x,
         int y,
