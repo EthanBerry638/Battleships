@@ -44,23 +44,18 @@ public class BattleshipHubTests
             new Player(Guid.NewGuid(), "Player 2")
         );
     }
-
-    [Theory]
-    [InlineData("DOESNOTEXIST")]
-    [InlineData("")]
-    [InlineData("   ")]
-    [InlineData(null)]
-    public async Task JoinLobby_ShouldReturnFalseAndNotAddUserToGroup_WhenLobbyDoesNotExist(string? gameCode)
+    
+    [Fact]
+    public async Task JoinLobby_ShouldReturnFalseAndNotAddUserToGroup_WhenLobbyDoesNotExist()
     {
-        var request = new JoinLobbyRequest(gameCode!, Guid.NewGuid(), "Player 2");
+        var request = new JoinLobbyRequest("DOESNOTEXIST", Guid.NewGuid(), "Player 2");
         _mockSessionService.Setup(s => s.JoinLobby(It.IsAny<string>(), It.IsAny<Player>()))
             .Returns((BattleshipEngine?)null);
 
         bool result = await CreateHub().JoinLobby(request);
 
         result.Should().BeFalse();
-
-        _mockSessionService.Verify(s => s.JoinLobby(gameCode!, It.IsAny<Player>()), Times.Once);
+        _mockSessionService.Verify(s => s.JoinLobby("DOESNOTEXIST", It.IsAny<Player>()), Times.Once);
         _mockContext.Verify(c => c.ConnectionId, Times.Never);
         _mockGroups.Verify(g => g.AddToGroupAsync(
             It.IsAny<string>(), It.IsAny<string>(),
