@@ -11,9 +11,6 @@ public class ConnectionService (IConnectionRepository connectionRepository, IGam
     
     public bool AddConnection(string connectionId, Guid playerId)
     {
-        if (string.IsNullOrWhiteSpace(connectionId) || playerId == Guid.Empty)
-            throw new ArgumentException("ConnectionId and/or Guid cannot be null or empty.");
-
         return _connectionRepository.TryAddConnection(connectionId, playerId);
     }
     

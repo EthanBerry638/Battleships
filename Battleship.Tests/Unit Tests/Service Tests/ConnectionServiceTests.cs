@@ -46,39 +46,6 @@ public class ConnectionServiceTests
         _connectionRepositoryMock.Verify(r => r.TryAddConnection(ConnectionId, id), Times.Once);
     }
 
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData("   ")]
-    public void AddConnection_ShouldThrowArgumentException_WhenConnectionIdIsNullOrWhiteSpace(string? connectionId)
-    {
-        var act = () => _connectionService.AddConnection(connectionId!, Guid.NewGuid());
-
-        act.Should().Throw<ArgumentException>()
-            .WithMessage("ConnectionId and/or Guid cannot be null or empty.");
-        _connectionRepositoryMock.Verify(r => r.TryAddConnection(It.IsAny<string>(), It.IsAny<Guid>()), Times.Never);
-    }
-
-    [Fact]
-    public void AddConnection_ShouldThrowArgumentException_WhenPlayerIdIsEmpty()
-    {
-        var act = () => _connectionService.AddConnection(ConnectionId, Guid.Empty);
-
-        act.Should().Throw<ArgumentException>()
-            .WithMessage("ConnectionId and/or Guid cannot be null or empty.");
-        _connectionRepositoryMock.Verify(r => r.TryAddConnection(It.IsAny<string>(), It.IsAny<Guid>()), Times.Never);
-    }
-
-    [Fact]
-    public void AddConnection_ShouldThrowArgumentException_WhenBothConnectionIdAndPlayerIdAreInvalid()
-    {
-        var act = () => _connectionService.AddConnection(null!, Guid.Empty);
-
-        act.Should().Throw<ArgumentException>()
-            .WithMessage("ConnectionId and/or Guid cannot be null or empty.");
-        _connectionRepositoryMock.Verify(r => r.TryAddConnection(It.IsAny<string>(), It.IsAny<Guid>()), Times.Never);
-    }
-
     [Fact]
     public async Task HandleDisconnectAsync_ShouldReturnNull_WhenConnectionIdIsNotFound()
     {
