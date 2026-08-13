@@ -1,14 +1,17 @@
-﻿namespace Battleship.Api.GamePieces.Data;
+﻿using System.Text.Json.Serialization;
+
+namespace Battleship.Api.GamePieces.Data;
 
 public record GameStartResult
 {
-    public readonly GameStartStatus Status;
+    public GameStartStatus Status { get; }
     public FleetValidationResult[]? ValidationErrors { get; }
 
-    private GameStartResult(GameStartStatus status, FleetValidationResult[]? errors)
+    [JsonConstructor]
+    private GameStartResult(GameStartStatus status, FleetValidationResult[]? validationErrors)
     {
         Status = status;
-        ValidationErrors = errors;
+        ValidationErrors = validationErrors;
     }
 
     public static GameStartResult Ok() => new(GameStartStatus.Started, null);
