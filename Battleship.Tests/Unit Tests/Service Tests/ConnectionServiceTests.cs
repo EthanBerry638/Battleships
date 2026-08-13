@@ -78,19 +78,6 @@ public class ConnectionServiceTests
             .WithMessage("ConnectionId and/or Guid cannot be null or empty.");
         _connectionRepositoryMock.Verify(r => r.TryAddConnection(It.IsAny<string>(), It.IsAny<Guid>()), Times.Never);
     }
-    
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData("   ")]
-    public async Task HandleDisconnectAsync_ShouldThrowArgumentException_WhenConnectionIdIsNullOrWhiteSpace(string? connectionId)
-    {
-        var act = async () => await _connectionService.HandleDisconnectAsync(connectionId!);
-
-        await act.Should().ThrowAsync<ArgumentException>()
-            .WithMessage("Connection ID cannot be null or whitespace");
-        _connectionRepositoryMock.Verify(r => r.TryRemoveConnection(It.IsAny<string>(), out It.Ref<Guid>.IsAny), Times.Never);
-    }
 
     [Fact]
     public async Task HandleDisconnectAsync_ShouldReturnNull_WhenConnectionIdIsNotFound()

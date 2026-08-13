@@ -19,9 +19,6 @@ public class ConnectionService (IConnectionRepository connectionRepository, IGam
     
     public async Task<string?> HandleDisconnectAsync(string connectionId, TimeSpan delay = default)
     {
-        if (string.IsNullOrWhiteSpace(connectionId))
-            throw new ArgumentException("Connection ID cannot be null or whitespace");
-
         if (!_connectionRepository.TryRemoveConnection(connectionId, out Guid playerId))
             return null;
 
