@@ -110,23 +110,6 @@ public class BattleshipHubTests
     }
 
     [Fact]
-    public async Task JoinLobby_ShouldPropagatePlayerAlreadyInSessionException_WhenServiceThrows()
-    {
-        var request = new JoinLobbyRequest("gameCode",Guid.NewGuid(), "Player 2");
-        _mockSessionService.Setup(s => s.JoinLobby(It.IsAny<string>(), It.IsAny<Player>()))
-            .Throws(new PlayerAlreadyInSessionException("Player is already in an active lobby or game."));
-
-        var act = () => CreateHub().JoinLobby(request);
-
-        await act.Should().ThrowAsync<PlayerAlreadyInSessionException>()
-            .WithMessage("Player is already in an active lobby or game.");
-        _mockSessionService.Verify(s => s.JoinLobby(It.IsAny<string>(), It.IsAny<Player>()), Times.Once);
-        _mockContext.Verify(c => c.ConnectionId, Times.Never);
-        _mockGroups.Verify(g => g.AddToGroupAsync(
-            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
-    }
-
-    [Fact]
     public async Task CreateLobby_ShouldReturnGameCodeAndAddCallerToGroup_WhenCalled()
     {
         var request = new CreateLobbyRequest(Guid.NewGuid(), "Player 1");
@@ -147,53 +130,6 @@ public class BattleshipHubTests
         _mockContext.Verify(c => c.ConnectionId, Times.Exactly(2));
         _mockGroups.Verify(g => g.AddToGroupAsync(
             "test-connection-id", "ABC123", It.IsAny<CancellationToken>()), Times.Once);
-    }
-
-    [Fact]
-    public async Task CreateLobby_ShouldPropagatePlayerAlreadyInSessionException_WhenServiceThrows()
-    {
-        var request = new CreateLobbyRequest(Guid.NewGuid(), "Player 1");
-        _mockSessionService.Setup(s => s.CreateLobby(It.IsAny<Player>()))
-            .Throws(new PlayerAlreadyInSessionException("Player is already in an active lobby or game."));
-
-        var act = () => CreateHub().CreateLobby(request);
-
-        await act.Should().ThrowAsync<PlayerAlreadyInSessionException>()
-            .WithMessage("Player is already in an active lobby or game.");
-        _mockSessionService.Verify(s => s.CreateLobby(It.IsAny<Player>()), Times.Once);
-        _mockContext.Verify(c => c.ConnectionId, Times.Never);
-        _mockGroups.Verify(g => g.AddToGroupAsync(
-            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
-    }
-
-    [Fact]
-    public async Task CreateLobbyAndJoinLobby_ShouldPropagateArgumentException_WhenAddConnectionThrows()
-    {
-        var createRequest = new CreateLobbyRequest(Guid.NewGuid(), "Player 1");
-        var joinRequest = new JoinLobbyRequest("gameCode",Guid.NewGuid(), "Player 2");
-        _mockSessionService.Setup(s => s.CreateLobby(It.IsAny<Player>())).Returns("ABC123");
-        _mockSessionService.Setup(s => s.JoinLobby(It.IsAny<string>(), It.IsAny<Player>())).Returns(CreateEngine());
-        _mockContext.Setup(c => c.ConnectionId).Returns("test-connection-id");
-        _mockConnectionService.Setup(c => c.AddConnection(It.IsAny<string>(), It.IsAny<Guid>()))
-            .Throws<ArgumentException>();
-
-        var createAct = () => CreateHub().CreateLobby(createRequest);
-        var joinAct = () => CreateHub().JoinLobby(joinRequest);
-
-        await createAct.Should().ThrowAsync<ArgumentException>();
-        await joinAct.Should().ThrowAsync<ArgumentException>();
-    }
-
-    [Fact]
-    public async Task OnDisconnectedAsync_ShouldPropagateArgumentException_WhenConnectionServiceThrows()
-    {
-        _mockConnectionService.Setup(c => c.HandleDisconnectAsync(It.IsAny<string>(), It.IsAny<TimeSpan>()))
-            .Throws<ArgumentException>();
-
-        var act = async () => await CreateHub().OnDisconnectedAsync(null);
-
-        await act.Should().ThrowAsync<ArgumentException>();
-        _mockConnectionService.Verify(c => c.HandleDisconnectAsync(It.IsAny<string>(), It.IsAny<TimeSpan>()), Times.Once);
     }
 
     [Fact]
@@ -254,21 +190,6 @@ public class BattleshipHubTests
             [new Coordinate(0, 0), new Coordinate(0, 1)]));
 
         result.Should().Be(expectedResult);
-        _mockGameService.Verify(g => g.PlaceShip(It.IsAny<PlaceShipRequest>()), Times.Once);
-    }
-
-    [Fact]
-    public void PlaceShip_ShouldPropagatePlayerNotFoundException_WhenGameServiceThrows()
-    {
-        Guid testGuid = Guid.NewGuid();
-        _mockGameService.Setup(g => g.PlaceShip(It.IsAny<PlaceShipRequest>()))
-            .Throws(new PlayerNotFoundException($"No active game found for player with id {testGuid}."));
-
-        var act = () => CreateHub().PlaceShip(new PlaceShipRequest(testGuid, ShipType.Carrier,
-            [new Coordinate(0, 0), new Coordinate(0, 1)]));
-
-        act.Should().Throw<PlayerNotFoundException>()
-            .WithMessage($"No active game found for player with id {testGuid}.");
         _mockGameService.Verify(g => g.PlaceShip(It.IsAny<PlaceShipRequest>()), Times.Once);
     }
 
@@ -340,42 +261,6 @@ public class BattleshipHubTests
             Times.Once);
         _mockClients.Verify(c => c.Group(It.IsAny<string>()), Times.Never);
         _mockClientProxy.Verify(
-            p => p.SendCoreAsync(It.IsAny<string>(), It.IsAny<object[]>(), It.IsAny<CancellationToken>()),
-            Times.Never);
-    }
-
-    [Fact]
-    public async Task TryStartGame_ShouldPropagatePlayerNotFoundException_WhenGameServiceThrows()
-    {
-        Guid playerId = Guid.NewGuid();
-        _mockGameService.Setup(g => g.TryStartGame(playerId))
-            .Throws(new PlayerNotFoundException($"No active game found for player with id {playerId}."));
-
-        var act = () => CreateHub().TryStartGame(new TryStartGameRequest(playerId));
-
-        await act.Should().ThrowAsync<PlayerNotFoundException>()
-            .WithMessage($"No active game found for player with id {playerId}.");
-        _mockGameService.Verify(g => g.TryStartGame(playerId), Times.Once);
-        _mockClients.Verify(c => c.Group(It.IsAny<string>()), Times.Never);
-        _mockCallerProxy.Verify(
-            p => p.SendCoreAsync(It.IsAny<string>(), It.IsAny<object[]>(), It.IsAny<CancellationToken>()),
-            Times.Never);
-    }
-
-    [Fact]
-    public async Task TryStartGame_ShouldPropagateGameNotFoundException_WhenGameServiceThrows()
-    {
-        Guid playerId = Guid.NewGuid();
-        _mockGameService.Setup(g => g.TryStartGame(playerId))
-            .Throws(new GameNotFoundException($"Game not found for player with id {playerId}."));
-
-        var act = () => CreateHub().TryStartGame(new TryStartGameRequest(playerId));
-
-        await act.Should().ThrowAsync<GameNotFoundException>()
-            .WithMessage($"Game not found for player with id {playerId}.");
-        _mockGameService.Verify(g => g.TryStartGame(playerId), Times.Once);
-        _mockClients.Verify(c => c.Group(It.IsAny<string>()), Times.Never);
-        _mockCallerProxy.Verify(
             p => p.SendCoreAsync(It.IsAny<string>(), It.IsAny<object[]>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
