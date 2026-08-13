@@ -11,7 +11,6 @@ public class Ship : IShip
 
     public Ship(ShipType type, List<Coordinate> coordinates)
     {
-        ArgumentNullException.ThrowIfNull(coordinates);
         ValidateCoordinates(coordinates);
         if (!IsValidShipType(type, coordinates.Count))
             throw new InvalidShipException($"Invalid ship type: {type} for ship of size {coordinates.Count}.");

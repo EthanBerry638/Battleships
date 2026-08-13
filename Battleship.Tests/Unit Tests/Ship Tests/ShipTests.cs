@@ -75,14 +75,6 @@ public class ShipTests
         ship.IsSunk().Should().BeTrue();
     }
 
-    [Fact]
-    public void ShipConstructor_ThrowsException_WhenCoordinatesAreNull()
-    {
-        var action = () => new Ship(ShipType.PatrolBoat, null!);
-
-        action.Should().Throw<ArgumentNullException>();
-    }
-
     [Theory]
     [MemberData(nameof(GetInvalidCoordinates))]
     public void ShipConstructor_ThrowsException_WhenCoordinatesAreNotAdjacent(List<Coordinate> coordinates)
