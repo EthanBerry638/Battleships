@@ -6,10 +6,10 @@ using Battleship.Api.Exceptions;
 
 namespace Battleship.Api.Engine;
 
-public class BattleshipEngine
+public class BattleshipEngine(IGameBoard playerOneBoard, IGameBoard playerTwoBoard, Player playerOne, Player playerTwo)
 {
-    private readonly IGameBoard[] _gameBoards;
-    private readonly Player[] _players;
+    private readonly IGameBoard[] _gameBoards = [playerOneBoard, playerTwoBoard];
+    private readonly Player[] _players = [playerOne, playerTwo];
     private readonly HashSet<Coordinate>[] _shotsTaken = [[], []];
     private int _currentPlayerIndex;
     private GameState _gameState;
@@ -17,17 +17,6 @@ public class BattleshipEngine
     public GameState GameState => _gameState;
     public Player CurrentPlayer => _players[_currentPlayerIndex];
     public IReadOnlyList<Player> Players => _players;
-
-    public BattleshipEngine(IGameBoard playerOneBoard, IGameBoard playerTwoBoard, Player playerOne, Player playerTwo)
-    {
-        ArgumentNullException.ThrowIfNull(playerOneBoard);
-        ArgumentNullException.ThrowIfNull(playerTwoBoard);
-        ArgumentNullException.ThrowIfNull(playerOne);
-        ArgumentNullException.ThrowIfNull(playerTwo);
-
-        _gameBoards = [playerOneBoard, playerTwoBoard];
-        _players = [playerOne, playerTwo];
-    }
 
     public ShotResult Shoot(Player player, Coordinate coordinate)
     {
