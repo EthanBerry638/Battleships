@@ -37,6 +37,11 @@ public class GameService (IGameRepository gameRepository) : IGameService
         if (!_gameRepository.TryGetGameByCode(gameCode!, out GameSession? session))
             throw new GameNotFoundException($"Game by game code: {gameCode} not found.");
 
+        // TODO: Refactor game start execution order.
+        // Currently, calling session.Engine.TryStartGame() validates both boards.
+        // If player 1 clicks ready while player 2 is still configuring their fleet,
+        // Player 1 receives and invalid fleet error for players 2's board and state mutates early
+        
         lock (session!.Lock)
         {
             session.SetPlayerReady(playerId);
