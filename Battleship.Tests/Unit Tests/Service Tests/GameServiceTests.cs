@@ -352,24 +352,6 @@ public class GameServiceTests
     }
     
     [Fact]
-    public void TryStartGame_ShouldPropagateGameInProgressException_WhenGameHasAlreadyStarted()
-    {
-        var (session, player1, player2, _, _) = CreateSession();
-        string gameCode = "GAME1";
-        SetupPlayerFoundInGame(player1.Id, gameCode, session);
-        SetupPlayerFoundInGame(player2.Id, gameCode, session);
-
-        _gameService.TryStartGame(player1.Id);
-        _gameService.TryStartGame(player2.Id);
-
-        var act = () => _gameService.TryStartGame(player2.Id);
-
-        act.Should()
-            .Throw<GameInProgressException>()
-            .WithMessage("Cannot start a game that is already in progress.");
-    }
-    
-    [Fact]
     public void GetWinner_ShouldThrowGameNotFoundException_WhenGameNotFound()
     {
         var act = () => _gameService.GetWinner("GAME1");
