@@ -37,6 +37,7 @@ public class BattleshipHub(IGameService gameService, IConnectionService connecti
         return gameCode;
     }
 
+    // TODO: Fix double return
     public async Task<bool> JoinLobby(JoinLobbyRequest request)
     {
         var player = new Player(request.PlayerId, request.PlayerName);
