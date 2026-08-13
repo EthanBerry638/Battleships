@@ -48,14 +48,6 @@ public class SessionServiceTests
     }
 
     [Fact]
-    public void CreateLobby_ShouldThrowArgumentNullException_WhenPlayerIsNull()
-    {
-        var act = () => _sessionService.CreateLobby(null!);
-
-        act.Should().Throw<ArgumentNullException>();
-    }
-
-    [Fact]
     public void CreateLobby_ShouldRetryGeneration_WhenCodeCollisionOccurs()
     {
         _mockLobbyRepository.Setup(r => r.IsPlayerInLobby(It.IsAny<Guid>())).Returns(false); 

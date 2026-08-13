@@ -13,7 +13,6 @@ public class SessionService (ILobbyRepository lobbyRepository, IGameRepository g
     
     public string CreateLobby(Player player1)
     {
-        ArgumentNullException.ThrowIfNull(player1);
         CheckLobbyAndGame(player1.Id);
 
         string gameCode;
