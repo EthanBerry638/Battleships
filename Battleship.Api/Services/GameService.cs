@@ -55,8 +55,6 @@ public class GameService (IGameRepository gameRepository) : IGameService
 
     public Player? GetWinner(string gameCode)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(gameCode);
-
         if (!_gameRepository.TryGetGameByCode(gameCode, out GameSession? session))
             throw new GameNotFoundException($"Game by game code: {gameCode} not found.");
 

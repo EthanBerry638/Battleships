@@ -369,18 +369,6 @@ public class GameServiceTests
             .WithMessage("Cannot start a game that is already in progress.");
     }
     
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData("     ")]
-    public void GetWinner_ShouldThrowArgumentException_WhenGameCodeIsNullOrWhitespace(string gameCode)
-    {
-        var act = () => _gameService.GetWinner(gameCode);
-
-        act.Should().Throw<ArgumentException>();
-        _gameRepositoryMock.Verify(g => g.TryGetGameByCode(gameCode, out It.Ref<GameSession?>.IsAny), Times.Never);
-    }
-    
     [Fact]
     public void GetWinner_ShouldThrowGameNotFoundException_WhenGameNotFound()
     {
