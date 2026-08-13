@@ -113,8 +113,6 @@ public class BattleshipEngine
 
     public PlacementResult PlaceShip(Guid playerId, IShip ship)
     {
-        ArgumentNullException.ThrowIfNull(ship);
-
         if (_gameState is GameState.Finished)
             throw new GameOverException("You can't place a ship after the game is finished");
 

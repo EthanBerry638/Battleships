@@ -489,12 +489,4 @@ public class BattleshipEngineTests
         result.Should().Be(expectedResult);
         _mockGameBoard1.Verify(x => x.PlaceShip(testShip), Times.Once);
     }
-
-    [Fact]
-    public void PlaceShip_ShouldThrowArgumentNullException_WhenShipIsNull()
-    {
-        var act = () => _battleshipEngine.PlaceShip(_player1.Id, null!);
-
-        act.Should().Throw<ArgumentNullException>().WithParameterName("ship");
-    }
 }
