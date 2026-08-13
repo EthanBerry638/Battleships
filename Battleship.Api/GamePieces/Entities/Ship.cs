@@ -11,7 +11,6 @@ public class Ship : IShip
 
     public Ship(ShipType type, List<Coordinate> coordinates)
     {
-        ArgumentNullException.ThrowIfNull(coordinates);
         ValidateCoordinates(coordinates);
         if (!IsValidShipType(type, coordinates.Count))
             throw new InvalidShipException($"Invalid ship type: {type} for ship of size {coordinates.Count}.");
@@ -30,7 +29,7 @@ public class Ship : IShip
         return _hits.Count == Coordinates.Count;
     }
 
-    private void ValidateCoordinates(List<Coordinate> coordinates)
+    private static void ValidateCoordinates(List<Coordinate> coordinates)
     {
         if (coordinates.Count <= 1) throw new InvalidShipException("A ship must occupy at least 2 coordinates.");
 
@@ -57,7 +56,7 @@ public class Ship : IShip
         }
     }
 
-    private bool IsValidShipType(ShipType shipType, int size)
+    private static bool IsValidShipType(ShipType shipType, int size)
     {
         return shipType switch
         {

@@ -1,4 +1,6 @@
 ﻿using Battleship.Api.DTOs;
+using Battleship.Api.DTOs.Requests;
+using Battleship.Api.DTOs.Responses;
 using Battleship.Api.Engine;
 using Battleship.Api.GamePieces.Data;
 using Battleship.Api.GamePieces.Entities;
@@ -30,11 +32,12 @@ public class BattleshipHub(IGameService gameService, IConnectionService connecti
 
         string gameCode = _sessionService.CreateLobby(player);
 
-        _connectionService.AddConnection(new AddConnectionRequest(Context.ConnectionId, player.Id));
+        _connectionService.AddConnection(Context.ConnectionId, player.Id);
         await Groups.AddToGroupAsync(Context.ConnectionId, gameCode);
         return gameCode;
     }
 
+    // TODO: Fix double return
     public async Task<bool> JoinLobby(JoinLobbyRequest request)
     {
         var player = new Player(request.PlayerId, request.PlayerName);
@@ -42,7 +45,7 @@ public class BattleshipHub(IGameService gameService, IConnectionService connecti
 
         if (engine is null) return false;
 
-        _connectionService.AddConnection(new AddConnectionRequest(Context.ConnectionId, player.Id));
+        _connectionService.AddConnection(Context.ConnectionId, player.Id);
         await Groups.AddToGroupAsync(Context.ConnectionId, request.GameCode);
         
         var message = new GameCreatedResponse(engine.CurrentPlayer, engine.Players[0].Id, engine.Players[1].Id);
@@ -56,20 +59,18 @@ public class BattleshipHub(IGameService gameService, IConnectionService connecti
         return _gameService.PlaceShip(request);
     }
 
-    public async Task TryStartGame(Guid playerId)
+    public async Task TryStartGame(TryStartGameRequest request)
     {
-        StartGameOutcome outcome = _gameService.TryStartGame(playerId);
+        StartGameResponse response = _gameService.TryStartGame(request.PlayerId);
         
-        if (outcome.Result.Status is GameStartStatus.Started)
-            await Clients.Group(outcome.GameCode).SendAsync("GameStarted", outcome.Result);
+        if (response.Result.Status is GameStartStatus.Started)
+            await Clients.Group(response.GameCode).SendAsync("GameStarted", response.Result);
         else
-            await Clients.Caller.SendAsync("GameNotStarted", outcome.Result);
+            await Clients.Caller.SendAsync("GameNotStarted", response.Result);
     }
 
-    public Player? GetWinner(string gameCode)
+    public Player? GetWinner(GetWinnerRequest request)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(gameCode);
-
-        return _gameService.GetWinner(gameCode);
+        return _gameService.GetWinner(request.GameCode);
     }
 }

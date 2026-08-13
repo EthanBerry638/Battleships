@@ -1,3 +1,3 @@
 ﻿namespace Battleship.Api.Exceptions;
 
-public class InvalidCoordinateException(string message) : Exception(message);
+public class InvalidCoordinateException(string message) : BattleshipException(message);

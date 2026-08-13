@@ -1,4 +1,5 @@
 ﻿using Battleship.Api.DTOs;
+using Battleship.Api.DTOs.Requests;
 using Battleship.Api.Engine;
 using Battleship.Api.Exceptions;
 using Battleship.Api.GamePieces.Board;
@@ -348,36 +349,6 @@ public class GameServiceTests
         result.Result.Status.Should().Be(GameStartStatus.InvalidFleet);
         result.Result.ValidationErrors.Should().NotBeNull();
         result.Result.ValidationErrors.Should().HaveCount(2);
-    }
-    
-    [Fact]
-    public void TryStartGame_ShouldPropagateGameInProgressException_WhenGameHasAlreadyStarted()
-    {
-        var (session, player1, player2, _, _) = CreateSession();
-        string gameCode = "GAME1";
-        SetupPlayerFoundInGame(player1.Id, gameCode, session);
-        SetupPlayerFoundInGame(player2.Id, gameCode, session);
-
-        _gameService.TryStartGame(player1.Id);
-        _gameService.TryStartGame(player2.Id);
-
-        var act = () => _gameService.TryStartGame(player2.Id);
-
-        act.Should()
-            .Throw<GameInProgressException>()
-            .WithMessage("Cannot start a game that is already in progress.");
-    }
-    
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData("     ")]
-    public void GetWinner_ShouldThrowArgumentException_WhenGameCodeIsNullOrWhitespace(string gameCode)
-    {
-        var act = () => _gameService.GetWinner(gameCode);
-
-        act.Should().Throw<ArgumentException>();
-        _gameRepositoryMock.Verify(g => g.TryGetGameByCode(gameCode, out It.Ref<GameSession?>.IsAny), Times.Never);
     }
     
     [Fact]

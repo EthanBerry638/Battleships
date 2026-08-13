@@ -1,5 +1,7 @@
 ﻿using Battleship.Api.Repositories;
 using Battleship.Api.DTOs;
+using Battleship.Api.DTOs.Requests;
+using Battleship.Api.DTOs.Responses;
 using Battleship.Api.Exceptions;
 using Battleship.Api.GamePieces.Data;
 using Battleship.Api.Engine;
@@ -27,7 +29,7 @@ public class GameService (IGameRepository gameRepository) : IGameService
         }
     }
     
-    public StartGameOutcome TryStartGame(Guid playerId)
+    public StartGameResponse TryStartGame(Guid playerId)
     {
         if (!_gameRepository.TryFindKeyByPlayerId(playerId, out string? gameCode))
             throw new PlayerNotFoundException($"No active game found for player with id {playerId}.");
@@ -35,21 +37,24 @@ public class GameService (IGameRepository gameRepository) : IGameService
         if (!_gameRepository.TryGetGameByCode(gameCode!, out GameSession? session))
             throw new GameNotFoundException($"Game by game code: {gameCode} not found.");
 
+        // TODO: Refactor game start execution order.
+        // Currently, calling session.Engine.TryStartGame() validates both boards.
+        // If player 1 clicks ready while player 2 is still configuring their fleet,
+        // Player 1 receives and invalid fleet error for players 2's board and state mutates early
+        
         lock (session!.Lock)
         {
             session.SetPlayerReady(playerId);
 
             if (!session.BothPlayersReady)
-                return new StartGameOutcome(gameCode!, GameStartResult.WaitingForOpponent());
+                return new StartGameResponse(gameCode!, GameStartResult.WaitingForOpponent());
 
-            return new StartGameOutcome(gameCode!, session.Engine.TryStartGame());
+            return new StartGameResponse(gameCode!, session.Engine.TryStartGame());
         }
     }
 
     public Player? GetWinner(string gameCode)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(gameCode);
-
         if (!_gameRepository.TryGetGameByCode(gameCode, out GameSession? session))
             throw new GameNotFoundException($"Game by game code: {gameCode} not found.");
 

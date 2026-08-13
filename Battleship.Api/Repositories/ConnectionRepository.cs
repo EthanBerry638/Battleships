@@ -7,9 +7,9 @@ public class ConnectionRepository : IConnectionRepository
 {
     private readonly ConcurrentDictionary<string, Guid> _connections = new();
 
-    public bool TryAddConnection(AddConnectionRequest request)
+    public bool TryAddConnection(string connectionId, Guid playerId)
     {
-        return _connections.TryAdd(request.ConnectionId, request.PlayerId);
+        return _connections.TryAdd(connectionId, playerId);
     }
     
     public bool TryRemoveConnection(string connectionId, out Guid playerId)

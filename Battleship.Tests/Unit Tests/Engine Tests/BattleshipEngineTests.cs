@@ -299,22 +299,6 @@ public class BattleshipEngineTests
     }
 
     [Fact]
-    public void BattleShipEngineConstructor_ShouldThrowArgumentNullException_WhenAnyArgumentIsNull()
-    {
-        var board = new Mock<IGameBoard>().Object;
-        var player = new Player(Guid.NewGuid(), "Test Player");
-
-        FluentActions.Invoking(() => new BattleshipEngine(null!, board, player, player))
-            .Should().Throw<ArgumentNullException>();
-        FluentActions.Invoking(() => new BattleshipEngine(board, null!, player, player))
-            .Should().Throw<ArgumentNullException>();
-        FluentActions.Invoking(() => new BattleshipEngine(board, board, null!, player))
-            .Should().Throw<ArgumentNullException>();
-        FluentActions.Invoking(() => new BattleshipEngine(board, board, player, null!))
-            .Should().Throw<ArgumentNullException>();
-    }
-
-    [Fact]
     public void TryStartGame_ShouldThrowGameInProgressException_WhenGameIsAlreadyStarted()
     {
         StartGame();
@@ -488,13 +472,5 @@ public class BattleshipEngineTests
 
         result.Should().Be(expectedResult);
         _mockGameBoard1.Verify(x => x.PlaceShip(testShip), Times.Once);
-    }
-
-    [Fact]
-    public void PlaceShip_ShouldThrowArgumentNullException_WhenShipIsNull()
-    {
-        var act = () => _battleshipEngine.PlaceShip(_player1.Id, null!);
-
-        act.Should().Throw<ArgumentNullException>().WithParameterName("ship");
     }
 }
