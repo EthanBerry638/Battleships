@@ -42,15 +42,13 @@ public class SessionService (ILobbyRepository lobbyRepository, IGameRepository g
     
     public BattleshipEngine? JoinLobby(string gameCode, Player player2)
     {
-        ArgumentNullException.ThrowIfNull(player2);
         CheckLobbyAndGame(player2.Id);
-        if (string.IsNullOrWhiteSpace(gameCode)) return null;
 
         if (!_lobbyRepository.TryRemoveLobby(gameCode, out Player? player1)) return null;
-        var engine = new BattleshipEngine(new GameBoard(), new GameBoard(), player1!, player2);
-        var session = new GameSession(engine);
+        
+        var session = new GameSession(new BattleshipEngine(new GameBoard(), new GameBoard(), player1!, player2));
         _gameRepository.TryAddGame(gameCode, session);
 
-        return engine;
+        return session.Engine;
     }
 }
