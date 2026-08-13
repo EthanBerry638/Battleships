@@ -1,18 +1,11 @@
 ﻿namespace Battleship.Api.Engine;
 
-public class GameSession
+public class GameSession(BattleshipEngine engine)
 {
     private readonly HashSet<Guid> _readyPlayers = [];
     public object Lock { get; } = new();
-    public BattleshipEngine Engine { get; }
+    public BattleshipEngine Engine { get; } = engine;
     public bool BothPlayersReady => _readyPlayers.Count == 2;
-
-    public GameSession(BattleshipEngine engine)
-    {
-        ArgumentNullException.ThrowIfNull(engine);
-        
-        Engine = engine;
-    }
 
     public void SetPlayerReady(Guid playerId)
     { 
