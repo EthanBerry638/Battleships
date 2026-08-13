@@ -90,18 +90,6 @@ public class SessionServiceTests
             .WithMessage("Player is already in an active lobby or game.");
         _mockGameRepository.Verify(r => r.IsPlayerInGame(_dummyPlayer1.Id), Times.Once);
     }
-    
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData("     ")]
-    public void GetGame_ShouldReturnNull_WhenGameCodeIsNullOrWhitespace(string? gameCode)
-    {
-        var result = _sessionService.GetGame(gameCode!);
-
-        result.Should().BeNull();
-        _mockGameRepository.Verify(r => r.TryGetGameByCode(It.IsAny<string>(), out It.Ref<GameSession?>.IsAny), Times.Never);
-    }
 
     [Fact]
     public void GetGame_ShouldReturnNull_WhenGameSessionNotFound()

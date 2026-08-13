@@ -35,7 +35,6 @@ public class SessionService (ILobbyRepository lobbyRepository, IGameRepository g
 
     public BattleshipEngine? GetGame(string gameCode)
     {
-        if (string.IsNullOrWhiteSpace(gameCode)) return null;
         _gameRepository.TryGetGameByCode(gameCode, out GameSession? session);
         return session?.Engine;
     }
