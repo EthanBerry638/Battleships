@@ -12,9 +12,10 @@ This project provides a game server for playing Battleship live against another 
 
 ## Tech Stack 🛠️
 
-- **.NET 8 / ASP.NET Core** — API host
-- **SignalR** — real-time communication between server and clients
-- **xUnit, Moq, FluentAssertions** — test suite
+- **.NET 8 / ASP.NET Core**: API host
+- **SignalR**: real-time communication between server and clients
+- **FluentValidation**: request DTO validation
+- **xUnit, Moq, FluentAssertions**: test suite
 
 ---
 
@@ -22,23 +23,29 @@ This project provides a game server for playing Battleship live against another 
 
 The solution is organized into two projects:
 
-- **Battleship.Api:** The game server: hub, game logic, in-memory session management, and supporting types
-- **Battleship.Tests:** Unit tests covering the engine, board, hub, manager, parser, ship, and player logic
+- **Battleship.Api:** The game server: hub, hub filters, game logic, in-memory repositories, and supporting types
+- **Battleship.Tests:** Unit tests covering the engine, board, hub, services, repositories, ship, player, coordinate, and DTO validator logic, plus integration tests covering the hub end-to-end
 
 Core components of **Battleship.Api**:
 
-- **Hubs:** `BattleshipHub`: the SignalR entry point clients connect to. Exposes `CreateLobby`, `JoinLobby`, and `PlaceShip`, and handles disconnects (with a grace period before a game is torn down)
+- **Hubs:** `BattleshipHub`: the SignalR entry point clients connect to. Exposes `CreateLobby`, `JoinLobby`, `PlaceShip`, `TryStartGame`, and `GetWinner`, and handles disconnects (with a grace period before a game is torn down)
+    - **Filters:** `ValidationHubFilter` runs the matching FluentValidation validator against every hub method argument before the method executes, and rejects missing required arguments; `ExceptionHandlingHubFilter` catches validation and domain exceptions and translates them into client-safe `HubException`s, logging anything unexpected before it propagates
 - **Services:**
-    - `BattleshipManager`: coordinates lobbies, active games, and player connections
+    - `SessionService`: creates and joins lobbies, promoting a lobby into an active game once a second player joins
+    - `GameService`: routes ship placement, game-start, and winner lookups to the correct player's `GameSession`
+    - `ConnectionService`: tracks which connection belongs to which player and handles the disconnect grace period
     - `GameSession`: wraps a `BattleshipEngine` instance with a lock, so a single game session can be safely accessed by concurrent hub calls
+- **Repositories:** in-memory (`ConcurrentDictionary`-backed) storage for lobbies, games, and connections (`LobbyRepository`, `GameRepository`, `ConnectionRepository`)
 - **Engine:** `BattleshipEngine`: the core rules engine for a single match: turn order, shooting, ship placement, and win conditions
 - **GamePieces:**
     - **Entities:** `Player`, `Ship` (ship placement/adjacency/type validation lives here)
     - **Board:** `GameBoard`: grid state, tile occupancy, fleet validation, and win checks; `Tile`
     - **Data:** value types and results shared across the engine: `Coordinate`, `ShipType`, `ShotResult`, `GameState`, `PlacementResult`, `FleetValidationResult`, `GameStartResult`
-- **DTOs:** request payloads sent over the hub (`CreateLobbyRequest`, `JoinLobbyRequest`, `PlaceShipRequest`, `AddConnectionRequest`)
-- **Parsers:** `CoordinateParser`: converts board-style input (e.g. `"B7"`) into a `Coordinate`
-- **Exceptions:** domain-specific exceptions for invalid moves and game state (e.g. `NotYourTurnException`, `GameOverException`, `InvalidShipException`, `PlayerAlreadyInSessionException`)
+- **DTOs:** request/response payloads sent over the hub
+    - **Requests:** `CreateLobbyRequest`, `JoinLobbyRequest`, `PlaceShipRequest`, `TryStartGameRequest`, `GetWinnerRequest`
+    - **Responses:** `GameCreatedResponse`, `StartGameResponse`
+    - **Validators:** a FluentValidation validator for each request DTO, resolved and run automatically by `ValidationHubFilter`
+- **Exceptions:** domain-specific exceptions for invalid moves and game state, all deriving from `BattleshipException` (e.g. `NotYourTurnException`, `GameOverException`, `InvalidShipException`, `PlayerAlreadyInSessionException`, `PlayerNotFoundException`, `GameNotFoundException`)
 
 ---
 
@@ -47,9 +54,13 @@ Core components of **Battleship.Api**:
 1. A player calls `CreateLobby` and receives a short game code to share with an opponent
 2. A second player calls `JoinLobby` with that code, which spins up a `BattleshipEngine` for the match and notifies both clients the game has started
 3. Both players place their fleet via `PlaceShip`; the engine validates ship shape, adjacency, and type/size before accepting it
-5. If a player disconnects, the server waits briefly (to allow for reconnects) before ending the game and notifying the remaining player
+4. Each player calls `TryStartGame` once ready; once both players are ready, the engine validates both fleets and the match begins
+5. Players call `GetWinner` to check whether the game has been decided
+6. If a player disconnects, the server waits briefly (to allow for reconnects) before ending the game and notifying the remaining player
 
-Game state currently lives in memory on the server (`ConcurrentDictionary`-backed lobbies/games/connections in `BattleshipManager`) there is no persistence layer yet.
+Every hub method's request DTO is validated by `ValidationHubFilter` before the method body runs, and any validation or domain exception is translated into a client-safe `HubException` by `ExceptionHandlingHubFilter` — hub methods themselves don't need to handle either concern.
+
+Game state currently lives in memory on the server (`ConcurrentDictionary`-backed lobbies/games/connections), there is no persistence layer yet.
 
 ---
 
