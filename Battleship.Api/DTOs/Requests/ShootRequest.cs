@@ -1,3 +1,7 @@
-﻿namespace Battleship.Api.DTOs.Requests;
+﻿using Battleship.Api.GamePieces.Data;
 
-public record ShootRequest();
+namespace Battleship.Api.DTOs.Requests;
+
+public record ShootRequest(
+    Guid PlayerId,
+    Coordinate Coordinate);
