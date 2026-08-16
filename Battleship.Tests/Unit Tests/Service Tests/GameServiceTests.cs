@@ -610,7 +610,6 @@ public class GameServiceTests
         SetupPlayerFoundInGame(player2.Id, gameCode, session);
         session.Engine.StartGame();
         var coordinate = new Coordinate(0, 0);
-        SetupBoardForShotResult(board2Mock, coordinate, ShotResult.Duplicate);
 
         _gameService.Shoot(player1.Id, coordinate);
         _gameService.Shoot(player2.Id, new Coordinate(9, 9));
@@ -657,7 +656,6 @@ public class GameServiceTests
         session.Engine.StartGame();
         var coordinate = new Coordinate(0, 0);
         _gameService.Shoot(player1.Id, new Coordinate(9, 9));
-        SetupBoardForShotResult(board1Mock, coordinate, ShotResult.Duplicate);
 
         _gameService.Shoot(player2.Id, coordinate);
         _gameService.Shoot(player1.Id, new Coordinate(9, 9));
