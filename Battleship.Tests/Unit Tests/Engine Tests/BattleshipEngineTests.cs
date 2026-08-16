@@ -310,7 +310,9 @@ public class BattleshipEngineTests
     [Fact]
     public void StartGame_ShouldThrowGameNotInSetupException_WhenGameIsFinished()
     {
+        _mockGameBoard1.Setup(x => x.AreAllShipsSunk()).Returns(false);
         _mockGameBoard2.Setup(x => x.AreAllShipsSunk()).Returns(true);
+        _mockGameBoard2.Setup(x => x.GetTile(It.IsAny<Coordinate>())).Returns(new Tile());
         StartGame();
         _battleshipEngine.Shoot(_player1, new Coordinate(0, 0));
         
