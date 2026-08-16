@@ -24,6 +24,9 @@ public class GameService (IGameRepository gameRepository) : IGameService
         
         lock (session!.Lock)
         {
+            if (session.IsPlayerReady(request.PlayerId))
+                throw new FleetLockedException("You can't place a ship after readying.");
+            
             return session.Engine.PlaceShip(request.PlayerId, ship);
         }
     }
