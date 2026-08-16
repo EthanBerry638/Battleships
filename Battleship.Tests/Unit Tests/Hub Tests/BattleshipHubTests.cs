@@ -282,4 +282,30 @@ public class BattleshipHubTests
         result.Should().BeNull();
         _mockGameService.Verify(g => g.GetWinner(It.IsAny<string>()), Times.Once);
     }
+
+    [Fact]
+    public void ValidateFleet_ShouldReturnValidResult_WhenGameServiceReturnsValid()
+    {
+        var playerId = Guid.NewGuid();
+        var expectedResult = new FleetValidationResult(true, [], []);
+        _mockGameService.Setup(g => g.ValidateFleet(playerId)).Returns(expectedResult);
+
+        var result = CreateHub().ValidateFleet(new ValidateFleetRequest(playerId));
+
+        result.Should().Be(expectedResult);
+        _mockGameService.Verify(g => g.ValidateFleet(playerId), Times.Once);
+    }
+
+    [Fact]
+    public void ValidateFleet_ShouldReturnInvalidResult_WhenGameServiceReturnsInvalid()
+    {
+        var playerId = Guid.NewGuid();
+        var expectedResult = new FleetValidationResult(false, [ShipType.Carrier], []);
+        _mockGameService.Setup(g => g.ValidateFleet(playerId)).Returns(expectedResult);
+
+        var result = CreateHub().ValidateFleet(new ValidateFleetRequest(playerId));
+
+        result.Should().Be(expectedResult);
+        _mockGameService.Verify(g => g.ValidateFleet(playerId), Times.Once);
+    }
 }

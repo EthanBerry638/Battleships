@@ -73,4 +73,9 @@ public class BattleshipHub(IGameService gameService, IConnectionService connecti
     {
         return _gameService.GetWinner(request.GameCode);
     }
+
+    public FleetValidationResult ValidateFleet(ValidateFleetRequest request)
+    {
+        return _gameService.ValidateFleet(request.PlayerId);
+    }
 }
