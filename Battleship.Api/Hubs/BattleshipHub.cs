@@ -78,4 +78,9 @@ public class BattleshipHub(IGameService gameService, IConnectionService connecti
     {
         return _gameService.ValidateFleet(request.PlayerId);
     }
+
+    public async Task Shoot(ShootRequest request)
+    {
+        throw new NotImplementedException();
+    }
 }
