@@ -81,4 +81,22 @@ public class GameService (IGameRepository gameRepository) : IGameService
             return result;
         }
     }
+
+    public ShotResponse Shoot(Guid playerId, Coordinate coordinate)
+    {
+        if (!_gameRepository.TryFindKeyByPlayerId(playerId, out string? gameCode))
+            throw new PlayerNotFoundException($"No active game found for player with id {playerId}.");
+
+        if (!_gameRepository.TryGetGameByCode(gameCode!, out GameSession? session))
+            throw new GameNotFoundException($"Game by game code: {gameCode} not found.");
+
+        lock (session!.Lock)
+        {
+            Player player = session.Engine.Players.First(p => p.Id == playerId);
+            
+            ShotResult result = session.Engine.Shoot(player, coordinate);
+
+            return new ShotResponse(result, gameCode!, playerId, coordinate);
+        }
+    }
 }
