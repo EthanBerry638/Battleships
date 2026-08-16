@@ -219,7 +219,7 @@ public class BattleshipHubTests
     public async Task TryStartGame_ShouldSendResultToCaller_WhenWaitingForOpponent()
     {
         var playerId = Guid.NewGuid();
-        var outcome = new StartGameResponse(false, "ABC123");
+        var outcome = new StartGameResponse(false);
         _mockGameService.Setup(g => g.TryStartGame(playerId)).Returns(outcome);
         _mockClients.Setup(c => c.Caller).Returns(_mockCallerProxy.Object);
 
