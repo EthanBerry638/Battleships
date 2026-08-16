@@ -229,13 +229,14 @@ public class GameServiceTests
         var (session, player1, _, _, _) = CreateSession();
         string gameCode = "GAME1";
         SetupPlayerFoundInGame(player1.Id, gameCode, session);
-
+        _gameService.ValidateFleet(player1.Id);
+        
         var result = _gameService.TryStartGame(player1.Id);
 
         result.IsStarted.Should().BeFalse();
         result.GameCode.Should().BeNull();
-        _gameRepositoryMock.Verify(r => r.TryFindKeyByPlayerId(player1.Id, out gameCode!), Times.Once);
-        _gameRepositoryMock.Verify(r => r.TryGetGameByCode(gameCode, out session), Times.Once);
+        _gameRepositoryMock.Verify(r => r.TryFindKeyByPlayerId(player1.Id, out gameCode!), Times.Exactly(2));
+        _gameRepositoryMock.Verify(r => r.TryGetGameByCode(gameCode, out session), Times.Exactly(2));
     }
     
     [Fact]
@@ -244,13 +245,14 @@ public class GameServiceTests
         var (session, _, player2, _, _) = CreateSession();
         string gameCode = "GAME1";
         SetupPlayerFoundInGame(player2.Id, gameCode, session);
+        _gameService.ValidateFleet(player2.Id);
 
         var result = _gameService.TryStartGame(player2.Id);
 
         result.IsStarted.Should().BeFalse();
         result.GameCode.Should().BeNull();
-        _gameRepositoryMock.Verify(r => r.TryFindKeyByPlayerId(player2.Id, out gameCode!), Times.Once);
-        _gameRepositoryMock.Verify(r => r.TryGetGameByCode(gameCode, out session), Times.Once);
+        _gameRepositoryMock.Verify(r => r.TryFindKeyByPlayerId(player2.Id, out gameCode!), Times.Exactly(2));
+        _gameRepositoryMock.Verify(r => r.TryGetGameByCode(gameCode, out session), Times.Exactly(2));
     }
 
     [Fact]
