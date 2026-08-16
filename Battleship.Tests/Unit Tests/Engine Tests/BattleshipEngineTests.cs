@@ -1,4 +1,3 @@
-using Battleship.Api.DTOs;
 using Battleship.Api.Engine;
 using Battleship.Api.GamePieces.Board;
 using Battleship.Api.GamePieces.Data;
@@ -33,9 +32,7 @@ public class BattleshipEngineTests
 
     private void StartGame()
     {
-        _mockGameBoard1.Setup(x => x.ValidateFleet()).Returns(new FleetValidationResult(true, [], []));
-        _mockGameBoard2.Setup(x => x.ValidateFleet()).Returns(new FleetValidationResult(true, [], []));
-        _battleshipEngine.TryStartGame();
+        _battleshipEngine.StartGame();
     }
 
     [Fact]
@@ -299,59 +296,38 @@ public class BattleshipEngineTests
     }
 
     [Fact]
-    public void TryStartGame_ShouldThrowGameInProgressException_WhenGameIsAlreadyStarted()
+    public void StartGame_ShouldThrowGameNotInSetupException_WhenGameHasAlreadyStarted()
     {
         StartGame();
         
-        var act = () => _battleshipEngine.TryStartGame();
+        var act = () => _battleshipEngine.StartGame();
         
         act.Should()
-            .Throw<GameInProgressException>()
-            .WithMessage("Cannot start a game that is already in progress.");
+            .Throw<GameNotInSetupException>()
+            .WithMessage("You can't start a game when it's already in progress/finished.");
     }
-
-    [Theory]
-    [MemberData(nameof(InvalidFleetTestData))]
-    public void TryStartGame_ShouldReturnInvalidFleet_WhenAnyFleetIsInvalid(
-        FleetValidationResult board1Result,
-        FleetValidationResult board2Result)
+    
+    [Fact]
+    public void StartGame_ShouldThrowGameNotInSetupException_WhenGameIsFinished()
     {
-        _mockGameBoard1.Setup(x => x.ValidateFleet()).Returns(board1Result);
-        _mockGameBoard2.Setup(x => x.ValidateFleet()).Returns(board2Result);
+        _mockGameBoard2.Setup(x => x.AreAllShipsSunk()).Returns(true);
+        StartGame();
+        _battleshipEngine.Shoot(_player1, new Coordinate(0, 0));
+        
+        var act = () => _battleshipEngine.StartGame();
 
-        var result = _battleshipEngine.TryStartGame();
-
-        result.Status.Should().Be(GameStartStatus.InvalidFleet);
-        result.ValidationErrors.Should().NotBeNull();
-        _battleshipEngine.GameState.Should().Be(GameState.Setup);
-        _mockGameBoard1.Verify(x => x.ValidateFleet(), Times.Once);
-        _mockGameBoard2.Verify(x => x.ValidateFleet(), Times.Once);
-    }
-
-    public static IEnumerable<object[]> InvalidFleetTestData()
-    {
-        var invalid = new FleetValidationResult(false, [], []);
-        var valid = new FleetValidationResult(true, [], []);
-
-        yield return [invalid, valid];
-        yield return [valid, invalid];
-        yield return [invalid, invalid];
+        act.Should()
+            .Throw<GameNotInSetupException>()
+            .WithMessage("You can't start a game when it's already in progress/finished.");
     }
 
     [Fact]
-    public void TryStartGame_ShouldReturnStarted_WhenBothFleetsAreValid()
+    public void StartGame_ShouldNotThrowAndStartTheGame_WhenInSetupPhase()
     {
-        var validateFleetResult = new FleetValidationResult(true, [], []);
-        _mockGameBoard1.Setup(x => x.ValidateFleet()).Returns(validateFleetResult);
-        _mockGameBoard2.Setup(x => x.ValidateFleet()).Returns(validateFleetResult);
-
-        var result = _battleshipEngine.TryStartGame();
-
-        result.Status.Should().Be(GameStartStatus.Started);
-        result.ValidationErrors.Should().BeNull();
+        var act = () => _battleshipEngine.StartGame();
+        
+        act.Should().NotThrow();
         _battleshipEngine.GameState.Should().Be(GameState.Playing);
-        _mockGameBoard1.Verify(x => x.ValidateFleet(), Times.Once);
-        _mockGameBoard2.Verify(x => x.ValidateFleet(), Times.Once);
     }
 
     [Fact]
