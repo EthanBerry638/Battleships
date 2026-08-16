@@ -63,4 +63,23 @@ public class GameService (IGameRepository gameRepository) : IGameService
             return session.Engine.GetWinner();
         }
     }
+    
+    public FleetValidationResult ValidateFleet(Guid playerId)
+    {
+        if (!_gameRepository.TryFindKeyByPlayerId(playerId, out string? gameCode))
+            throw new PlayerNotFoundException($"No active game found for player with id {playerId}.");
+
+        if (!_gameRepository.TryGetGameByCode(gameCode!, out GameSession? session))
+            throw new GameNotFoundException($"Game by game code: {gameCode} not found.");
+        
+        lock (session!.Lock)
+        {
+            FleetValidationResult result = session.Engine.ValidateFleet(playerId);
+            
+            if (result.IsValid)
+                session.SetPlayerReady(playerId);
+
+            return result;
+        }
+    }
 }
