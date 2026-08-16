@@ -189,11 +189,10 @@ public class GameServiceTests
         var (session, player1, _, board1Mock, _) = CreateSession();
         string gameCode = "GAME1";
         SetupPlayerFoundInGame(player1.Id, gameCode, session);
-        board1Mock.Setup(b => b.ValidateFleet()).Returns(new FleetValidationResult(true, [], []));
-        _gameService.ValidateFleet(player1.Id);
+        session.SetPlayerReady(player1.Id);
         
         var act = () => _gameService.PlaceShip(new PlaceShipRequest(player1.Id, ShipType.PatrolBoat,
-            [new Coordinate(0, 0)]));
+            [new Coordinate(0, 0), new Coordinate(0, 1)]));
         
         act.Should().Throw<FleetLockedException>()
             .WithMessage("You can't place a ship after readying.");
