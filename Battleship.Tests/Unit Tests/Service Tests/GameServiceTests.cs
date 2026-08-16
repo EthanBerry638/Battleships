@@ -263,11 +263,13 @@ public class GameServiceTests
         SetupPlayerFoundInGame(player1.Id, gameCode, session);
         SetupPlayerFoundInGame(player2.Id, gameCode, session);
         
-        _gameService.TryStartGame(player1.Id);
         _gameService.ValidateFleet(player1.Id);
+        var waitResult = _gameService.TryStartGame(player1.Id);
         _gameService.ValidateFleet(player2.Id);
         var result = _gameService.TryStartGame(player2.Id);
 
+        waitResult.IsStarted.Should().BeFalse();
+        waitResult.GameCode.Should().BeNull();
         result.GameCode.Should().Be(gameCode);
         result.IsStarted.Should().BeTrue();
         result.StartingPlayerId.Should().NotBeNull();
