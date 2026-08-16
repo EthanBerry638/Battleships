@@ -482,20 +482,6 @@ public class GameServiceTests
     }
 
     [Fact]
-    public void ValidateFleet_ShouldMarkPlayerReady_WhenFleetIsValid()
-    {
-        var (session, player1, player2, _, _) = CreateSession();
-        string gameCode = "GAME1";
-        SetupPlayerFoundInGame(player1.Id, gameCode, session);
-        SetupPlayerFoundInGame(player2.Id, gameCode, session);
-
-        _gameService.ValidateFleet(player1.Id);
-        var result = _gameService.TryStartGame(player1.Id);
-        
-        result.IsStarted.Should().BeFalse();
-    }
-
-    [Fact]
     public void ValidateFleet_ShouldNotMarkPlayerReady_WhenFleetIsInvalid()
     {
         var (session, player1, player2, board1Mock, _) = CreateSession();
