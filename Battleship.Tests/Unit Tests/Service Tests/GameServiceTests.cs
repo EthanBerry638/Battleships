@@ -233,7 +233,7 @@ public class GameServiceTests
         var result = _gameService.TryStartGame(player1.Id);
 
         result.IsStarted.Should().BeFalse();
-        result.GameCode.Should().Be(gameCode);
+        result.GameCode.Should().BeNull();
         _gameRepositoryMock.Verify(r => r.TryFindKeyByPlayerId(player1.Id, out gameCode!), Times.Once);
         _gameRepositoryMock.Verify(r => r.TryGetGameByCode(gameCode, out session), Times.Once);
     }
@@ -248,7 +248,7 @@ public class GameServiceTests
         var result = _gameService.TryStartGame(player2.Id);
 
         result.IsStarted.Should().BeFalse();
-        result.GameCode.Should().Be(gameCode);
+        result.GameCode.Should().BeNull();
         _gameRepositoryMock.Verify(r => r.TryFindKeyByPlayerId(player2.Id, out gameCode!), Times.Once);
         _gameRepositoryMock.Verify(r => r.TryGetGameByCode(gameCode, out session), Times.Once);
     }
@@ -260,8 +260,10 @@ public class GameServiceTests
         string gameCode = "GAME1";
         SetupPlayerFoundInGame(player1.Id, gameCode, session);
         SetupPlayerFoundInGame(player2.Id, gameCode, session);
-
+        
         _gameService.TryStartGame(player1.Id);
+        _gameService.ValidateFleet(player1.Id);
+        _gameService.ValidateFleet(player2.Id);
         var result = _gameService.TryStartGame(player2.Id);
 
         result.GameCode.Should().Be(gameCode);
@@ -283,9 +285,9 @@ public class GameServiceTests
         var result1 = _gameService.TryStartGame(player1.Id);
         var result2 = _gameService.TryStartGame(player3.Id);
         
-        result1.GameCode.Should().Be(gameCode1);
+        result1.GameCode.Should().BeNull();
         result1.IsStarted.Should().BeFalse();
-        result2.GameCode.Should().Be(gameCode2);
+        result2.GameCode.Should().BeNull();
         result2.IsStarted.Should().BeFalse();
         _gameRepositoryMock.Verify(r => r.TryFindKeyByPlayerId(player1.Id, out gameCode1!), Times.Once);
         _gameRepositoryMock.Verify(r => r.TryGetGameByCode(gameCode1, out session1), Times.Once);
