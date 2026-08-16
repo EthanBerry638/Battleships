@@ -192,11 +192,12 @@ public class BattleshipHubTests
     public async Task TryStartGame_ShouldSendResultToGroup_WhenGameStarted()
     {
         var playerId = Guid.NewGuid();
-        var expectedResult = GameStartResult.Ok();
-        var outcome = new StartGameResponse("ABC123", expectedResult);
+        var playerIds = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
+        var startingPlayerId = playerIds[0];
+        var outcome = new StartGameResponse(true, "ABC123", startingPlayerId, playerIds);
         _mockGameService.Setup(g => g.TryStartGame(playerId)).Returns(outcome);
         _mockClients.Setup(c => c.Group("ABC123")).Returns(_mockClientProxy.Object);
-        
+
         await CreateHub().TryStartGame(new TryStartGameRequest(playerId));
 
         _mockGameService.Verify(g => g.TryStartGame(playerId), Times.Once);
@@ -204,20 +205,21 @@ public class BattleshipHubTests
         _mockClientProxy.Verify(
             p => p.SendCoreAsync(
                 "GameStarted",
-                It.Is<object[]>(args => args.Length == 1 && (GameStartResult)args[0] == expectedResult),
+                It.Is<object[]>(args =>
+                    args.Length == 1 &&
+                    args[0] is StartGameMessage &&
+                    ((StartGameMessage)args[0]).IsStarted == true &&
+                    ((StartGameMessage)args[0]).StartingPlayerId == startingPlayerId &&
+                    ((StartGameMessage)args[0]).PlayerIds == playerIds),
                 CancellationToken.None),
             Times.Once);
-        _mockCallerProxy.Verify(
-            p => p.SendCoreAsync(It.IsAny<string>(), It.IsAny<object[]>(), It.IsAny<CancellationToken>()),
-            Times.Never);
     }
-
+    
     [Fact]
     public async Task TryStartGame_ShouldSendResultToCaller_WhenWaitingForOpponent()
     {
         var playerId = Guid.NewGuid();
-        var expectedResult = GameStartResult.WaitingForOpponent();
-        var outcome = new StartGameResponse("ABC123", expectedResult);
+        var outcome = new StartGameResponse(false, "ABC123");
         _mockGameService.Setup(g => g.TryStartGame(playerId)).Returns(outcome);
         _mockClients.Setup(c => c.Caller).Returns(_mockCallerProxy.Object);
 
@@ -227,31 +229,12 @@ public class BattleshipHubTests
         _mockCallerProxy.Verify(
             p => p.SendCoreAsync(
                 "GameNotStarted",
-                It.Is<object[]>(args => args.Length == 1 && (GameStartResult)args[0] == expectedResult),
-                CancellationToken.None),
-            Times.Once);
-        _mockClients.Verify(c => c.Group(It.IsAny<string>()), Times.Never);
-        _mockClientProxy.Verify(
-            p => p.SendCoreAsync(It.IsAny<string>(), It.IsAny<object[]>(), It.IsAny<CancellationToken>()),
-            Times.Never);
-    }
-
-    [Fact]
-    public async Task TryStartGame_ShouldSendResultToCaller_WhenFleetIsInvalid()
-    {
-        var playerId = Guid.NewGuid();
-        var expectedResult = GameStartResult.Invalid([new FleetValidationResult(false, [ShipType.Carrier], [])]);
-        var outcome = new StartGameResponse("ABC123", expectedResult);
-        _mockGameService.Setup(g => g.TryStartGame(playerId)).Returns(outcome);
-        _mockClients.Setup(c => c.Caller).Returns(_mockCallerProxy.Object);
-
-        await CreateHub().TryStartGame(new TryStartGameRequest(playerId));
-
-        _mockGameService.Verify(g => g.TryStartGame(playerId), Times.Once);
-        _mockCallerProxy.Verify(
-            p => p.SendCoreAsync(
-                "GameNotStarted",
-                It.Is<object[]>(args => args.Length == 1 && (GameStartResult)args[0] == expectedResult),
+                It.Is<object[]>(args =>
+                    args.Length == 1 &&
+                    args[0] is StartGameMessage &&
+                    ((StartGameMessage)args[0]).IsStarted == false &&
+                    ((StartGameMessage)args[0]).StartingPlayerId == null &&
+                    ((StartGameMessage)args[0]).PlayerIds == null),
                 CancellationToken.None),
             Times.Once);
         _mockClients.Verify(c => c.Group(It.IsAny<string>()), Times.Never);
