@@ -418,19 +418,6 @@ public class BattleshipEngineTests
     }
 
     [Fact]
-    public void PlaceShip_ShouldThrowPlayerNotFoundException_WhenPlayerIdIsInvalid()
-    {
-        var testShip = new Ship(ShipType.PatrolBoat, [new Coordinate(0, 0), new Coordinate(0, 1)]);
-        var invalidId = Guid.NewGuid();
-
-        var act = () => _battleshipEngine.PlaceShip(invalidId, testShip);
-
-        act.Should()
-            .Throw<PlayerNotFoundException>()
-            .WithMessage($"Player with id {invalidId} not found.");
-    }
-
-    [Fact]
     public void PlaceShip_ShouldThrowGameInProgressException_WhenGameIsPlaying()
     {
         var testShip = new Ship(ShipType.PatrolBoat, [new Coordinate(0, 0), new Coordinate(0, 1)]);

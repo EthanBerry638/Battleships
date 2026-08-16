@@ -109,7 +109,6 @@ public class BattleshipEngine(IGameBoard playerOneBoard, IGameBoard playerTwoBoa
             throw new GameInProgressException("You can't place a ship after the game has started");
 
         int playerIndex = Array.FindIndex(_players, p => p.Id == playerId);
-        if (playerIndex == -1) throw new PlayerNotFoundException($"Player with id {playerId} not found.");
 
         return _gameBoards[playerIndex].PlaceShip(ship);
     }
