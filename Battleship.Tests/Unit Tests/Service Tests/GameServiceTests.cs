@@ -436,4 +436,153 @@ public class GameServiceTests
         result.Should().BeNull();
         _gameRepositoryMock.Verify(g => g.TryGetGameByCode(gameCode, out It.Ref<GameSession?>.IsAny), Times.Once);
     }
+
+    [Fact]
+    public void ValidateFleet_ShouldThrowPlayerNotFoundException_WhenPlayerIsNotInAnyActiveGame()
+    {
+        var playerId = Guid.NewGuid();
+        string? nullCode = null;
+        _gameRepositoryMock
+            .Setup(r => r.TryFindKeyByPlayerId(playerId, out nullCode))
+            .Returns(false);
+
+        var act = () => _gameService.ValidateFleet(playerId);
+
+        act.Should()
+            .Throw<PlayerNotFoundException>()
+            .WithMessage($"No active game found for player with id {playerId}.");
+        _gameRepositoryMock.Verify(r => r.TryFindKeyByPlayerId(playerId, out nullCode), Times.Once);
+        _gameRepositoryMock.Verify(r => r.TryGetGameByCode(It.IsAny<string>(), out It.Ref<GameSession?>.IsAny), Times.Never);
+    }
+
+    [Fact]
+    public void ValidateFleet_ShouldThrowGameNotFoundException_WhenGameCodeExistsButSessionNotFound()
+    {
+        var playerId = Guid.NewGuid();
+        string? gameCode = "GHOST";
+        GameSession? nullSession = null;
+        _gameRepositoryMock
+            .Setup(r => r.TryFindKeyByPlayerId(playerId, out gameCode))
+            .Returns(true);
+        _gameRepositoryMock
+            .Setup(r => r.TryGetGameByCode(gameCode, out nullSession))
+            .Returns(false);
+
+        var act = () => _gameService.ValidateFleet(playerId);
+
+        act.Should()
+            .Throw<GameNotFoundException>()
+            .WithMessage($"Game by game code: {gameCode} not found.");
+        _gameRepositoryMock.Verify(r => r.TryFindKeyByPlayerId(playerId, out gameCode), Times.Once);
+        _gameRepositoryMock.Verify(r => r.TryGetGameByCode(gameCode, out nullSession), Times.Once);
+    }
+
+    [Fact]
+    public void ValidateFleet_ShouldReturnValidResult_WhenPlayer1FleetIsValid()
+    {
+        var (session, player1, _, _, _) = CreateSession();
+        string gameCode = "GAME1";
+        SetupPlayerFoundInGame(player1.Id, gameCode, session);
+
+        var result = _gameService.ValidateFleet(player1.Id);
+
+        result.IsValid.Should().BeTrue();
+        _gameRepositoryMock.Verify(r => r.TryFindKeyByPlayerId(player1.Id, out gameCode!), Times.Once);
+        _gameRepositoryMock.Verify(r => r.TryGetGameByCode(gameCode, out session), Times.Once);
+    }
+
+    [Fact]
+    public void ValidateFleet_ShouldReturnValidResult_WhenPlayer2FleetIsValid()
+    {
+        var (session, _, player2, _, _) = CreateSession();
+        string gameCode = "GAME1";
+        SetupPlayerFoundInGame(player2.Id, gameCode, session);
+
+        var result = _gameService.ValidateFleet(player2.Id);
+
+        result.IsValid.Should().BeTrue();
+        _gameRepositoryMock.Verify(r => r.TryFindKeyByPlayerId(player2.Id, out gameCode!), Times.Once);
+        _gameRepositoryMock.Verify(r => r.TryGetGameByCode(gameCode, out session), Times.Once);
+    }
+
+    [Fact]
+    public void ValidateFleet_ShouldReturnInvalidResult_WhenPlayer1FleetIsInvalid()
+    {
+        var (session, player1, _, board1Mock, _) = CreateSession();
+        string gameCode = "GAME1";
+        board1Mock.Setup(b => b.ValidateFleet()).Returns(new FleetValidationResult(false, [], []));
+        SetupPlayerFoundInGame(player1.Id, gameCode, session);
+
+        var result = _gameService.ValidateFleet(player1.Id);
+
+        result.IsValid.Should().BeFalse();
+        _gameRepositoryMock.Verify(r => r.TryFindKeyByPlayerId(player1.Id, out gameCode!), Times.Once);
+        _gameRepositoryMock.Verify(r => r.TryGetGameByCode(gameCode, out session), Times.Once);
+    }
+
+    [Fact]
+    public void ValidateFleet_ShouldReturnInvalidResult_WhenPlayer2FleetIsInvalid()
+    {
+        var (session, _, player2, _, board2Mock) = CreateSession();
+        string gameCode = "GAME1";
+        board2Mock.Setup(b => b.ValidateFleet()).Returns(new FleetValidationResult(false, [], []));
+        SetupPlayerFoundInGame(player2.Id, gameCode, session);
+
+        var result = _gameService.ValidateFleet(player2.Id);
+
+        result.IsValid.Should().BeFalse();
+        _gameRepositoryMock.Verify(r => r.TryFindKeyByPlayerId(player2.Id, out gameCode!), Times.Once);
+        _gameRepositoryMock.Verify(r => r.TryGetGameByCode(gameCode, out session), Times.Once);
+    }
+
+    [Fact]
+    public void ValidateFleet_ShouldMarkPlayerReady_WhenFleetIsValid()
+    {
+        var (session, player1, player2, _, _) = CreateSession();
+        string gameCode = "GAME1";
+        SetupPlayerFoundInGame(player1.Id, gameCode, session);
+        SetupPlayerFoundInGame(player2.Id, gameCode, session);
+
+        _gameService.ValidateFleet(player1.Id);
+        var result = _gameService.TryStartGame(player1.Id);
+        
+        result.Result.Status.Should().Be(GameStartStatus.WaitingForOpponent);
+    }
+
+    [Fact]
+    public void ValidateFleet_ShouldNotMarkPlayerReady_WhenFleetIsInvalid()
+    {
+        var (session, player1, player2, board1Mock, _) = CreateSession();
+        string gameCode = "GAME1";
+        board1Mock.Setup(b => b.ValidateFleet()).Returns(new FleetValidationResult(false, [], []));
+        SetupPlayerFoundInGame(player1.Id, gameCode, session);
+        SetupPlayerFoundInGame(player2.Id, gameCode, session);
+
+        _gameService.ValidateFleet(player1.Id);
+        _gameService.ValidateFleet(player2.Id);
+        var result = _gameService.TryStartGame(player2.Id);
+
+        result.Result.Status.Should().Be(GameStartStatus.WaitingForOpponent);
+    }
+
+    [Fact]
+    public void ValidateFleet_ShouldRouteToCorrectSession_WhenMultipleGamesAreActive()
+    {
+        var (session1, player1, _, _, _) = CreateSession();
+        var (session2, player3, _, _, _) = CreateSession();
+        string gameCode1 = "GAME1";
+        string gameCode2 = "GAME2";
+        SetupPlayerFoundInGame(player1.Id, gameCode1, session1);
+        SetupPlayerFoundInGame(player3.Id, gameCode2, session2);
+
+        var result1 = _gameService.ValidateFleet(player1.Id);
+        var result2 = _gameService.ValidateFleet(player3.Id);
+
+        result1.IsValid.Should().BeTrue();
+        result2.IsValid.Should().BeTrue();
+        _gameRepositoryMock.Verify(r => r.TryFindKeyByPlayerId(player1.Id, out gameCode1!), Times.Once);
+        _gameRepositoryMock.Verify(r => r.TryGetGameByCode(gameCode1, out session1), Times.Once);
+        _gameRepositoryMock.Verify(r => r.TryFindKeyByPlayerId(player3.Id, out gameCode2!), Times.Once);
+        _gameRepositoryMock.Verify(r => r.TryGetGameByCode(gameCode2, out session2), Times.Once);
+    }
 }
