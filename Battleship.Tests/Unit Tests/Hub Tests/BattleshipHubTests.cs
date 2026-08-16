@@ -291,4 +291,116 @@ public class BattleshipHubTests
         result.Should().Be(expectedResult);
         _mockGameService.Verify(g => g.ValidateFleet(playerId), Times.Once);
     }
+    
+    [Fact]
+    public async Task Shoot_ShouldSendHitMessageToGroup_WhenCalled()
+    {
+        var playerId = Guid.NewGuid();
+        string gameCode = "ABC123";
+        var coordinate = new Coordinate(3, 5);
+        var request = new ShootRequest(playerId, coordinate);
+        var response = new ShotResponse(ShotResult.Hit, gameCode, playerId, coordinate);
+        _mockGameService.Setup(g => g.Shoot(playerId, coordinate)).Returns(response);
+        _mockClients.Setup(c => c.Group(gameCode)).Returns(_mockClientProxy.Object);
+
+        await CreateHub().Shoot(request);
+
+        _mockGameService.Verify(g => g.Shoot(playerId, coordinate), Times.Once);
+        _mockClients.Verify(c => c.Group(gameCode), Times.Once);
+        _mockClientProxy.Verify(
+            p => p.SendCoreAsync(
+                "Shot",
+                It.Is<object[]>(args =>
+                    args.Length == 1 &&
+                    args[0] is ShotMessage &&
+                    ((ShotMessage)args[0]).Result == ShotResult.Hit &&
+                    ((ShotMessage)args[0]).ShooterId == playerId &&
+                    ((ShotMessage)args[0]).Coordinate == coordinate),
+                CancellationToken.None),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task Shoot_ShouldSendMissMessageToGroup_WhenShotMisses()
+    {
+        var playerId = Guid.NewGuid();
+        string gameCode = "ABC123";
+        var coordinate = new Coordinate(0, 0);
+        var request = new ShootRequest(playerId, coordinate);
+        var response = new ShotResponse(ShotResult.Miss, gameCode, playerId, coordinate);
+        _mockGameService.Setup(g => g.Shoot(playerId, coordinate)).Returns(response);
+        _mockClients.Setup(c => c.Group(gameCode)).Returns(_mockClientProxy.Object);
+
+        await CreateHub().Shoot(request);
+
+        _mockGameService.Verify(g => g.Shoot(playerId, coordinate), Times.Once);
+        _mockClients.Verify(c => c.Group(gameCode), Times.Once);
+        _mockClientProxy.Verify(
+            p => p.SendCoreAsync(
+                "Shot",
+                It.Is<object[]>(args =>
+                    args.Length == 1 &&
+                    args[0] is ShotMessage &&
+                    ((ShotMessage)args[0]).Result == ShotResult.Miss &&
+                    ((ShotMessage)args[0]).ShooterId == playerId &&
+                    ((ShotMessage)args[0]).Coordinate == coordinate),
+                CancellationToken.None),
+            Times.Once);
+    }
+    
+    [Fact]
+    public async Task Shoot_ShouldSendDuplicateMessageToGroup_WhenShotIsADuplicate()
+    {
+        var playerId = Guid.NewGuid();
+        var coordinate = new Coordinate(0, 0);
+        string gameCode = "XYZ789";
+        var request = new ShootRequest(playerId, coordinate);
+        var response = new ShotResponse(ShotResult.Duplicate, gameCode, playerId, coordinate);
+        _mockGameService.Setup(g => g.Shoot(playerId, coordinate)).Returns(response);
+        _mockClients.Setup(c => c.Group(gameCode)).Returns(_mockClientProxy.Object);
+
+        await CreateHub().Shoot(request);
+
+        _mockGameService.Verify(g => g.Shoot(playerId, coordinate), Times.Once);
+        _mockClients.Verify(c => c.Group(gameCode), Times.Once);
+        _mockClientProxy.Verify(
+            p => p.SendCoreAsync(
+                "Shot",
+                It.Is<object[]>(args =>
+                    args.Length == 1 &&
+                    args[0] is ShotMessage &&
+                    ((ShotMessage)args[0]).Result == ShotResult.Duplicate &&
+                    ((ShotMessage)args[0]).ShooterId == playerId &&
+                    ((ShotMessage)args[0]).Coordinate == coordinate),
+                CancellationToken.None),
+            Times.Once);
+    }
+    
+    [Fact]
+    public async Task Shoot_ShouldSendSunkMessageToGroup_WhenShotIsASink()
+    {
+        var playerId = Guid.NewGuid();
+        var coordinate = new Coordinate(0, 0);
+        string gameCode = "XYZ789";
+        var request = new ShootRequest(playerId, coordinate);
+        var response = new ShotResponse(ShotResult.Sunk, gameCode, playerId, coordinate);
+        _mockGameService.Setup(g => g.Shoot(playerId, coordinate)).Returns(response);
+        _mockClients.Setup(c => c.Group(gameCode)).Returns(_mockClientProxy.Object);
+
+        await CreateHub().Shoot(request);
+
+        _mockGameService.Verify(g => g.Shoot(playerId, coordinate), Times.Once);
+        _mockClients.Verify(c => c.Group(gameCode), Times.Once);
+        _mockClientProxy.Verify(
+            p => p.SendCoreAsync(
+                "Shot",
+                It.Is<object[]>(args =>
+                    args.Length == 1 &&
+                    args[0] is ShotMessage &&
+                    ((ShotMessage)args[0]).Result == ShotResult.Sunk &&
+                    ((ShotMessage)args[0]).ShooterId == playerId &&
+                    ((ShotMessage)args[0]).Coordinate == coordinate),
+                CancellationToken.None),
+            Times.Once);
+    }
 }

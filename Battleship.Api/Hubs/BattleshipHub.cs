@@ -81,6 +81,10 @@ public class BattleshipHub(IGameService gameService, IConnectionService connecti
 
     public async Task Shoot(ShootRequest request)
     {
-        throw new NotImplementedException();
+        ShotResponse response = _gameService.Shoot(request.PlayerId, request.Coordinate);
+        
+        ShotMessage message = new(response.Result, response.ShooterId, response.Coordinate);
+        
+        await Clients.Group(response.GameCode).SendAsync("Shot", message);
     }
 }
