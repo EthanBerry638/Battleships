@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.AspNetCore.Http.Connections;
 using Battleship.Api.DTOs.Requests;
+using Battleship.Api.DTOs.Responses;
 using Battleship.Api.GamePieces.Data;
 using Battleship.Api.GamePieces.Entities;
 using FluentAssertions;
@@ -70,13 +71,13 @@ public class BattleshipFullGameFlowIntegrationTests : IAsyncLifetime
         var p1Id = Guid.NewGuid();
         var p2Id = Guid.NewGuid();
 
-        var p1GameStartedTcs = new TaskCompletionSource<GameStartResult>();
-        var p2GameStartedTcs = new TaskCompletionSource<GameStartResult>();
-        var p1WaitingTcs = new TaskCompletionSource<GameStartResult>();
+        var p1GameStartedTcs = new TaskCompletionSource<StartGameMessage>();
+        var p2GameStartedTcs = new TaskCompletionSource<StartGameMessage>();
+        var p1WaitingTcs = new TaskCompletionSource<StartGameMessage>();
 
-        _p1Conn.On<GameStartResult>("GameStarted", res => p1GameStartedTcs.TrySetResult(res));
-        _p2Conn.On<GameStartResult>("GameStarted", res => p2GameStartedTcs.TrySetResult(res));
-        _p1Conn.On<GameStartResult>("GameNotStarted", res => p1WaitingTcs.TrySetResult(res));
+        _p1Conn.On<StartGameMessage>("GameStarted", res => p1GameStartedTcs.TrySetResult(res));
+        _p2Conn.On<StartGameMessage>("GameStarted", res => p2GameStartedTcs.TrySetResult(res));
+        _p1Conn.On<StartGameMessage>("GameNotStarted", res => p1WaitingTcs.TrySetResult(res));
 
         string gameCode = await _p1Conn.InvokeAsync<string>(
             "CreateLobby", new CreateLobbyRequest(p1Id, "Player 1"));
@@ -88,23 +89,27 @@ public class BattleshipFullGameFlowIntegrationTests : IAsyncLifetime
 
         await PlaceFleet(_p1Conn, p1Id, "Player 1");
         await PlaceFleet(_p2Conn, p2Id, "Player 2");
-        
+
+        await _p1Conn.InvokeAsync("ValidateFleet", new ValidateFleetRequest(p1Id));
         await _p1Conn.InvokeAsync("TryStartGame", new TryStartGameRequest(p1Id));
 
         Task p1WaitResult = await Task.WhenAny(p1WaitingTcs.Task, Task.Delay(5000));
         p1WaitResult.Should().Be(p1WaitingTcs.Task, "Player 1 should receive GameNotStarted while waiting for Player 2");
 
-        GameStartResult p1WaitData = await p1WaitingTcs.Task;
-        p1WaitData.Status.Should().Be(GameStartStatus.WaitingForOpponent);
-        
+        StartGameMessage p1WaitData = await p1WaitingTcs.Task;
+        p1WaitData.IsStarted.Should().BeFalse();
+
+        await _p2Conn.InvokeAsync("ValidateFleet", new ValidateFleetRequest(p2Id));
         await _p2Conn.InvokeAsync("TryStartGame", new TryStartGameRequest(p2Id));
-        
+
         Task groupBroadcast = Task.WhenAll(p1GameStartedTcs.Task, p2GameStartedTcs.Task);
         Task completed = await Task.WhenAny(groupBroadcast, Task.Delay(5000));
         completed.Should().Be(groupBroadcast, "both players should receive the GameStarted broadcast");
 
-        GameStartResult finalResult = await p1GameStartedTcs.Task;
-        finalResult.Status.Should().Be(GameStartStatus.Started);
+        StartGameMessage finalResult = await p1GameStartedTcs.Task;
+        finalResult.IsStarted.Should().BeTrue();
+        finalResult.StartingPlayerId.Should().NotBeNull();
+        finalResult.PlayerIds.Should().HaveCount(2);
 
         Player? winner = await _p1Conn.InvokeAsync<Player?>("GetWinner", new GetWinnerRequest(gameCode));
         winner.Should().BeNull();
