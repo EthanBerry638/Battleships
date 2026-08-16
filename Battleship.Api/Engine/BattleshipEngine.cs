@@ -79,18 +79,12 @@ public class BattleshipEngine(IGameBoard playerOneBoard, IGameBoard playerTwoBoa
         }
     }
 
-    public GameStartResult TryStartGame()
+    public void StartGame()
     {
-        if (_gameState is GameState.Playing) 
-            throw new GameInProgressException("Cannot start a game that is already in progress.");
-
-        FleetValidationResult board1Check = _gameBoards[0].ValidateFleet();
-        FleetValidationResult board2Check = _gameBoards[1].ValidateFleet();
-
-        if (!board1Check.IsValid || !board2Check.IsValid) return GameStartResult.Invalid([board1Check, board2Check]);
+        if (_gameState is not GameState.Setup)
+            throw new GameNotInSetupException("You can't start a game when it's already in progress/finished.");
 
         _gameState = GameState.Playing;
-        return GameStartResult.Ok();
     }
 
     public Player? GetWinner()
@@ -109,8 +103,17 @@ public class BattleshipEngine(IGameBoard playerOneBoard, IGameBoard playerTwoBoa
             throw new GameInProgressException("You can't place a ship after the game has started");
 
         int playerIndex = Array.FindIndex(_players, p => p.Id == playerId);
-        if (playerIndex == -1) throw new PlayerNotFoundException($"Player with id {playerId} not found.");
 
         return _gameBoards[playerIndex].PlaceShip(ship);
+    }
+
+    public FleetValidationResult ValidateFleet(Guid playerId)
+    {
+        if (_gameState is not GameState.Setup)
+            throw new GameNotInSetupException("You can't validate a fleet when you're not in the setup phase.");
+
+        int playerIndex = Array.FindIndex(_players, p => p.Id == playerId); 
+        
+        return _gameBoards[playerIndex].ValidateFleet();
     }
 }

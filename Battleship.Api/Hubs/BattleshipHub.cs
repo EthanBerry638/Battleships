@@ -1,5 +1,4 @@
-﻿using Battleship.Api.DTOs;
-using Battleship.Api.DTOs.Requests;
+﻿using Battleship.Api.DTOs.Requests;
 using Battleship.Api.DTOs.Responses;
 using Battleship.Api.Engine;
 using Battleship.Api.GamePieces.Data;
@@ -63,14 +62,21 @@ public class BattleshipHub(IGameService gameService, IConnectionService connecti
     {
         StartGameResponse response = _gameService.TryStartGame(request.PlayerId);
         
-        if (response.Result.Status is GameStartStatus.Started)
-            await Clients.Group(response.GameCode).SendAsync("GameStarted", response.Result);
+        StartGameMessage message = new(response.IsStarted, response.StartingPlayerId, response.PlayerIds);
+        
+        if (response.IsStarted)
+            await Clients.Group(response.GameCode!).SendAsync("GameStarted", message);
         else
-            await Clients.Caller.SendAsync("GameNotStarted", response.Result);
+            await Clients.Caller.SendAsync("GameNotStarted", message);
     }
 
     public Player? GetWinner(GetWinnerRequest request)
     {
         return _gameService.GetWinner(request.GameCode);
+    }
+
+    public FleetValidationResult ValidateFleet(ValidateFleetRequest request)
+    {
+        return _gameService.ValidateFleet(request.PlayerId);
     }
 }

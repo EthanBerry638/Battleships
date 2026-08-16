@@ -11,4 +11,5 @@ public interface IGameService
     PlacementResult PlaceShip(PlaceShipRequest request);
     StartGameResponse TryStartGame(Guid playerId);
     Player? GetWinner(string gameCode);
+    FleetValidationResult ValidateFleet(Guid playerId);
 }

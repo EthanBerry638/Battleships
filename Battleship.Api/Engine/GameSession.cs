@@ -6,6 +6,7 @@ public class GameSession(BattleshipEngine engine)
     public object Lock { get; } = new();
     public BattleshipEngine Engine { get; } = engine;
     public bool BothPlayersReady => _readyPlayers.Count == 2;
+    public bool IsPlayerReady(Guid playerId) => _readyPlayers.Contains(playerId);
 
     public void SetPlayerReady(Guid playerId)
     { 
