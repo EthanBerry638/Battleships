@@ -184,6 +184,22 @@ public class GameServiceTests
     }
 
     [Fact]
+    public void PlaceShip_ShouldThrowFleetLockedException_WhenPlayerTriesToPlaceShipAfterReadying()
+    {
+        var (session, player1, _, board1Mock, _) = CreateSession();
+        string gameCode = "GAME1";
+        SetupPlayerFoundInGame(player1.Id, gameCode, session);
+        board1Mock.Setup(b => b.ValidateFleet()).Returns(new FleetValidationResult(true, [], []));
+        _gameService.ValidateFleet(player1.Id);
+        
+        var act = () => _gameService.PlaceShip(new PlaceShipRequest(player1.Id, ShipType.PatrolBoat,
+            [new Coordinate(0, 0)]));
+        
+        act.Should().Throw<FleetLockedException>()
+            .WithMessage("You can't place a ship after readying.");
+    }
+
+    [Fact]
     public void TryStartGame_ShouldThrowPlayerNotFoundException_WhenPlayerIsNotInAnyActiveGame()
     {
         var playerId = Guid.NewGuid();
