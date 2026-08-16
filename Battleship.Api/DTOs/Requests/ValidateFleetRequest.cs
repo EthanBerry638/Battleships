@@ -1,3 +1,3 @@
 ﻿namespace Battleship.Api.DTOs.Requests;
 
-public record ValidateFleetRequest(Guid playerId);
+public record ValidateFleetRequest(Guid PlayerId);
