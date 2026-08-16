@@ -460,4 +460,68 @@ public class BattleshipEngineTests
         result.Should().Be(expectedResult);
         _mockGameBoard1.Verify(x => x.PlaceShip(testShip), Times.Once);
     }
+    
+    [Fact]
+    public void ValidateFleet_WithPlayer1_ShouldValidateBoard1_WhenInSetupPhase()
+    {
+        var expectedResult = new FleetValidationResult(true, [], []);
+        _mockGameBoard1.Setup(x => x.ValidateFleet()).Returns(expectedResult);
+
+        var result = _battleshipEngine.ValidateFleet(_player1.Id);
+
+        result.Should().Be(expectedResult);
+        _mockGameBoard1.Verify(x => x.ValidateFleet(), Times.Once);
+        _mockGameBoard2.Verify(x => x.ValidateFleet(), Times.Never);
+    }
+
+    [Fact]
+    public void ValidateFleet_WithPlayer2_ShouldValidateBoard2_WhenInSetupPhase()
+    {
+        var expectedResult = new FleetValidationResult(true, [], []);
+        _mockGameBoard2.Setup(x => x.ValidateFleet()).Returns(expectedResult);
+
+        var result = _battleshipEngine.ValidateFleet(_player2.Id);
+
+        result.Should().Be(expectedResult);
+        _mockGameBoard2.Verify(x => x.ValidateFleet(), Times.Once);
+        _mockGameBoard1.Verify(x => x.ValidateFleet(), Times.Never);
+    }
+
+    [Fact]
+    public void ValidateFleet_ShouldReturnInvalidResult_WhenFleetIsInvalid()
+    {
+        var expectedResult = new FleetValidationResult(false, [], []);
+        _mockGameBoard1.Setup(x => x.ValidateFleet()).Returns(expectedResult);
+
+        var result = _battleshipEngine.ValidateFleet(_player1.Id);
+
+        result.IsValid.Should().BeFalse();
+        _mockGameBoard1.Verify(x => x.ValidateFleet(), Times.Once);
+    }
+
+    [Fact]
+    public void ValidateFleet_ShouldThrowGameNotInSetupException_WhenGameIsPlaying()
+    {
+        StartGame();
+
+        var act = () => _battleshipEngine.ValidateFleet(_player1.Id);
+
+        act.Should()
+            .Throw<GameNotInSetupException>()
+            .WithMessage("You can't validate a fleet when you're not in the setup phase.");
+    }
+
+    [Fact]
+    public void ValidateFleet_ShouldThrowGameNotInSetupException_WhenGameIsFinished()
+    {
+        StartGame();
+        _mockGameBoard1.Setup(x => x.AreAllShipsSunk()).Returns(true);
+        _battleshipEngine.GetWinner();
+
+        var act = () => _battleshipEngine.ValidateFleet(_player1.Id);
+
+        act.Should()
+            .Throw<GameNotInSetupException>()
+            .WithMessage("You can't validate a fleet when you're not in the setup phase.");
+    }
 }

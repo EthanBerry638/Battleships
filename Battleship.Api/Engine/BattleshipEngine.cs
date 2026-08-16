@@ -112,4 +112,14 @@ public class BattleshipEngine(IGameBoard playerOneBoard, IGameBoard playerTwoBoa
 
         return _gameBoards[playerIndex].PlaceShip(ship);
     }
+
+    public FleetValidationResult ValidateFleet(Guid playerId)
+    {
+        if (_gameState is not GameState.Setup)
+            throw new GameNotInSetupException("You can't validate a fleet when you're not in the setup phase.");
+
+        int playerIndex = Array.FindIndex(_players, p => p.Id == playerId); 
+        
+        return _gameBoards[playerIndex].ValidateFleet();
+    }
 }
