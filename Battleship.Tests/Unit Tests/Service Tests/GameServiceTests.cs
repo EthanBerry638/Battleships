@@ -37,6 +37,9 @@ public class GameServiceTests
         board1.Setup(b => b.ValidateFleet()).Returns(new FleetValidationResult(true, [], []));
         board2.Setup(b => b.ValidateFleet()).Returns(new FleetValidationResult(true, [], []));
 
+        board1.Setup(b => b.GetTile(It.IsAny<Coordinate>())).Returns(new Tile());
+        board2.Setup(b => b.GetTile(It.IsAny<Coordinate>())).Returns(new Tile());
+
         var engine = new BattleshipEngine(board1.Object, board2.Object, player1, player2);
         var session = new GameSession(engine);
 
@@ -533,5 +536,177 @@ public class GameServiceTests
         _gameRepositoryMock.Verify(r => r.TryGetGameByCode(gameCode1, out session1), Times.Once);
         _gameRepositoryMock.Verify(r => r.TryFindKeyByPlayerId(player3.Id, out gameCode2!), Times.Once);
         _gameRepositoryMock.Verify(r => r.TryGetGameByCode(gameCode2, out session2), Times.Once);
+    }
+
+    [Fact]
+    public void Shoot_ShouldThrowPlayerNotFoundException_WhenPlayerIsNotInAnyActiveGame()
+    {
+        var playerId = Guid.NewGuid();
+        string? nullCode = null;
+        _gameRepositoryMock
+            .Setup(r => r.TryFindKeyByPlayerId(playerId, out nullCode))
+            .Returns(false);
+
+        var act = () => _gameService.Shoot(playerId, new Coordinate(0, 0));
+
+        act.Should()
+            .Throw<PlayerNotFoundException>()
+            .WithMessage($"No active game found for player with id {playerId}.");
+        _gameRepositoryMock.Verify(r => r.TryFindKeyByPlayerId(playerId, out nullCode), Times.Once);
+        _gameRepositoryMock.Verify(r => r.TryGetGameByCode(It.IsAny<string>(), out It.Ref<GameSession?>.IsAny), Times.Never);
+    }
+
+    [Fact]
+    public void Shoot_ShouldThrowGameNotFoundException_WhenGameCodeExistsButSessionNotFound()
+    {
+        var playerId = Guid.NewGuid();
+        string? gameCode = "GHOST";
+        GameSession? nullSession = null;
+        _gameRepositoryMock
+            .Setup(r => r.TryFindKeyByPlayerId(playerId, out gameCode))
+            .Returns(true);
+        _gameRepositoryMock
+            .Setup(r => r.TryGetGameByCode(gameCode, out nullSession))
+            .Returns(false);
+
+        var act = () => _gameService.Shoot(playerId, new Coordinate(0, 0));
+
+        act.Should()
+            .Throw<GameNotFoundException>()
+            .WithMessage($"Game by game code: {gameCode} not found.");
+        _gameRepositoryMock.Verify(r => r.TryFindKeyByPlayerId(playerId, out gameCode), Times.Once);
+        _gameRepositoryMock.Verify(r => r.TryGetGameByCode(gameCode, out nullSession), Times.Once);
+    }
+
+    [Theory]
+    [InlineData(ShotResult.Miss)]
+    [InlineData(ShotResult.Hit)]
+    [InlineData(ShotResult.Sunk)]
+    public void Shoot_ShouldReturnCorrectShotResult_WhenPlayer1Shoots(ShotResult expectedResult)
+    {
+        var (session, player1, _, _, board2Mock) = CreateSession();
+        string gameCode = "GAME1";
+        SetupPlayerFoundInGame(player1.Id, gameCode, session);
+        session.Engine.StartGame();
+        var coordinate = new Coordinate(0, 0);
+        SetupBoardForShotResult(board2Mock, coordinate, expectedResult);
+
+        var result = _gameService.Shoot(player1.Id, coordinate);
+
+        result.Result.Should().Be(expectedResult);
+        result.GameCode.Should().Be(gameCode);
+        result.ShooterId.Should().Be(player1.Id);
+        result.Coordinate.Should().Be(coordinate);
+        _gameRepositoryMock.Verify(r => r.TryFindKeyByPlayerId(player1.Id, out gameCode!), Times.Once);
+        _gameRepositoryMock.Verify(r => r.TryGetGameByCode(gameCode, out session), Times.Once);
+    }
+
+    [Fact]
+    public void Shoot_ShouldReturnDuplicate_WhenPlayer1ShootsSameCoordinateAgain()
+    {
+        var (session, player1, player2, _, board2Mock) = CreateSession();
+        string gameCode = "GAME1";
+        SetupPlayerFoundInGame(player1.Id, gameCode, session);
+        SetupPlayerFoundInGame(player2.Id, gameCode, session);
+        session.Engine.StartGame();
+        var coordinate = new Coordinate(0, 0);
+
+        _gameService.Shoot(player1.Id, coordinate);
+        _gameService.Shoot(player2.Id, new Coordinate(9, 9));
+        var result = _gameService.Shoot(player1.Id, coordinate);
+
+        result.Result.Should().Be(ShotResult.Duplicate);
+        result.GameCode.Should().Be(gameCode);
+        result.ShooterId.Should().Be(player1.Id);
+        result.Coordinate.Should().Be(coordinate);
+    }
+
+    [Theory]
+    [InlineData(ShotResult.Miss)]
+    [InlineData(ShotResult.Hit)]
+    [InlineData(ShotResult.Sunk)]
+    public void Shoot_ShouldReturnCorrectShotResult_WhenPlayer2Shoots(ShotResult expectedResult)
+    {
+        var (session, player1, player2, board1Mock, _) = CreateSession();
+        string gameCode = "GAME1";
+        SetupPlayerFoundInGame(player1.Id, gameCode, session);
+        SetupPlayerFoundInGame(player2.Id, gameCode, session);
+        session.Engine.StartGame();
+        var coordinate = new Coordinate(0, 0);
+        _gameService.Shoot(player1.Id, new Coordinate(9, 9));
+        SetupBoardForShotResult(board1Mock, coordinate, expectedResult);
+
+        var result = _gameService.Shoot(player2.Id, coordinate);
+
+        result.Result.Should().Be(expectedResult);
+        result.GameCode.Should().Be(gameCode);
+        result.ShooterId.Should().Be(player2.Id);
+        result.Coordinate.Should().Be(coordinate);
+        _gameRepositoryMock.Verify(r => r.TryFindKeyByPlayerId(player2.Id, out gameCode!), Times.Once); 
+        _gameRepositoryMock.Verify(r => r.TryGetGameByCode(gameCode, out session), Times.Exactly(2));
+    }
+
+    [Fact]
+    public void Shoot_ShouldReturnDuplicate_WhenPlayer2ShootsSameCoordinateAgain()
+    {
+        var (session, player1, player2, board1Mock, _) = CreateSession();
+        string gameCode = "GAME1";
+        SetupPlayerFoundInGame(player1.Id, gameCode, session);
+        SetupPlayerFoundInGame(player2.Id, gameCode, session);
+        session.Engine.StartGame();
+        var coordinate = new Coordinate(0, 0);
+        _gameService.Shoot(player1.Id, new Coordinate(9, 9));
+
+        _gameService.Shoot(player2.Id, coordinate);
+        _gameService.Shoot(player1.Id, new Coordinate(9, 9));
+        var result = _gameService.Shoot(player2.Id, coordinate);
+
+        result.Result.Should().Be(ShotResult.Duplicate);
+        result.GameCode.Should().Be(gameCode);
+        result.ShooterId.Should().Be(player2.Id);
+        result.Coordinate.Should().Be(coordinate);
+    }
+
+    [Fact]
+    public void Shoot_ShouldRouteToCorrectSession_WhenMultipleGamesAreActive()
+    {
+        var (session1, player1, _, _, _) = CreateSession();
+        var (session2, player3, _, _, _) = CreateSession();
+        string gameCode1 = "GAME1";
+        string gameCode2 = "GAME2";
+        SetupPlayerFoundInGame(player1.Id, gameCode1, session1);
+        SetupPlayerFoundInGame(player3.Id, gameCode2, session2);
+        session1.Engine.StartGame();
+        session2.Engine.StartGame();
+        var coordinate = new Coordinate(0, 0);
+
+        var result1 = _gameService.Shoot(player1.Id, coordinate);
+        var result2 = _gameService.Shoot(player3.Id, coordinate);
+
+        result1.GameCode.Should().Be(gameCode1);
+        result2.GameCode.Should().Be(gameCode2);
+        _gameRepositoryMock.Verify(r => r.TryFindKeyByPlayerId(player1.Id, out gameCode1!), Times.Once);
+        _gameRepositoryMock.Verify(r => r.TryGetGameByCode(gameCode1, out session1), Times.Once);
+        _gameRepositoryMock.Verify(r => r.TryFindKeyByPlayerId(player3.Id, out gameCode2!), Times.Once);
+        _gameRepositoryMock.Verify(r => r.TryGetGameByCode(gameCode2, out session2), Times.Once);
+    }
+
+    private static void SetupBoardForShotResult(Mock<IGameBoard> boardMock, Coordinate coordinate, ShotResult expectedResult)
+    {
+        switch (expectedResult)
+        {
+            case ShotResult.Miss:
+                boardMock.Setup(b => b.GetTile(coordinate)).Returns(new Tile());
+                break;
+            case ShotResult.Hit:
+                var hitShip = new Ship(ShipType.Battleship, [coordinate, new Coordinate(coordinate.X, coordinate.Y + 1), new Coordinate(coordinate.X, coordinate.Y + 2), new Coordinate(coordinate.X, coordinate.Y + 3)]);
+                boardMock.Setup(b => b.GetTile(coordinate)).Returns(new Tile { OccupyingShip = hitShip });
+                break;
+            case ShotResult.Sunk:
+                var sunkShip = new Ship(ShipType.PatrolBoat, [coordinate, new Coordinate(coordinate.X, coordinate.Y + 1)]);
+                sunkShip.RegisterHit(new Coordinate(coordinate.X, coordinate.Y + 1));
+                boardMock.Setup(b => b.GetTile(coordinate)).Returns(new Tile { OccupyingShip = sunkShip });
+                break;
+        }
     }
 }

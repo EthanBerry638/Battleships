@@ -1,5 +1,4 @@
 ﻿using Battleship.Api.GamePieces.Data;
-using Battleship.Api.DTOs;
 using Battleship.Api.DTOs.Requests;
 using Battleship.Api.DTOs.Responses;
 using Battleship.Api.GamePieces.Entities;
@@ -12,4 +11,5 @@ public interface IGameService
     StartGameResponse TryStartGame(Guid playerId);
     Player? GetWinner(string gameCode);
     FleetValidationResult ValidateFleet(Guid playerId);
+    ShotResponse Shoot(Guid playerId, Coordinate coordinate);
 }
