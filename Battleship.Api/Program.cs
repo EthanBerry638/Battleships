@@ -24,7 +24,21 @@ builder.Services.AddSignalR(options =>
     options.AddFilter<ValidationHubFilter>();         
 });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("ReactClient", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
+
 WebApplication app = builder.Build();
+
+app.UseCors("ReactClient");
 
 app.MapHub<BattleshipHub>("/gameHub");
 
