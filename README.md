@@ -19,7 +19,7 @@ This project provides a game server for playing Battleship live against another 
 
 ---
 
-## Project Structure 🏗️
+## Project Structure 
 
 The solution is organised into two projects:
 
