@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { connection, startConnection } from './signalR'
 import JoinGame from './JoinGame'
+import CreateGame from './CreateGame'
 
 type Screen = 'home' | 'create'
 
@@ -24,19 +25,6 @@ function App() {
             connection.off('GameCreated')
         }
     }, [])
-
-    async function createGame() {
-        const code = await connection.invoke<string>(
-            'CreateLobby',
-            {
-                playerId,
-                playerName: 'Player 1'
-            }
-        )
-
-        setGameCode(code)
-        setScreen('create')
-    }
     
     if (screen === 'create') {
         return (
@@ -54,9 +42,13 @@ function App() {
         <div>
             <h1>Battleship</h1>
 
-            <button onClick={createGame}>
-                Create Game
-            </button>
+            <CreateGame
+                playerId={playerId}
+                onGameCreated={(code) => {
+                    setGameCode(code)
+                    setScreen('create')
+                }}
+            />
             
             <JoinGame playerId={playerId}/>
         </div>
