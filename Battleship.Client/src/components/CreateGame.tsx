@@ -11,18 +11,18 @@ function CreateGame({ playerId, onGameCreated }: CreateGameProps) {
             'CreateLobby',
             {
                 playerId,
-                playerName: 'Player 1'
+                playerName: 'Player 1',
             }
-        )
+        );
 
-        onGameCreated(code)
+        onGameCreated(code);
     }
 
     return (
         <button onClick={createGame}>
             Create Game
         </button>
-    )
+    );
 }
 
 export default CreateGame;
