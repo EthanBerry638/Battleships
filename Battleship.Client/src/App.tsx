@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { connection, startConnection } from './signalR'
 import JoinGame from './JoinGame'
 import CreateGame from './CreateGame'
+import Home from './Home'
 
 type Screen = 'home' | 'create'
 
@@ -40,17 +41,15 @@ function App() {
 
     return (
         <div>
-            <h1>Battleship</h1>
-
+            <Home />
             <CreateGame
                 playerId={playerId}
                 onGameCreated={(code) => {
-                    setGameCode(code)
-                    setScreen('create')
+                    setGameCode(code);
+                    setScreen('create');
                 }}
             />
-            
-            <JoinGame playerId={playerId}/>
+            <JoinGame playerId={playerId} />
         </div>
     )
 }
