@@ -1,5 +1,5 @@
 ﻿import { useState } from 'react';
-import { connection } from './signalR';
+import { connection } from '../signalR';
 
 interface JoinGameProps {
     playerId: string;

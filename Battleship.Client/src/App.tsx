@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { connection, startConnection } from './signalR'
-import JoinGame from './JoinGame'
-import CreateGame from './CreateGame'
-import Home from './Home'
+import JoinGame from './components/JoinGame'
+import CreateGame from './components/CreateGame'
+import Home from './components/Home'
 
 type Screen = 'home' | 'create'
 
