@@ -1,12 +1,11 @@
-﻿import { useState } from 'react';
-import { connection } from './signalR';
+﻿import { connection } from './signalR';
 
 interface CreateGameProps {
     playerId: string;
     onGameCreated: (gameCode: string) => void;
 }
 
-function JoinGame({ playerId, onGameCreated }: CreateGameProps) {
+function CreateGame({ playerId, onGameCreated }: CreateGameProps) {
     async function createGame() {
         const code = await connection.invoke<string>(
             'CreateLobby',
@@ -18,7 +17,7 @@ function JoinGame({ playerId, onGameCreated }: CreateGameProps) {
 
         onGameCreated(code)
     }
-    
+
     return (
         <button onClick={createGame}>
             Create Game
@@ -26,4 +25,4 @@ function JoinGame({ playerId, onGameCreated }: CreateGameProps) {
     )
 }
 
-export default JoinGame;
+export default CreateGame;
