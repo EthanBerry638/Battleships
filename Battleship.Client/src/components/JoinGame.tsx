@@ -3,9 +3,10 @@ import { connection } from '../signalR';
 
 interface JoinGameProps {
     playerId: string;
+    onBack: () => void;
 }
 
-function JoinGame({ playerId }: JoinGameProps) {
+function JoinGame({ playerId, onBack }: JoinGameProps) {
     const [joinCode, setJoinCode] = useState('');
     
     async function joinGame() {
@@ -26,9 +27,10 @@ function JoinGame({ playerId }: JoinGameProps) {
             <input
                 value={joinCode}
                 onChange={(e) => setJoinCode(e.target.value)}
-                placeholder="Game code"/>
-            
+                placeholder="Game code"
+            />
             <button onClick={joinGame}>Join</button>
+            <button onClick={onBack}>Back</button>
         </div>
     )
 }
