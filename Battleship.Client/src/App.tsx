@@ -1,14 +1,13 @@
 import { useEffect, useState } from 'react';
-import { connection, startConnection } from './signalR';
+import { startConnection } from './signalR';
 import JoinGame from './components/JoinGame';
 import CreateGame from './components/CreateGame';
 import Home from './components/Home';
 
-type Screen = 'home' | 'create';
+type Screen = 'home' | 'create' | 'join';
 
 function App() {
     const [screen, setScreen] = useState<Screen>('home');
-    const [gameCode, setGameCode] = useState<string | null>(null);
     const [playerId] = useState(() => crypto.randomUUID());
 
     useEffect(() => {
@@ -16,42 +15,24 @@ function App() {
             .then(() => console.log('SignalR connected'))
             .catch(console.error);
     }, []);
-
-    useEffect(() => {
-        connection.on('GameCreated', message => {
-            console.log('GameCreated:', message);
-        });
-
-        return () => {
-            connection.off('GameCreated');
-        };
-    }, []); 
-
-    if (screen === 'create') {
-        return (
-            <div>
-                <h1>{gameCode}</h1>
-
-                <button onClick={() => setScreen('home')}>
-                    Back
-                </button>
-            </div>
-        );
+    
+    switch (screen) {
+        case 'create':
+            return <CreateGame 
+                playerId={playerId} 
+                onBack={() => setScreen('home')} 
+            />;
+        case 'join':
+            return <JoinGame
+                playerId={playerId} 
+                onBack={() => setScreen('home')}
+            />;
+        default:
+            return <Home 
+                onCreateGame={() => setScreen('create')}
+                onJoinGame={() => setScreen('join')} 
+            />;
     }
-
-    return (
-        <div>
-            <Home />
-            <CreateGame
-                playerId={playerId}
-                onGameCreated={(code) => {
-                    setGameCode(code);
-                    setScreen('create');
-                }}
-            />
-            <JoinGame playerId={playerId} />
-        </div>
-    );
 }
 
 export default App;
