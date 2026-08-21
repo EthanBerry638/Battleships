@@ -1,11 +1,13 @@
-﻿import { connection } from '../signalR';
+﻿import { useState } from 'react';
+import { connection } from '../signalR';
 
 interface CreateGameProps {
     playerId: string;
-    onGameCreated: (gameCode: string) => void;
+    onBack: () => void;
 }
 
-function CreateGame({ playerId, onGameCreated }: CreateGameProps) {
+function CreateGame({ playerId, onBack }: CreateGameProps) {
+    const [gameCode, setGameCode] = useState<string | null>(null);
     async function createGame() {
         const code = await connection.invoke<string>(
             'CreateLobby',
@@ -15,13 +17,17 @@ function CreateGame({ playerId, onGameCreated }: CreateGameProps) {
             }
         );
 
-        onGameCreated(code);
+        setGameCode(code);
     }
 
     return (
-        <button onClick={createGame}>
-            Create Game
-        </button>
+        <div>
+            <h1>Create Game</h1>
+            {gameCode && <p>Game Code: <strong>{gameCode}</strong></p>}
+            <button onClick={createGame}>Generate Game Code</button>
+            <p><small>Right now, once you generate a code you cannot join another person's game.</small></p>
+            <button onClick={onBack}>Back</button>
+        </div>
     );
 }
 
