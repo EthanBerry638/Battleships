@@ -70,7 +70,7 @@ describe('CreateGame', () => {
         ).not.toBeInTheDocument();
     });
 
-    it('displays an error and no game code when generation fails', async () => {
+    it('displays a generic error and no game code when generation fails', async () => {
         const user = userEvent.setup();
 
         invokeMock.mockRejectedValue(
@@ -96,6 +96,40 @@ describe('CreateGame', () => {
         expect(
             await screen.findByText(
                 'Unable to generate a game code. Please try again.'
+            )
+        ).toBeInTheDocument();
+
+        expect(
+            screen.queryByText(/Game Code:/i)
+        ).not.toBeInTheDocument();
+    });
+
+    it('displays already in game error and no game code when already in game/lobby', async () => {
+        const user = userEvent.setup();
+
+        invokeMock.mockRejectedValue(
+            new Error('You are already in an active lobby or game.')
+        );
+
+        render(
+            <CreateGame
+                playerId="player-123"
+                onBack={vi.fn()}
+            />
+        );
+
+        await user.click(
+            screen.getByRole('button', { name: 'Generate Game Code' })
+        );
+
+        expect(invokeMock).toHaveBeenCalledWith('CreateLobby', {
+            playerId: 'player-123',
+            playerName: 'Player 1',
+        });
+
+        expect(
+            await screen.findByText(
+                'You are already in an active lobby or game.'
             )
         ).toBeInTheDocument();
 
