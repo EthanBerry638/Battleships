@@ -107,7 +107,7 @@ describe('JoinGame', () => {
 
         invokeMock.mockRejectedValueOnce(
             new Error(
-                'Player is already in an active lobby or game.'
+                'You are already in an active lobby or game.'
             )
         );
 
