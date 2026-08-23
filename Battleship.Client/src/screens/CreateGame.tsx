@@ -24,8 +24,15 @@ function CreateGame({ playerId, onBack }: CreateGameProps) {
             );
 
             setGameCode(code);
-        } catch {
-            setError('Unable to generate a game code. Please try again.');
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+
+            if (errorMessage.includes('already in an active lobby or game')) {
+                setError('You are already in an active lobby or game.');
+            }
+            else {
+                setError('Unable to generate a game code. Please try again.');
+            }
         }
     }
 
