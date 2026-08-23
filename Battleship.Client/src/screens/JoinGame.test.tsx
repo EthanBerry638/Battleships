@@ -136,6 +136,38 @@ describe('JoinGame', () => {
         ).toBeInTheDocument();
     });
 
+    it('renders a generic message for an unexpected joining error', async () => {
+        const user = userEvent.setup();
+
+        invokeMock.mockRejectedValueOnce(
+            new Error('Failed to connect to the SignalR hub.')
+        );
+
+        render(
+            <JoinGame
+                playerId="player-1"
+                onBack={vi.fn()}
+            />
+        );
+
+        await user.type(
+            screen.getByPlaceholderText('Game code'),
+            'GAME123'
+        );
+
+        await user.click(
+            screen.getByRole('button', { name: 'Join' })
+        );
+
+        expect(invokeMock).toHaveBeenCalledOnce();
+
+        expect(
+            await screen.findByText(
+                /an error occurred while joining the game/i
+            )
+        ).toBeInTheDocument();
+    });
+
     it.each([
         { scenario: 'empty', gameCode: '' },
         { scenario: 'whitespace-only', gameCode: '   ' },
