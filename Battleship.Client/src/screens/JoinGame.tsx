@@ -31,8 +31,15 @@ function JoinGame({ playerId, onBack }: JoinGameProps) {
             }
 
             setMessage('Joined game successfully.');
-        } catch {
-            setMessage('You are already in an active lobby or game.');
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            
+            if (errorMessage.includes('already in an active lobby or game')) {
+                setMessage('You are already in an active lobby or game.');
+            }
+            else {
+                setMessage('An error occurred while joining the game.');
+            }
         }
     }
 
