@@ -11,9 +11,7 @@ function App() {
     const [playerId] = useState(() => crypto.randomUUID());
 
     useEffect(() => {
-        startConnection()
-            .then(() => console.log('SignalR connected'))
-            .catch(console.error);
+        void startConnection();
     }, []);
     
     switch (screen) {
