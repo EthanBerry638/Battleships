@@ -10,6 +10,7 @@ interface HomeProps {
 
 function Home({ playerName, setPlayerName, onCreateGame, onJoinGame, connectionStatus }: HomeProps) {
     const hasPlayerName = playerName.trim().length > 0;
+    const canClick = hasPlayerName && connectionStatus === "connected";
     
     return (
         <div>
@@ -21,12 +22,12 @@ function Home({ playerName, setPlayerName, onCreateGame, onJoinGame, connectionS
             />
             <button 
                 onClick={onCreateGame}
-                disabled={!hasPlayerName}>
+                disabled={!canClick}>
                 Create Game
             </button>
             <button 
                 onClick={onJoinGame}
-                disabled={!hasPlayerName}>
+                disabled={!canClick}>
                 Join Game
             </button>
         </div>

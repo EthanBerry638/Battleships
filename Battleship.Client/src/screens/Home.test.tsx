@@ -19,6 +19,7 @@ describe("Home", () => {
                 setPlayerName={vi.fn()}
                 onCreateGame={onCreateGame}
                 onJoinGame={onJoinGame}
+                connectionStatus="connected"
             />,
         );
 
@@ -41,6 +42,7 @@ describe("Home", () => {
                 setPlayerName={vi.fn()}
                 onCreateGame={onCreateGame}
                 onJoinGame={onJoinGame}
+                connectionStatus="connected"
             />,
         );
 
@@ -68,6 +70,46 @@ describe("Home", () => {
                     setPlayerName={vi.fn()}
                     onCreateGame={onCreateGame}
                     onJoinGame={onJoinGame}
+                    connectionStatus="connected"
+                />,
+            );
+
+            const createButton = screen.getByRole("button", {
+                name: "Create Game",
+            });
+            const joinButton = screen.getByRole("button", {
+                name: "Join Game",
+            });
+
+            expect(createButton).toBeDisabled();
+            expect(joinButton).toBeDisabled();
+
+            await user.click(createButton);
+            await user.click(joinButton);
+
+            expect(onCreateGame).not.toHaveBeenCalled();
+            expect(onJoinGame).not.toHaveBeenCalled();
+        },
+    );
+
+    it.each([
+        "connecting",
+        "reconnecting",
+        "disconnected",
+    ] as const)(
+        "disables both game actions when the connection is not connected",
+        async (connectionStatus) => {
+            const user = userEvent.setup();
+            const onCreateGame = vi.fn();
+            const onJoinGame = vi.fn();
+
+            render(
+                <Home
+                    playerName="Alice"
+                    setPlayerName={vi.fn()}
+                    onCreateGame={onCreateGame}
+                    onJoinGame={onJoinGame}
+                    connectionStatus={connectionStatus}
                 />,
             );
 
