@@ -7,6 +7,17 @@ export const connection = new signalR.HubConnectionBuilder()
     .withAutomaticReconnect()
     .build();
 
+export type Player = {
+    id: string;
+    name: string;
+}
+
+export type GameCreatedMessage = {
+    player: Player;
+    player1Id: string;
+    player2Id: string;
+}
+
 export async function startConnection(
     onStatusChange: (status: ConnectionStatus) => void) {
     connection.onreconnecting(() => {
