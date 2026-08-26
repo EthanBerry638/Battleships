@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import {type ConnectionStatus, startConnection} from './signalR';
+import { type ConnectionStatus, startConnection, onGameCreated } from './signalR';
 import JoinGame from './screens/JoinGame';
 import CreateGame from './screens/CreateGame';
 import Home from './screens/Home';
@@ -13,7 +13,13 @@ function App() {
     const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('connecting');
     
     useEffect(() => {
+        const unsubscribe = onGameCreated((message) => {
+            console.log('Game created', message);
+        });
+        
         void startConnection(setConnectionStatus);
+        
+        return unsubscribe;
     }, []);
     
     const renderCurrentScreen = () => {
