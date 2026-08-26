@@ -14,6 +14,7 @@ function JoinGame({ playerId, playerName, onBack, connectionStatus }: JoinGamePr
     const [message, setMessage] = useState<string | null>(null);
 
     const canJoin = joinCode.trim().length > 0;
+    const canClick = canJoin && connectionStatus === 'connected';
 
     async function joinGame() {
         setMessage(null);
@@ -56,7 +57,7 @@ function JoinGame({ playerId, playerName, onBack, connectionStatus }: JoinGamePr
 
             <button
                 onClick={joinGame}
-                disabled={!canJoin}
+                disabled={!canClick}
             >
                 Join
             </button>

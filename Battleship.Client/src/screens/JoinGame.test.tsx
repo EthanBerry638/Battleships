@@ -31,6 +31,7 @@ describe('JoinGame', () => {
                 playerId="player-1"
                 playerName="Bob"
                 onBack={onBack}
+                connectionStatus="connected"
             />
         );
 
@@ -51,6 +52,7 @@ describe('JoinGame', () => {
                 playerId="player-1"
                 playerName="Bob"
                 onBack={vi.fn()}
+                connectionStatus="connected"
             />
         );
 
@@ -86,6 +88,7 @@ describe('JoinGame', () => {
                 playerId="player-1"
                 playerName="Bob"
                 onBack={vi.fn()}
+                connectionStatus="connected"
             />
         );
 
@@ -119,6 +122,7 @@ describe('JoinGame', () => {
                 playerId="player-1"
                 playerName="Bob"
                 onBack={vi.fn()}
+                connectionStatus="connected"
             />
         );
 
@@ -152,6 +156,7 @@ describe('JoinGame', () => {
                 playerId="player-1"
                 playerName="Bob"
                 onBack={vi.fn()}
+                connectionStatus="connected"
             />
         );
 
@@ -186,6 +191,7 @@ describe('JoinGame', () => {
                     playerId="player-1"
                     playerName="Bob"
                     onBack={vi.fn()}
+                    connectionStatus="connected"
                 />
             );
 
@@ -198,6 +204,41 @@ describe('JoinGame', () => {
             if (gameCode) {
                 await user.type(gameCodeInput, gameCode);
             }
+
+            expect(joinButton).toBeDisabled();
+
+            await user.click(joinButton);
+
+            expect(invokeMock).not.toHaveBeenCalled();
+        }
+    );
+
+    it.each([
+        'connecting',
+        'reconnecting',
+        'disconnected',
+    ] as const)(
+        'disables joining when the connection is not connected',
+        async (connectionStatus) => {
+            const user = userEvent.setup();
+
+            render(
+                <JoinGame
+                    playerId="player-1"
+                    playerName="Bob"
+                    onBack={vi.fn()}
+                    connectionStatus={connectionStatus}
+                />
+            );
+
+            await user.type(
+                screen.getByPlaceholderText('Game code'),
+                'GAME123'
+            );
+
+            const joinButton = screen.getByRole('button', {
+                name: 'Join',
+            });
 
             expect(joinButton).toBeDisabled();
 
