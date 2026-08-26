@@ -28,6 +28,7 @@ describe('CreateGame', () => {
         render(
             <CreateGame
                 playerId="player-123"
+                playerName="Alice"
                 onBack={onBack}
             />
         );
@@ -46,6 +47,7 @@ describe('CreateGame', () => {
         render(
             <CreateGame
                 playerId="player-123"
+                playerName="Alice"
                 onBack={vi.fn()}
             />
         );
@@ -56,7 +58,7 @@ describe('CreateGame', () => {
 
         expect(invokeMock).toHaveBeenCalledWith('CreateLobby', {
             playerId: 'player-123',
-            playerName: 'Player 1',
+            playerName: 'Alice',
         });
 
         expect(
@@ -80,6 +82,7 @@ describe('CreateGame', () => {
         render(
             <CreateGame
                 playerId="player-123"
+                playerName="Alice"
                 onBack={vi.fn()}
             />
         );
@@ -90,7 +93,7 @@ describe('CreateGame', () => {
 
         expect(invokeMock).toHaveBeenCalledWith('CreateLobby', {
             playerId: 'player-123',
-            playerName: 'Player 1',
+            playerName: 'Alice',
         });
 
         expect(
@@ -114,6 +117,7 @@ describe('CreateGame', () => {
         render(
             <CreateGame
                 playerId="player-123"
+                playerName="Alice"
                 onBack={vi.fn()}
             />
         );
@@ -124,7 +128,7 @@ describe('CreateGame', () => {
 
         expect(invokeMock).toHaveBeenCalledWith('CreateLobby', {
             playerId: 'player-123',
-            playerName: 'Player 1',
+            playerName: 'Alice',
         });
 
         expect(
@@ -148,6 +152,7 @@ describe('CreateGame', () => {
         render(
             <CreateGame
                 playerId="player-123"
+                playerName="Alice"
                 onBack={vi.fn()}
             />
         );

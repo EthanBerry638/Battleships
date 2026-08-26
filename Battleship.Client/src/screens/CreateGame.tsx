@@ -3,10 +3,11 @@ import { connection } from '../signalR';
 
 interface CreateGameProps {
     playerId: string;
+    playerName: string;
     onBack: () => void;
 }
 
-function CreateGame({ playerId, onBack }: CreateGameProps) {
+function CreateGame({ playerId, playerName, onBack }: CreateGameProps) {
     const [gameCode, setGameCode] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
@@ -19,7 +20,7 @@ function CreateGame({ playerId, onBack }: CreateGameProps) {
                 'CreateLobby',
                 {
                     playerId,
-                    playerName: 'Player 1',
+                    playerName: playerName,
                 }
             );
 

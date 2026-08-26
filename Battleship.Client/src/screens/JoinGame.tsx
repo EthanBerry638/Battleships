@@ -3,10 +3,11 @@ import { connection } from '../signalR';
 
 interface JoinGameProps {
     playerId: string;
+    playerName: string;
     onBack: () => void;
 }
 
-function JoinGame({ playerId, onBack }: JoinGameProps) {
+function JoinGame({ playerId, playerName, onBack }: JoinGameProps) {
     const [joinCode, setJoinCode] = useState('');
     const [message, setMessage] = useState<string | null>(null);
 
@@ -21,7 +22,7 @@ function JoinGame({ playerId, onBack }: JoinGameProps) {
                 {
                     gameCode: joinCode,
                     playerId,
-                    playerName: 'Player 2'
+                    playerName: playerName,
                 }
             );
 

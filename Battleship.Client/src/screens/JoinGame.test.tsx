@@ -29,6 +29,7 @@ describe('JoinGame', () => {
         render(
             <JoinGame
                 playerId="player-1"
+                playerName="Bob"
                 onBack={onBack}
             />
         );
@@ -48,6 +49,7 @@ describe('JoinGame', () => {
         render(
             <JoinGame
                 playerId="player-1"
+                playerName="Bob"
                 onBack={vi.fn()}
             />
         );
@@ -63,10 +65,10 @@ describe('JoinGame', () => {
 
         expect(invokeMock).toHaveBeenCalledOnce();
 
-        expect(invokeMock).toHaveBeenCalledWith('JoinLobby', {
-            gameCode: 'GAME123',
-            playerId: 'player-1',
-            playerName: 'Player 2',
+        expect(invokeMock).toHaveBeenCalledWith("JoinLobby", {
+            gameCode: "GAME123",
+            playerId: "player-1",
+            playerName: "Bob",
         });
 
         expect(
@@ -82,6 +84,7 @@ describe('JoinGame', () => {
         render(
             <JoinGame
                 playerId="player-1"
+                playerName="Bob"
                 onBack={vi.fn()}
             />
         );
@@ -114,6 +117,7 @@ describe('JoinGame', () => {
         render(
             <JoinGame
                 playerId="player-1"
+                playerName="Bob"
                 onBack={vi.fn()}
             />
         );
@@ -146,6 +150,7 @@ describe('JoinGame', () => {
         render(
             <JoinGame
                 playerId="player-1"
+                playerName="Bob"
                 onBack={vi.fn()}
             />
         );
@@ -172,13 +177,14 @@ describe('JoinGame', () => {
         { scenario: 'empty', gameCode: '' },
         { scenario: 'whitespace-only', gameCode: '   ' },
     ])(
-        'disables joining and does not call SignalR for a $scenario game code',
+        'disables joining and does not call SignalR for a empty game code',
         async ({ gameCode }) => {
             const user = userEvent.setup();
 
             render(
                 <JoinGame
                     playerId="player-1"
+                    playerName="Bob"
                     onBack={vi.fn()}
                 />
             );
