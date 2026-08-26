@@ -1,11 +1,14 @@
-﻿interface HomeProps {
+﻿import type {ConnectionStatus} from "../signalR.ts";
+
+interface HomeProps {
     playerName: string;
     setPlayerName: (playerName: string) => void;
     onCreateGame: () => void;
     onJoinGame: () => void;
+    connectionStatus: ConnectionStatus;
 }
 
-function Home({ playerName, setPlayerName, onCreateGame, onJoinGame }: HomeProps) {
+function Home({ playerName, setPlayerName, onCreateGame, onJoinGame, connectionStatus }: HomeProps) {
     const hasPlayerName = playerName.trim().length > 0;
     
     return (

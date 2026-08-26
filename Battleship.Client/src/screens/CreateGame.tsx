@@ -1,13 +1,15 @@
 ﻿import { useState } from 'react';
 import { connection } from '../signalR';
+import type { ConnectionStatus } from '../signalR';
 
 interface CreateGameProps {
     playerId: string;
     playerName: string;
     onBack: () => void;
+    connectionStatus: ConnectionStatus;
 }
 
-function CreateGame({ playerId, playerName, onBack }: CreateGameProps) {
+function CreateGame({ playerId, playerName, onBack, connectionStatus }: CreateGameProps) {
     const [gameCode, setGameCode] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 

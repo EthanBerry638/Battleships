@@ -1,13 +1,15 @@
 ﻿import { useState } from 'react';
 import { connection } from '../signalR';
+import type { ConnectionStatus } from '../signalR';
 
 interface JoinGameProps {
     playerId: string;
     playerName: string;
     onBack: () => void;
+    connectionStatus: ConnectionStatus;
 }
 
-function JoinGame({ playerId, playerName, onBack }: JoinGameProps) {
+function JoinGame({ playerId, playerName, onBack, connectionStatus }: JoinGameProps) {
     const [joinCode, setJoinCode] = useState('');
     const [message, setMessage] = useState<string | null>(null);
 
