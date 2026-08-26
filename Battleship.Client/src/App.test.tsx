@@ -2,6 +2,7 @@
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import App from './App';
+import type { ConnectionStatus } from './signalR';
 
 afterEach(() => {
     cleanup();
@@ -9,7 +10,7 @@ afterEach(() => {
 });
 
 const { startConnectionMock } = vi.hoisted(() => ({
-    startConnectionMock: vi.fn().mockResolvedValue(undefined),
+    startConnectionMock: vi.fn(),
 }));
 
 vi.mock('./signalR', () => ({
@@ -69,12 +70,69 @@ describe('App', () => {
         vi.stubGlobal('crypto', {
             randomUUID: vi.fn(() => 'test-player-id'),
         });
+
+        startConnectionMock.mockReset();
+        startConnectionMock.mockImplementation(
+            async (onStatusChange: (status: ConnectionStatus) => void) => {
+                onStatusChange('connected');
+            },
+        );
     });
 
     it('starts the SignalR connection when the app mounts', () => {
         render(<App />);
 
         expect(startConnectionMock).toHaveBeenCalledOnce();
+    });
+
+    it('renders Home when connected', () => {
+        render(<App />);
+
+        expect(
+            screen.getByRole('heading', { name: 'Home screen' }),
+        ).toBeInTheDocument();
+    });
+
+    it('displays a loading indicator while connecting', () => {
+        startConnectionMock.mockImplementation(async () => {
+        });
+
+        render(<App />);
+
+        expect(screen.getByRole('status')).toHaveTextContent(
+            'Connecting to API',
+        );
+        expect(
+            screen.queryByRole('heading', { name: 'Home screen' }),
+        ).not.toBeInTheDocument();
+    });
+
+    it('displays a loading indicator while reconnecting', () => {
+        startConnectionMock.mockImplementation(
+            async (onStatusChange: (status: ConnectionStatus) => void) => {
+                onStatusChange('reconnecting');
+            },
+        );
+
+        render(<App />);
+
+        expect(screen.getByRole('status')).toHaveTextContent(
+            'Reconnecting to API',
+        );
+    });
+
+    it('displays an error when disconnected', () => {
+        startConnectionMock.mockImplementation(
+            async (onStatusChange: (status: ConnectionStatus) => void) => {
+                onStatusChange('disconnected');
+            },
+        );
+
+        render(<App />);
+
+        expect(screen.getByRole('alert')).toHaveTextContent(
+            'Unable to connect to the API',
+        );
     });
 
     it('switches from home to create when Create game is clicked', async () => {
