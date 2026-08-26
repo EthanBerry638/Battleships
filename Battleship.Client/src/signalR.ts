@@ -18,6 +18,14 @@ export type GameCreatedMessage = {
     player2Id: string;
 }
 
+export function onGameCreated(handler: (response: GameCreatedMessage) => void){
+    connection.on('GameCreated', handler);
+
+    return () => {
+        connection.off('GameCreated', handler);
+    };
+}
+
 export async function startConnection(
     onStatusChange: (status: ConnectionStatus) => void) {
     connection.onreconnecting(() => {
