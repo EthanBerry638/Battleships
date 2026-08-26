@@ -23,7 +23,7 @@ function CreateGame({ playerId, playerName, onBack, connectionStatus }: CreateGa
                 'CreateLobby',
                 {
                     playerId,
-                    playerName: playerName,
+                    playerName: playerName.trim(),
                 }
             );
 
