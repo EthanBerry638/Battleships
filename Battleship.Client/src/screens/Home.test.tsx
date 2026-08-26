@@ -15,6 +15,8 @@ describe("Home", () => {
 
         render(
             <Home
+                playerName="Alice"
+                setPlayerName={vi.fn()}
                 onCreateGame={onCreateGame}
                 onJoinGame={onJoinGame}
             />,
@@ -35,6 +37,8 @@ describe("Home", () => {
 
         render(
             <Home
+                playerName="Alice"
+                setPlayerName={vi.fn()}
                 onCreateGame={onCreateGame}
                 onJoinGame={onJoinGame}
             />,
@@ -47,4 +51,41 @@ describe("Home", () => {
         expect(onJoinGame).toHaveBeenCalledOnce();
         expect(onCreateGame).not.toHaveBeenCalled();
     });
+
+    it.each([
+        { description: "empty", playerName: "" },
+        { description: "whitespace-only", playerName: "   " },
+    ])(
+        "disables both game actions when the player name is empty",
+        async ({ playerName }) => {
+            const user = userEvent.setup();
+            const onCreateGame = vi.fn();
+            const onJoinGame = vi.fn();
+
+            render(
+                <Home
+                    playerName={playerName}
+                    setPlayerName={vi.fn()}
+                    onCreateGame={onCreateGame}
+                    onJoinGame={onJoinGame}
+                />,
+            );
+
+            const createButton = screen.getByRole("button", {
+                name: "Create Game",
+            });
+            const joinButton = screen.getByRole("button", {
+                name: "Join Game",
+            });
+
+            expect(createButton).toBeDisabled();
+            expect(joinButton).toBeDisabled();
+
+            await user.click(createButton);
+            await user.click(joinButton);
+
+            expect(onCreateGame).not.toHaveBeenCalled();
+            expect(onJoinGame).not.toHaveBeenCalled();
+        },
+    );
 });
