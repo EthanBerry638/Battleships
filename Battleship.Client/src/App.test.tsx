@@ -102,9 +102,10 @@ describe('App', () => {
         expect(screen.getByRole('status')).toHaveTextContent(
             'Connecting to API',
         );
+        
         expect(
-            screen.queryByRole('heading', { name: 'Home screen' }),
-        ).not.toBeInTheDocument();
+            screen.getByRole('heading', { name: 'Home screen' }),
+        ).toBeInTheDocument();
     });
 
     it('displays a loading indicator while reconnecting', () => {
@@ -119,6 +120,10 @@ describe('App', () => {
         expect(screen.getByRole('status')).toHaveTextContent(
             'Reconnecting to API',
         );
+        
+        expect(
+            screen.getByRole('heading', { name: 'Home screen' }),
+        ).toBeInTheDocument();
     });
 
     it('displays an error when disconnected', () => {
@@ -133,6 +138,10 @@ describe('App', () => {
         expect(screen.getByRole('alert')).toHaveTextContent(
             'Unable to connect to the API',
         );
+        
+        expect(
+            screen.queryByRole('heading', { name: 'Home screen' }),
+        ).toBeInTheDocument();
     });
 
     it('switches from home to create when Create game is clicked', async () => {
