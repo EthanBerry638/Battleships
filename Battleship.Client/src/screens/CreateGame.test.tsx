@@ -176,7 +176,7 @@ describe('CreateGame', () => {
         ).toBeInTheDocument();
 
         expect(
-            screen.queryByText('GAME-123')
+            screen.queryByText('GAME123')
         ).not.toBeInTheDocument();
     });
 });
