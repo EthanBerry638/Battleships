@@ -21,6 +21,45 @@ describe('CreateGame', () => {
         vi.clearAllMocks();
     });
 
+    it('enables Generate Game Code when connected', () => {
+        render(
+            <CreateGame
+                playerId="player-123"
+                playerName="Alice"
+                onBack={vi.fn()}
+                connectionStatus="connected"
+            />
+        );
+
+        expect(
+            screen.getByRole('button', { name: 'Generate Game Code' })
+        ).toBeEnabled();
+    });
+
+    it.each([
+        'connecting',
+        'reconnecting',
+        'disconnected',
+    ] as const)(
+        'disables Generate Game Code when the connection is not connected',
+        (connectionStatus) => {
+            render(
+                <CreateGame
+                    playerId="player-123"
+                    playerName="Alice"
+                    onBack={vi.fn()}
+                    connectionStatus={connectionStatus}
+                />
+            );
+
+            expect(
+                screen.getByRole('button', {
+                    name: 'Generate Game Code',
+                })
+            ).toBeDisabled();
+        }
+    );
+
     it('calls onBack when the Back button is clicked', async () => {
         const user = userEvent.setup();
         const onBack = vi.fn();
@@ -30,6 +69,7 @@ describe('CreateGame', () => {
                 playerId="player-123"
                 playerName="Alice"
                 onBack={onBack}
+                connectionStatus="connected"
             />
         );
 
@@ -49,6 +89,7 @@ describe('CreateGame', () => {
                 playerId="player-123"
                 playerName="Alice"
                 onBack={vi.fn()}
+                connectionStatus="connected"
             />
         );
 
@@ -84,6 +125,7 @@ describe('CreateGame', () => {
                 playerId="player-123"
                 playerName="Alice"
                 onBack={vi.fn()}
+                connectionStatus="connected"
             />
         );
 
@@ -119,6 +161,7 @@ describe('CreateGame', () => {
                 playerId="player-123"
                 playerName="Alice"
                 onBack={vi.fn()}
+                connectionStatus="connected"
             />
         );
 
@@ -154,6 +197,7 @@ describe('CreateGame', () => {
                 playerId="player-123"
                 playerName="Alice"
                 onBack={vi.fn()}
+                connectionStatus="connected"
             />
         );
 
