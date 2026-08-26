@@ -16,30 +16,58 @@ function App() {
         void startConnection(setConnectionStatus);
     }, []);
     
-    switch (screen) {
-        case 'create':
-            return <CreateGame 
-                connectionStatus={connectionStatus}
-                playerId={playerId} 
-                playerName={playerName}
-                onBack={() => setScreen('home')} 
-            />;
-        case 'join':
-            return <JoinGame
-                connectionStatus={connectionStatus}
-                playerId={playerId} 
-                playerName={playerName}
-                onBack={() => setScreen('home')}
-            />;
-        default:
-            return <Home 
-                connectionStatus={connectionStatus}
-                playerName={playerName}
-                setPlayerName={setPlayerName}
-                onCreateGame={() => setScreen('create')}
-                onJoinGame={() => setScreen('join')} 
-            />;
-    }
+    const renderCurrentScreen = () => {
+        switch (screen) {
+            case 'create':
+                return (
+                    <CreateGame
+                        connectionStatus={connectionStatus}
+                        playerId={playerId}
+                        playerName={playerName}
+                        onBack={() => setScreen('home')}
+                    />
+                );
+            case 'join':
+                return (
+                    <JoinGame
+                        connectionStatus={connectionStatus}
+                        playerId={playerId}
+                        playerName={playerName}
+                        onBack={() => setScreen('home')}
+                    />
+                );
+            default:
+                return (
+                    <Home
+                        connectionStatus={connectionStatus}
+                        playerName={playerName}
+                        setPlayerName={setPlayerName}
+                        onCreateGame={() => setScreen('create')}
+                        onJoinGame={() => setScreen('join')}
+                    />
+                );
+        }
+    };
+
+    return (
+        <>
+            <div>
+                {connectionStatus === 'connecting' && (
+                    <h2 role="status">Connecting to API</h2>
+                )}
+
+                {connectionStatus === 'reconnecting' && (
+                    <h2 role="status">Reconnecting to API</h2>
+                )}
+
+                {connectionStatus === 'disconnected' && (
+                    <h2 role="alert">Unable to connect to the API</h2>
+                )}
+            </div>
+
+            <main>{renderCurrentScreen()}</main>
+        </>
+    );
 }
 
 export default App;
