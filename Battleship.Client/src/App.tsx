@@ -9,6 +9,7 @@ type Screen = 'home' | 'create' | 'join';
 function App() {
     const [screen, setScreen] = useState<Screen>('home');
     const [playerId] = useState(() => crypto.randomUUID());
+    const [playerName, setPlayerName] = useState<string>('Player');
 
     useEffect(() => {
         void startConnection();
@@ -18,15 +19,19 @@ function App() {
         case 'create':
             return <CreateGame 
                 playerId={playerId} 
+                playerName={playerName}
                 onBack={() => setScreen('home')} 
             />;
         case 'join':
             return <JoinGame
                 playerId={playerId} 
+                playerName={playerName}
                 onBack={() => setScreen('home')}
             />;
         default:
             return <Home 
+                playerName={playerName}
+                setPlayerName={setPlayerName}
                 onCreateGame={() => setScreen('create')}
                 onJoinGame={() => setScreen('join')} 
             />;
