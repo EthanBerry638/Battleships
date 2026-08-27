@@ -48,23 +48,26 @@ function JoinGame({ playerId, playerName, onBack, connectionStatus }: JoinGamePr
     }
 
     return (
-        <div>
-            <input
-                value={joinCode}
-                onChange={(e) => setJoinCode(e.target.value)}
-                placeholder="Game code"
-            />
-
-            <button
-                onClick={joinGame}
-                disabled={!canClick}
-            >
-                Join
-            </button>
-
-            {message && <p>{message}</p>}
-
-            <button onClick={onBack}>Back</button>
+        <div className="page-container">
+            <div className="card">
+                <h1>Join Game</h1>
+                <input
+                    value={joinCode}
+                    onChange={(e) => setJoinCode(e.target.value)}
+                    placeholder="Game code"
+                />
+    
+                <button
+                    onClick={joinGame}
+                    disabled={!canClick}
+                >
+                    Join
+                </button>
+    
+                {message && <p>{message}</p>}
+    
+                <button onClick={onBack}>Back</button>
+            </div>
         </div>
     );
 }
