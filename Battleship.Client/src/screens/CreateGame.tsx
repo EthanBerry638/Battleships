@@ -41,18 +41,20 @@ function CreateGame({ playerId, playerName, onBack, connectionStatus }: CreateGa
     }
 
     return (
-        <div>
-            <h1>Create Game</h1>
-            {gameCode && <p>Game Code: <strong>{gameCode}</strong></p>}
-            {error && <p>{error}</p>}
-            <button 
-                onClick={createGame} 
-                disabled={!canCreate}
-            >
-                Generate Game Code
-            </button>
-            <p><small>Right now, once you generate a code you cannot join another person's game.</small></p>
-            <button onClick={onBack}>Back</button>
+        <div className="page-container">
+            <div className="card">
+                <h1>Create Game</h1>
+                {gameCode && <p>Game Code: <strong>{gameCode}</strong></p>}
+                {error && <p>{error}</p>}
+                <button 
+                    onClick={createGame} 
+                    disabled={!canCreate}
+                >
+                    Generate Game Code
+                </button>
+                <p><small>Right now, once you generate a code you cannot join another person's game.</small></p>
+                <button onClick={onBack}>Back</button>
+            </div>
         </div>
     );
 }

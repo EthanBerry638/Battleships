@@ -13,8 +13,8 @@ function Home({ playerName, setPlayerName, onCreateGame, onJoinGame, connectionS
     const canClick = hasPlayerName && connectionStatus === "connected";
     
     return (
-        <div className="home-page-container">
-            <div className="home-card">
+        <div className="page-container">
+            <div className="card">
                 <h1>Battleship</h1>
                 <input
                     value={playerName}
