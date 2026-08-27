@@ -1,4 +1,4 @@
-﻿import { cleanup, render, screen } from '@testing-library/react';
+﻿import { act, cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import App from './App';
@@ -69,6 +69,14 @@ vi.mock('./screens/JoinGame', () => ({
     ),
 }));
 
+vi.mock('./screens/Setup', () => ({
+    default: () => (
+        <div>
+            <h1>Setup screen</h1>
+        </div>
+    ),
+}));
+
 describe('App', () => {
     beforeEach(() => {
         vi.stubGlobal('crypto', {
@@ -101,6 +109,24 @@ describe('App', () => {
         expect(onGameCreatedMock).toHaveBeenCalledWith(
             expect.any(Function),
         );
+    });
+
+    it('switches to setup when the GameCreated event is received', () => {
+        render(<App />);
+
+        const gameCreatedHandler = onGameCreatedMock.mock.calls[0]?.[0] as
+            | (() => void)
+            | undefined;
+
+        expect(gameCreatedHandler).toEqual(expect.any(Function));
+
+        act(() => {
+            gameCreatedHandler!();
+        });
+
+        expect(
+            screen.getByRole('heading', { name: 'Setup screen' }),
+        ).toBeInTheDocument();
     });
 
     it('unsubscribes from GameCreated when the app unmounts', () => {

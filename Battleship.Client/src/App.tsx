@@ -3,8 +3,9 @@ import { type ConnectionStatus, startConnection, onGameCreated } from './signalR
 import JoinGame from './screens/JoinGame';
 import CreateGame from './screens/CreateGame';
 import Home from './screens/Home';
+import Setup from './screens/Setup';
 
-type Screen = 'home' | 'create' | 'join';
+type Screen = 'home' | 'create' | 'join' | 'setup';
 
 function App() {
     const [screen, setScreen] = useState<Screen>('home');
@@ -13,8 +14,8 @@ function App() {
     const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('connecting');
     
     useEffect(() => {
-        const unsubscribe = onGameCreated((message) => {
-            console.log('Game created', message);
+        const unsubscribe = onGameCreated(() => {
+            setScreen('setup');
         });
         
         void startConnection(setConnectionStatus);
@@ -41,6 +42,10 @@ function App() {
                         playerName={playerName}
                         onBack={() => setScreen('home')}
                     />
+                );
+            case 'setup':
+                return (
+                    <Setup />
                 );
             default:
                 return (
