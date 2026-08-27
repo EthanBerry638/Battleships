@@ -2,7 +2,9 @@
 
 function Setup() {
     return (
-        <Board></Board>
+        <div className="page-container">
+            <Board />
+        </div>
     );
 }
 
