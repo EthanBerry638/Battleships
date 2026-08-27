@@ -1,4 +1,8 @@
-﻿.board {
+﻿main > h1 {
+    text-align: center;
+}
+
+.board {
     display: grid;
     grid-template-columns: 2rem repeat(10, 3rem);
     width: fit-content;
