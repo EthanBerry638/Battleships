@@ -66,6 +66,10 @@ html {
     color: #ffffff;
 }
 
+.home-card button:not(:disabled):hover {
+    filter: brightness(1.1);
+}
+
 .home-card button:disabled {
     background-color: #1d2d50;
     color: #495670;
