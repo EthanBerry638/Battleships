@@ -3,7 +3,10 @@
 function Setup() {
     return (
         <div className="page-container">
-            <Board />
+            <main>
+                <h1>Setup</h1>
+                <Board />
+            </main>
         </div>
     );
 }
