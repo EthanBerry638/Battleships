@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import {type ConnectionStatus, startConnection} from './signalR';
+import { type ConnectionStatus, startConnection, onGameCreated } from './signalR';
 import JoinGame from './screens/JoinGame';
 import CreateGame from './screens/CreateGame';
 import Home from './screens/Home';
+import Setup from './screens/Setup';
 
-type Screen = 'home' | 'create' | 'join';
+type Screen = 'home' | 'create' | 'join' | 'setup';
 
 function App() {
     const [screen, setScreen] = useState<Screen>('home');
@@ -13,7 +14,13 @@ function App() {
     const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('connecting');
     
     useEffect(() => {
+        const unsubscribe = onGameCreated(() => {
+            setScreen('setup');
+        });
+        
         void startConnection(setConnectionStatus);
+        
+        return unsubscribe;
     }, []);
     
     const renderCurrentScreen = () => {
@@ -34,6 +41,14 @@ function App() {
                         playerId={playerId}
                         playerName={playerName}
                         onBack={() => setScreen('home')}
+                    />
+                );
+            case 'setup':
+                return (
+                    <Setup 
+                        playerId={playerId}
+                        playerName={playerName}
+                        connectionStatus={connectionStatus}
                     />
                 );
             default:

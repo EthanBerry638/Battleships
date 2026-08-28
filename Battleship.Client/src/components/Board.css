@@ -1,0 +1,36 @@
+﻿main > h1 {
+    text-align: center;
+}
+
+.board {
+    display: grid;
+    grid-template-columns: 2rem repeat(10, 3rem);
+    width: fit-content;
+}
+
+.board-row {
+    display: contents;
+}
+
+.label {
+    display: grid;
+    place-items: center;
+    font-weight: 600;
+}
+
+.cell {
+    display: grid;
+    width: 3rem;
+    height: 3rem;
+    place-items: center;
+    box-sizing: border-box;
+    border: 1px solid #7ca8be;
+    background: #dff4ff;
+}
+
+.coordinate-dot {
+    width: 0.35rem;
+    height: 0.35rem;
+    border-radius: 50%;
+    background: #58869d;
+}

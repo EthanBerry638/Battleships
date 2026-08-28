@@ -1,17 +1,45 @@
 ﻿import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ConnectionStatus } from './signalR';
-import { startConnection } from './signalR';
+import type {
+    ConnectionStatus,
+    GameCreatedMessage,
+} from './signalR';
+import {
+    onGameCreated,
+    startConnection,
+} from './signalR';
 
 const signalRMock = vi.hoisted(() => {
     const handlers = {
         reconnecting: undefined as (() => void) | undefined,
         reconnected: undefined as (() => void) | undefined,
         close: undefined as (() => void) | undefined,
+        gameCreated: undefined as
+            | ((response: GameCreatedMessage) => void)
+            | undefined,
     };
 
     const connection = {
         state: 'Disconnected',
         start: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
+        on: vi.fn((
+            methodName: string,
+            handler: (response: GameCreatedMessage) => void,
+        ) => {
+            if (methodName === 'GameCreated') {
+                handlers.gameCreated = handler;
+            }
+        }),
+        off: vi.fn((
+            methodName: string,
+            handler: (response: GameCreatedMessage) => void,
+        ) => {
+            if (
+                methodName === 'GameCreated' &&
+                handlers.gameCreated === handler
+            ) {
+                handlers.gameCreated = undefined;
+            }
+        }),
         onreconnecting: vi.fn((handler: () => void) => {
             handlers.reconnecting = handler;
         }),
@@ -140,5 +168,57 @@ describe('startConnection', () => {
         expect(signalRMock.connection.onreconnecting).toHaveBeenCalledOnce();
         expect(signalRMock.connection.onreconnected).toHaveBeenCalledOnce();
         expect(signalRMock.connection.onclose).toHaveBeenCalledOnce();
+    });
+
+    describe('onGameCreated', () => {
+        beforeEach(() => {
+            signalRMock.connection.on.mockClear();
+            signalRMock.connection.off.mockClear();
+            signalRMock.handlers.gameCreated = undefined;
+        });
+
+        it('registers a GameCreated listener', () => {
+            const handler = vi.fn<(response: GameCreatedMessage) => void>();
+
+            onGameCreated(handler);
+
+            expect(signalRMock.connection.on).toHaveBeenCalledOnce();
+            expect(signalRMock.connection.on).toHaveBeenCalledWith(
+                'GameCreated',
+                handler,
+            );
+        });
+
+        it('forwards a received response to the handler', () => {
+            const handler = vi.fn<(response: GameCreatedMessage) => void>();
+            const response: GameCreatedMessage = {
+                player: {
+                    id: crypto.randomUUID(),
+                    name: 'Alice',
+                },
+                player1Id: crypto.randomUUID(),
+                player2Id: crypto.randomUUID(),
+            };
+
+            onGameCreated(handler);
+            signalRMock.handlers.gameCreated?.(response);
+
+            expect(handler).toHaveBeenCalledOnce();
+            expect(handler).toHaveBeenCalledWith(response);
+        });
+
+        it('removes the listener when unsubscribed', () => {
+            const handler = vi.fn<(response: GameCreatedMessage) => void>();
+
+            const unsubscribe = onGameCreated(handler);
+            unsubscribe();
+
+            expect(signalRMock.connection.off).toHaveBeenCalledOnce();
+            expect(signalRMock.connection.off).toHaveBeenCalledWith(
+                'GameCreated',
+                handler,
+            );
+            expect(signalRMock.handlers.gameCreated).toBeUndefined();
+        });
     });
 });

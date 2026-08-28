@@ -1,20 +1,24 @@
-﻿import { cleanup, render, screen } from '@testing-library/react';
+﻿import { act, cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import App from './App';
-import type { ConnectionStatus } from './signalR';
+import { type ConnectionStatus } from './signalR';
 
 afterEach(() => {
     cleanup();
     vi.unstubAllGlobals();
 });
 
-const { startConnectionMock } = vi.hoisted(() => ({
+const {startConnectionMock, onGameCreatedMock, unsubscribeMock,
+} = vi.hoisted(() => ({
     startConnectionMock: vi.fn(),
+    onGameCreatedMock: vi.fn<(handler: unknown) => () => void>(),
+    unsubscribeMock: vi.fn<() => void>(),
 }));
 
 vi.mock('./signalR', () => ({
     startConnection: startConnectionMock,
+    onGameCreated: onGameCreatedMock,
 }));
 
 vi.mock('./screens/Home', () => ({
@@ -65,6 +69,14 @@ vi.mock('./screens/JoinGame', () => ({
     ),
 }));
 
+vi.mock('./screens/Setup', () => ({
+    default: () => (
+        <div>
+            <h1>Setup screen</h1>
+        </div>
+    ),
+}));
+
 describe('App', () => {
     beforeEach(() => {
         vi.stubGlobal('crypto', {
@@ -72,6 +84,11 @@ describe('App', () => {
         });
 
         startConnectionMock.mockReset();
+        onGameCreatedMock.mockReset();
+        unsubscribeMock.mockReset();
+
+        onGameCreatedMock.mockReturnValue(unsubscribeMock);
+
         startConnectionMock.mockImplementation(
             async (onStatusChange: (status: ConnectionStatus) => void) => {
                 onStatusChange('connected');
@@ -83,6 +100,43 @@ describe('App', () => {
         render(<App />);
 
         expect(startConnectionMock).toHaveBeenCalledOnce();
+    });
+
+    it('subscribes to GameCreated when the app mounts', () => {
+        render(<App />);
+
+        expect(onGameCreatedMock).toHaveBeenCalledOnce();
+        expect(onGameCreatedMock).toHaveBeenCalledWith(
+            expect.any(Function),
+        );
+    });
+
+    it('switches to setup when the GameCreated event is received', () => {
+        render(<App />);
+
+        const gameCreatedHandler = onGameCreatedMock.mock.calls[0]?.[0] as
+            | (() => void)
+            | undefined;
+
+        expect(gameCreatedHandler).toEqual(expect.any(Function));
+
+        act(() => {
+            gameCreatedHandler!();
+        });
+
+        expect(
+            screen.getByRole('heading', { name: 'Setup screen' }),
+        ).toBeInTheDocument();
+    });
+
+    it('unsubscribes from GameCreated when the app unmounts', () => {
+        const { unmount } = render(<App />);
+
+        expect(unsubscribeMock).not.toHaveBeenCalled();
+
+        unmount();
+
+        expect(unsubscribeMock).toHaveBeenCalledOnce();
     });
 
     it('renders Home when connected', () => {
