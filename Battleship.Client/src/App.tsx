@@ -45,7 +45,11 @@ function App() {
                 );
             case 'setup':
                 return (
-                    <Setup />
+                    <Setup 
+                        playerId={playerId}
+                        playerName={playerName}
+                        connectionStatus={connectionStatus}
+                    />
                 );
             default:
                 return (

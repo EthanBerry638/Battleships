@@ -1,6 +1,13 @@
 ﻿import Board from "../components/Board.tsx";
+import type {ConnectionStatus} from "../signalR.ts";
 
-function Setup() {
+interface SetupProps {
+    playerId: string;
+    playerName: string;
+    connectionStatus: ConnectionStatus;
+}
+
+function Setup( {playerId, playerName, connectionStatus}: SetupProps ) {
     return (
         <div className="page-container">
             <main>
