@@ -1,9 +1,18 @@
 ﻿import "./Board.css";
+import * as React from "react";
+
+interface BoardProps {
+    onCellDrop: (coordinate: string, e: React.DragEvent) => void;
+    onCellDragOver: (e: React.DragEvent) => void;
+}
 
 const letters = "ABCDEFGHIJ".split("");
 const numbers = Array.from({ length: 10 }, (_, index) => index + 1);
 
-function Board() {
+function Board({
+    onCellDrop,
+    onCellDragOver,
+}: BoardProps) {
     return (
         <div className="board">
             <div />
@@ -23,6 +32,8 @@ function Board() {
                             className="cell"
                             key={`${letter}${number}`}
                             title={`${letter}${number}`}
+                            onDragOver={onCellDragOver}
+                            onDrop={(e) => onCellDrop(`${letter}${number}`, e)}
                         >
                             <span className="coordinate-dot" />
                         </div>

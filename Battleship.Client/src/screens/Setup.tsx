@@ -12,6 +12,16 @@ function Setup( {playerId, playerName, connectionStatus}: SetupProps ) {
         e.dataTransfer.setData("text/plain", itemData);
         e.dataTransfer.effectAllowed = "move";
     };
+
+    const handleCellDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+    };
+
+    const handleCellDrop = (coordinate: string, e: React.DragEvent) => {
+        e.preventDefault();
+        const itemType = e.dataTransfer.getData("text/plain");
+        console.log(`Dropped ${itemType} on ${coordinate}`);
+    };
     
     return (
         <div className="page-container">
@@ -24,7 +34,10 @@ function Setup( {playerId, playerName, connectionStatus}: SetupProps ) {
                 >
                     Carrier (Size 5)
                 </div>
-                <Board />
+                <Board 
+                    onCellDrop={handleCellDrop} 
+                    onCellDragOver={handleCellDragOver} 
+                />
             </main>
         </div>
     );
