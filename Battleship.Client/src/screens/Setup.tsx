@@ -1,4 +1,5 @@
-﻿import Board from "../components/Board.tsx";
+﻿import { useState, type DragEvent } from "react";
+import Board from "../components/Board.tsx";
 import type {ConnectionStatus} from "../signalR.ts";
 
 interface SetupProps {
@@ -8,16 +9,17 @@ interface SetupProps {
 }
 
 function Setup( {playerId, playerName, connectionStatus}: SetupProps ) {
-    const handleDragStart = (e: React.DragEvent, itemData: string) => {
+    const [placedCells, setPlacedCells] = useState<string[]>([]);
+    const handleDragStart = (e: DragEvent, itemData: string) => {
         e.dataTransfer.setData("text/plain", itemData);
         e.dataTransfer.effectAllowed = "move";
     };
 
-    const handleCellDragOver = (e: React.DragEvent) => {
+    const handleCellDragOver = (e: DragEvent) => {
         e.preventDefault();
     };
 
-    const handleCellDrop = (coordinate: string, e: React.DragEvent) => {
+    const handleCellDrop = (coordinate: string, e: DragEvent) => {
         e.preventDefault();
         const itemType = e.dataTransfer.getData("text/plain");
         console.log(`Dropped ${itemType} on ${coordinate}`);
