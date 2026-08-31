@@ -34,3 +34,7 @@
     border-radius: 50%;
     background: #58869d;
 }
+
+.cell-occupied {
+    background: #4a708b;
+}
