@@ -1,10 +1,10 @@
-﻿import "./Board.css";
-import * as React from "react";
+﻿import { type DragEvent } from 'react';
+import "./Board.css";
 
 interface BoardProps {
     placedCells: string[];
-    onCellDrop: (coordinate: string, e: React.DragEvent) => void;
-    onCellDragOver: (e: React.DragEvent) => void;
+    onCellDrop: (coordinate: string, e: DragEvent) => void;
+    onCellDragOver: (e: DragEvent) => void;
 }
 
 const letters = "ABCDEFGHIJ".split("");
