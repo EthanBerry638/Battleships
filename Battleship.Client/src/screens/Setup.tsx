@@ -1,4 +1,4 @@
-﻿import { useState, type DragEvent } from "react";
+﻿import { type DragEvent } from 'react';
 import Board from "../components/Board.tsx";
 import type {ConnectionStatus} from "../signalR.ts";
 
@@ -8,8 +8,7 @@ interface SetupProps {
     connectionStatus: ConnectionStatus;
 }
 
-function Setup( {playerId, playerName, connectionStatus}: SetupProps ) {
-    const [placedCells, setPlacedCells] = useState<string[]>([]);
+function Setup( _props : SetupProps ) {
     const handleDragStart = (e: DragEvent, itemData: string) => {
         e.dataTransfer.setData("text/plain", itemData);
         e.dataTransfer.effectAllowed = "move";
@@ -24,21 +23,21 @@ function Setup( {playerId, playerName, connectionStatus}: SetupProps ) {
         const itemType = e.dataTransfer.getData("text/plain");
         console.log(`Dropped ${itemType} on ${coordinate}`);
     };
-    
+
     return (
         <div className="page-container">
             <main>
                 <h1>Setup</h1>
                 <div
                     draggable
-                    onDragStart={(e) => handleDragStart(e, "carrier")} 
+                    onDragStart={(e) => handleDragStart(e, "carrier")}
                     className="draggable-ship"
                 >
                     Carrier (Size 5)
                 </div>
-                <Board 
-                    onCellDrop={handleCellDrop} 
-                    onCellDragOver={handleCellDragOver} 
+                <Board
+                    onCellDrop={handleCellDrop}
+                    onCellDragOver={handleCellDragOver}
                 />
             </main>
         </div>
