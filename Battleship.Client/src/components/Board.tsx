@@ -29,17 +29,22 @@ function Board({
                 <div className="board-row" key={letter}>
                     <div className="label">{letter}</div>
 
-                    {numbers.map((number) => (
-                        <div
-                            className="cell"
-                            key={`${letter}${number}`}
-                            title={`${letter}${number}`}
-                            onDragOver={onCellDragOver}
-                            onDrop={(e) => onCellDrop(`${letter}${number}`, e)}
-                        >
-                            <span className="coordinate-dot" />
-                        </div>
-                    ))}
+                    {numbers.map((number) => {
+                        const coordinate = `${letter}${number}`;
+                        const isOccupied = placedCells.includes(coordinate);
+                        
+                        return (
+                            <div
+                                className={`cell ${isOccupied ? "cell-occupied" : ""}`}
+                                key={coordinate}
+                                title={coordinate}
+                                onDragOver={onCellDragOver}
+                                onDrop={(e) => onCellDrop(coordinate, e)}
+                            >
+                                {!isOccupied && <span className="coordinate-dot" />}
+                            </div>
+                        );
+                    })}
                 </div>
             ))}
         </div>
