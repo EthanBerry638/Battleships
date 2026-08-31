@@ -7,7 +7,7 @@ interface SetupProps {
     connectionStatus: ConnectionStatus;
 }
 
-function Setup( {playerId, playerName, connectionStatus}: SetupProps ) {
+function Setup( _props: SetupProps ) {
     return (
         <div className="page-container">
             <main>
