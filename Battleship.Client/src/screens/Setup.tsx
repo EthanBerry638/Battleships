@@ -14,6 +14,10 @@ function Setup( _props : SetupProps ) {
     const [orientation, setOrientation] = useState<Orientation>('horizontal');
     const [placedCells, setPlacedCells] = useState<string[]>([]);
 
+    const toggleOrientation = () => {
+        setOrientation((prev) => (prev === 'horizontal' ? 'vertical' : 'horizontal'));
+    };
+
     const getShipCoordinates = (origin: string, size: number): string[] | null => {
         const letter = origin.charAt(0);
         const startNum = parseInt(origin.slice(1), 10);
@@ -32,8 +36,8 @@ function Setup( _props : SetupProps ) {
     };
     
     const handleDragStart = (e: DragEvent, itemData: string) => {
-        e.dataTransfer.setData("text/plain", itemData);
-        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData('text/plain', itemData);
+        e.dataTransfer.effectAllowed = 'move';
     };
 
     const handleCellDragOver = (e: DragEvent) => {
@@ -59,16 +63,20 @@ function Setup( _props : SetupProps ) {
     };
 
     return (
-        <div className="page-container">
+        <div className='page-container'>
             <main>
                 <h1>Setup</h1>
                 <div
                     draggable
-                    onDragStart={(e) => handleDragStart(e, "carrier")}
-                    className="draggable-ship"
+                    onDragStart={(e) => handleDragStart(e, 'carrier')}
+                    className='draggable-ship'
                 >
                     Carrier (Size 5)
                 </div>
+                
+                <button type='button' onClick={toggleOrientation} aria-label='Toggle ship orientation'>
+                    {orientation === 'horizontal' ? '➡️ Horizontal' : '⬇️ Vertical'}
+                </button>
                 <Board
                     placedCells={placedCells}
                     onCellDrop={handleCellDrop}
