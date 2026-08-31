@@ -1,6 +1,6 @@
 ﻿import { useState, type DragEvent } from 'react';
-import Board from "../components/Board.tsx";
-import type {ConnectionStatus} from "../signalR.ts";
+import Board from '../components/Board.tsx';
+import type {ConnectionStatus} from '../signalR.ts';
 
 interface SetupProps {
     playerId: string;
@@ -8,7 +8,10 @@ interface SetupProps {
     connectionStatus: ConnectionStatus;
 }
 
+type Orientation = 'horizontal' | 'vertical';
+
 function Setup( _props : SetupProps ) {
+    const [orientation, setOrientation] = useState<Orientation>('horizontal');
     const [placedCells, setPlacedCells] = useState<string[]>([]);
 
     const getShipCoordinates = (origin: string, size: number): string[] | null => {
