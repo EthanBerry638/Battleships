@@ -2,6 +2,7 @@
 import * as React from "react";
 
 interface BoardProps {
+    placedCells: string[];
     onCellDrop: (coordinate: string, e: React.DragEvent) => void;
     onCellDragOver: (e: React.DragEvent) => void;
 }
@@ -10,6 +11,7 @@ const letters = "ABCDEFGHIJ".split("");
 const numbers = Array.from({ length: 10 }, (_, index) => index + 1);
 
 function Board({
+    placedCells,
     onCellDrop,
     onCellDragOver,
 }: BoardProps) {

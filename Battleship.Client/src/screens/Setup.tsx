@@ -39,6 +39,7 @@ function Setup( _props : SetupProps ) {
                     Carrier (Size 5)
                 </div>
                 <Board
+                    placedCells={placedCells}
                     onCellDrop={handleCellDrop}
                     onCellDragOver={handleCellDragOver}
                 />
