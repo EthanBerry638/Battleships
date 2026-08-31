@@ -40,9 +40,19 @@ function Setup( _props : SetupProps ) {
     const handleCellDrop = (coordinate: string, e: DragEvent) => {
         e.preventDefault();
         
-        if (!placedCells.includes(coordinate)) {
-            setPlacedCells((prev) => [...prev   , coordinate]);
+        const carrierSize = 5;
+        const targetCells = getShipCoordinates(coordinate, carrierSize);
+        
+        if (!targetCells) {
+            return;
         }
+        
+        const hasOverlap = targetCells.some((cell => placedCells.includes(cell)));
+        if (hasOverlap) {
+            return;
+        }
+
+        setPlacedCells((prev) => [...prev, ...targetCells]);
     };
 
     return (
