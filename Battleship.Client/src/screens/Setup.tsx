@@ -10,6 +10,24 @@ interface SetupProps {
 
 function Setup( _props : SetupProps ) {
     const [placedCells, setPlacedCells] = useState<string[]>([]);
+
+    const getShipCoordinates = (origin: string, size: number): string[] | null => {
+        const letter = origin.charAt(0);
+        const startNum = parseInt(origin.slice(1), 10);
+
+        const coordinates: string[] = [];
+
+        for (let i = 0; i < size; i++) {
+            const nextNum = startNum + i;
+            if (nextNum > 10) {
+                return null;
+            }
+            coordinates.push(`${letter}${nextNum}`);
+        }
+
+        return coordinates;
+    };
+    
     const handleDragStart = (e: DragEvent, itemData: string) => {
         e.dataTransfer.setData("text/plain", itemData);
         e.dataTransfer.effectAllowed = "move";
