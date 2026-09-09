@@ -10,6 +10,12 @@ interface SetupProps {
 
 type Orientation = 'horizontal' | 'vertical';
 
+interface Ship {
+    id: string;
+    name: string;
+    size: number;
+}
+
 function Setup( _props : SetupProps ) {
     const [orientation, setOrientation] = useState<Orientation>('horizontal');
     const [placedCells, setPlacedCells] = useState<string[]>([]);
