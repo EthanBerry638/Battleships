@@ -156,6 +156,13 @@ function Setup( _props : SetupProps ) {
                 </div>
                 <button
                     type='button'
+                    onClick={clearPlacement}
+                    disabled={placedShips.length === 0}
+                >
+                    Clear Placement
+                </button>
+                <button
+                    type='button'
                     onClick={toggleOrientation}
                     aria-label='Toggle ship orientation'
                 >
