@@ -21,6 +21,14 @@ interface PlacedShip extends Ship {
     coordinates: string[];
 }
 
+const fleet: Ship[] = [
+    { id: 'carrier', name: 'Carrier', size: 5 },
+    { id: 'battleship', name: 'Battleship', size: 4 },
+    { id: 'destroyer', name: 'Destroyer', size: 3 },
+    { id: 'submarine', name: 'Submarine', size: 3 },
+    { id: 'patrol boat', name: 'Patrol Boat', size: 2 },
+];
+
 function Setup( _props : SetupProps ) {
     const [orientation, setOrientation] = useState<Orientation>('horizontal');
     const [placedCells, setPlacedCells] = useState<string[]>([]);
