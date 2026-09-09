@@ -32,6 +32,7 @@ const fleet: Ship[] = [
 function Setup( _props : SetupProps ) {
     const [orientation, setOrientation] = useState<Orientation>('horizontal');
     const [placedCells, setPlacedCells] = useState<string[]>([]);
+    const [placedShips, setPlacedShips] = useState<PlacedShip[]>([]);
 
     const toggleOrientation = () => {
         setOrientation((prev) => (prev === 'horizontal' ? 'vertical' : 'horizontal'));
@@ -80,35 +81,79 @@ function Setup( _props : SetupProps ) {
 
     const handleCellDrop = (coordinate: string, e: DragEvent) => {
         e.preventDefault();
-        
-        const carrierSize = 5;
-        const targetCells = getShipCoordinates(coordinate, carrierSize, orientation);
-        
+
+        const shipId = e.dataTransfer.getData('text/plain');
+        const ship = fleet.find((candidate) => candidate.id === shipId);
+
+        if (!ship) {
+            return;
+        }
+
+        const isAlreadyPlaced = placedShips.some(
+            (placedShip) => placedShip.id === ship.id,
+        );
+
+        if (isAlreadyPlaced) {
+            return;
+        }
+
+        const targetCells = getShipCoordinates(
+            coordinate,
+            ship.size,
+            orientation,
+        );
+
         if (!targetCells) {
             return;
         }
-        
-        const hasOverlap = targetCells.some((cell => placedCells.includes(cell)));
+
+        const hasOverlap = targetCells.some((cell) =>
+            placedCells.includes(cell),
+        );
+
         if (hasOverlap) {
             return;
         }
 
-        setPlacedCells((prev) => [...prev, ...targetCells]);
+        setPlacedShips((previous) => [
+            ...previous,
+            {
+                ...ship,
+                orientation,
+                coordinates: targetCells,
+            },
+        ]);
+
+        setPlacedCells((previous) => [...previous, ...targetCells]);
     };
 
     return (
         <div className='page-container'>
             <main>
                 <h1>Setup</h1>
-                <div
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, 'carrier')}
-                    className='draggable-ship'
-                >
-                    Carrier (Size 5)
+                <div className='ship-list'>
+                    {fleet.map((ship) => {
+                        const isPlaced = placedShips.some(
+                            (placedShip) => placedShip.id === ship.id,
+                        );
+
+                        return (
+                            <div
+                                key={ship.id}
+                                draggable={!isPlaced}
+                                onDragStart={(e) => handleDragStart(e, ship.id)}
+                                className={`draggable-ship ${isPlaced ? 'ship-placed' : ''}`}
+                            >
+                                {ship.name} (Size {ship.size})
+                            </div>
+                        );
+                    })}
                 </div>
-                
-                <button type='button' onClick={toggleOrientation} aria-label='Toggle ship orientation'>
+                <button
+                    type='button'
+                    onClick={toggleOrientation}
+                    aria-label='Toggle ship orientation'
+                >
                     {orientation === 'horizontal' ? '➡️ Horizontal' : '⬇️ Vertical'}
                 </button>
                 <Board
