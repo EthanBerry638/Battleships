@@ -16,6 +16,11 @@ interface Ship {
     size: number;
 }
 
+interface PlacedShip extends Ship {
+    orientation: Orientation;
+    coordinates: string[];
+}
+
 function Setup( _props : SetupProps ) {
     const [orientation, setOrientation] = useState<Orientation>('horizontal');
     const [placedCells, setPlacedCells] = useState<string[]>([]);
