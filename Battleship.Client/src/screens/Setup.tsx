@@ -18,18 +18,33 @@ function Setup( _props : SetupProps ) {
         setOrientation((prev) => (prev === 'horizontal' ? 'vertical' : 'horizontal'));
     };
 
-    const getShipCoordinates = (origin: string, size: number): string[] | null => {
-        const letter = origin.charAt(0);
-        const startNum = parseInt(origin.slice(1), 10);
+    const getShipCoordinates = (
+        origin: string,
+        size: number,
+        shipOrientation: Orientation,
+    ): string[] | null => {
+        const letters = 'ABCDEFGHIJ';
+        const startLetterIndex = letters.indexOf(origin.charAt(0));
+        const startNumber = parseInt(origin.slice(1), 10);
 
         const coordinates: string[] = [];
 
         for (let i = 0; i < size; i++) {
-            const nextNum = startNum + i;
-            if (nextNum > 10) {
+            const letterIndex =
+                shipOrientation === 'vertical'
+                    ? startLetterIndex + i
+                    : startLetterIndex;
+
+            const number =
+                shipOrientation === 'horizontal'
+                    ? startNumber + i
+                    : startNumber;
+
+            if (letterIndex >= letters.length || number > 10) {
                 return null;
             }
-            coordinates.push(`${letter}${nextNum}`);
+
+            coordinates.push(`${letters[letterIndex]}${number}`);
         }
 
         return coordinates;
@@ -48,7 +63,7 @@ function Setup( _props : SetupProps ) {
         e.preventDefault();
         
         const carrierSize = 5;
-        const targetCells = getShipCoordinates(coordinate, carrierSize);
+        const targetCells = getShipCoordinates(coordinate, carrierSize, orientation);
         
         if (!targetCells) {
             return;
