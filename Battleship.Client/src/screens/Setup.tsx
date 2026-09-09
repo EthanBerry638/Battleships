@@ -127,6 +127,11 @@ function Setup( _props : SetupProps ) {
         setPlacedCells((previous) => [...previous, ...targetCells]);
     };
 
+    const clearPlacement = () => {
+        setPlacedShips([]);
+        setPlacedCells([]);
+    };
+
     return (
         <div className='page-container'>
             <main>
