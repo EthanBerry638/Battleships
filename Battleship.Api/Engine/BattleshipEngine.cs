@@ -116,4 +116,9 @@ public class BattleshipEngine(IGameBoard playerOneBoard, IGameBoard playerTwoBoa
         
         return _gameBoards[playerIndex].ValidateFleet();
     }
+
+    public bool ClearBoard()
+    {
+        throw new NotImplementedException();
+    }
 }
