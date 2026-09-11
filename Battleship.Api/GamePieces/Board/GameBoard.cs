@@ -84,4 +84,9 @@ public class GameBoard : IGameBoard
             extraShips
         );
     }
+
+    public bool ClearBoard()
+    {
+        throw new NotImplementedException();
+    }
 }

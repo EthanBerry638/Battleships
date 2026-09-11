@@ -9,4 +9,5 @@ public interface IGameBoard
     PlacementResult PlaceShip(IShip ship);
     bool AreAllShipsSunk();
     FleetValidationResult ValidateFleet();
+    public bool ClearBoard();
 }
