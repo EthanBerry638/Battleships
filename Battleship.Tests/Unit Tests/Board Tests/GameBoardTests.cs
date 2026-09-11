@@ -46,7 +46,7 @@ public class GameBoardTests
     public void PlaceShip_ReturnsSuccess_WhenTilesAreEmpty()
     {
         var gameBoard = new GameBoard();
-        List<Coordinate> coordinates = [new(0, 0), new(0, 1), new(0, 2)];
+        List<Coordinate> coordinates = [new Coordinate(0, 0), new Coordinate(0, 1), new Coordinate(0, 2)];
         var ship = new Ship(ShipType.Destroyer, coordinates);
 
         var result = gameBoard.PlaceShip(ship);
@@ -62,10 +62,10 @@ public class GameBoardTests
     public void PlaceShip_ReturnsFailure_WhenTileIsAlreadyOccupied()
     {
         var gameBoard = new GameBoard();
-        List<Coordinate> existingShipCoordinates = [new(0, 0), new(0, 1), new(0, 2)];
+        List<Coordinate> existingShipCoordinates = [new Coordinate(0, 0), new Coordinate(0, 1), new Coordinate(0, 2)];
         var existingShip = new Ship(ShipType.Destroyer, existingShipCoordinates);
         gameBoard.PlaceShip(existingShip);
-        List<Coordinate> newShipCoordinates = [new(0, 1), new(0, 2), new(0, 3)];
+        List<Coordinate> newShipCoordinates = [new Coordinate(0, 1), new Coordinate(0, 2), new Coordinate(0, 3)];
 
         var newShip = new Ship(ShipType.Destroyer, newShipCoordinates);
 
@@ -82,7 +82,7 @@ public class GameBoardTests
     public void PlaceShip_OnlyOccupiesShipCoordinates_WhenPlacedOnBoard()
     {
         var gameBoard = new GameBoard();
-        List<Coordinate> coordinates = [new(0, 0), new(0, 1), new(0, 2)];
+        List<Coordinate> coordinates = [new Coordinate(0, 0), new Coordinate(0, 1), new Coordinate(0, 2)];
         var ship = new Ship(ShipType.Destroyer, coordinates);
 
         var result = gameBoard.PlaceShip(ship);
@@ -100,10 +100,10 @@ public class GameBoardTests
     public void PlaceShip_DoesNotPartiallyPlaceShip_WhenPlacementFails()
     {
         var gameBoard = new GameBoard();
-        List<Coordinate> existingShipCoordinates = [new(0, 2), new(0, 3)];
+        List<Coordinate> existingShipCoordinates = [new Coordinate(0, 2), new Coordinate(0, 3)];
         var existingShip = new Ship(ShipType.PatrolBoat, existingShipCoordinates);
         gameBoard.PlaceShip(existingShip);
-        List<Coordinate> newShipCoordinates = [new(0, 0), new(0, 1), new(0, 2)];
+        List<Coordinate> newShipCoordinates = [new Coordinate(0, 0), new Coordinate(0, 1), new Coordinate(0, 2)];
         var newShip = new Ship(ShipType.Destroyer, newShipCoordinates);
 
         var result = gameBoard.PlaceShip(newShip);
@@ -131,11 +131,11 @@ public class GameBoardTests
         var gameBoard = new GameBoard();
         var ships = new List<Mock<IShip>>
         {
-            new(),
-            new(),
-            new(),
-            new(),
-            new()
+            new Mock<IShip>(),
+            new Mock<IShip>(),
+            new Mock<IShip>(),
+            new Mock<IShip>(),
+            new Mock<IShip>()
         };
 
         int coordinateCounter = 0;
@@ -160,11 +160,11 @@ public class GameBoardTests
         var gameBoard = new GameBoard();
         var ships = new List<Mock<IShip>>
         {
-            new(),
-            new(),
-            new(),
-            new(),
-            new()
+            new Mock<IShip>(),
+            new Mock<IShip>(),
+            new Mock<IShip>(),
+            new Mock<IShip>(),
+            new Mock<IShip>()
         };
 
         int coordinateCounter = 0;
@@ -276,11 +276,11 @@ public class GameBoardTests
         };
         var ships = new List<Mock<IShip>>
         {
-            new(),
-            new(),
-            new(),
-            new(),
-            new()
+            new Mock<IShip>(),
+            new Mock<IShip>(),
+            new Mock<IShip>(),
+            new Mock<IShip>(),
+            new Mock<IShip>()
         };
         for (int i = 0; i < ships.Count; i++)
         {
@@ -318,5 +318,45 @@ public class GameBoardTests
         result.ExtraShips.Should().NotContain(ShipType.Carrier);
         result.MissingShips.Should().NotContain(ShipType.Carrier);
         result.MissingShips.Count.Should().Be(4);
+    }
+
+    [Fact]
+    public void ClearBoard_ShouldClearWholeBoard_WhenBoardHasMultipleShips()
+    {
+        var gameBoard = new GameBoard();
+        List<IShip> ships =
+        [
+            new Ship(ShipType.Carrier, [
+                new Coordinate(0, 0), new Coordinate(0, 1),
+                new Coordinate(0, 2), new Coordinate(0, 3), new Coordinate(0, 4)
+            ]),
+            new Ship(ShipType.Battleship, [
+                new Coordinate(3, 2), new Coordinate(4, 2), new Coordinate(5, 2), new Coordinate(6, 2)
+            ]),
+            new Ship(ShipType.Destroyer, [
+                new Coordinate(7, 7), new Coordinate(7, 8), new Coordinate(7, 9)
+            ])
+        ];
+
+        foreach (IShip ship in ships)
+            gameBoard.PlaceShip(ship).IsSuccessful.Should().BeTrue();
+
+        gameBoard.ClearBoard();
+
+        ships
+            .SelectMany(ship => ship.Coordinates)
+            .Should()
+            .AllSatisfy(coordinate =>
+                gameBoard.GetTile(coordinate).HasShip.Should().BeFalse());
+    }
+    
+    [Fact]
+    public void ClearBoard_ShouldNotThrow_WhenBoardIsAlreadyEmpty()
+    {
+        var gameBoard = new GameBoard();
+
+        var act = gameBoard.ClearBoard;
+
+        act.Should().NotThrow();
     }
 }
