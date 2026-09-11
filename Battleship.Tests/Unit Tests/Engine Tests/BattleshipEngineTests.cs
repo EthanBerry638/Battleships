@@ -502,4 +502,58 @@ public class BattleshipEngineTests
             .Throw<GameNotInSetupException>()
             .WithMessage("You can't validate a fleet when you're not in the setup phase.");
     }
+    
+    [Fact]
+    public void ClearBoard_ShouldThrowGameNotInSetupException_WhenGameIsPlaying()
+    {
+        StartGame();
+        
+        var act = () => _battleshipEngine.ClearBoard(_player1.Id);
+
+        act.Should()
+            .Throw<GameNotInSetupException>()
+            .WithMessage("You can't clear the board when you're not in the setup phase.");
+    }
+    
+    [Fact]
+    public void ClearBoard_ShouldThrowGameNotInSetupException_WhenGameIsFinished()
+    {
+        StartGame();
+        _mockGameBoard1.Setup(x => x.AreAllShipsSunk()).Returns(true);
+        _battleshipEngine.GetWinner();
+
+        var act = () => _battleshipEngine.ClearBoard(_player1.Id);
+
+        act.Should()
+            .Throw<GameNotInSetupException>()
+            .WithMessage("You can't clear the board when you're not in the setup phase.");
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void ClearBoard_ShouldReturnCorrectResult_WhenBoardReturnsTrueOrFalseForPlayer1(bool expectedResult)
+    {
+        _mockGameBoard1.Setup(x => x.ClearBoard()).Returns(expectedResult);
+
+        bool result = _battleshipEngine.ClearBoard(_player1.Id);
+        
+        result.Should().Be(expectedResult);
+        _mockGameBoard1.Verify(x => x.ClearBoard(), Times.Once);
+        _mockGameBoard2.Verify(x => x.ClearBoard(), Times.Never);
+    }
+    
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void ClearBoard_ShouldReturnCorrectResult_WhenBoardReturnsTrueOrFalseForPlayer2(bool expectedResult)
+    {
+        _mockGameBoard2.Setup(x => x.ClearBoard()).Returns(expectedResult);
+
+        bool result = _battleshipEngine.ClearBoard(_player2.Id);
+        
+        result.Should().Be(expectedResult);
+        _mockGameBoard1.Verify(x => x.ClearBoard(), Times.Never);
+        _mockGameBoard2.Verify(x => x.ClearBoard(), Times.Once);
+    }
 }
