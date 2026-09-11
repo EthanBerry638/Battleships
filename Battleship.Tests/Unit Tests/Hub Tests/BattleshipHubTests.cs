@@ -329,30 +329,13 @@ public class BattleshipHubTests
     }
 
     [Fact]
-    public void ClearBoard_ShouldReturnTrue_WhenServiceReturnsTrue()
+    public void ClearBoard_ShouldDelegateToService_WhenCalled()
     {
         var playerId = Guid.NewGuid();
         var request = new ClearBoardRequest(playerId);
 
-        _mockGameService.Setup(g => g.ClearBoard(playerId)).Returns(true);
+        CreateHub().ClearBoard(request);
 
-        bool result = CreateHub().ClearBoard(request);
-
-        result.Should().BeTrue();
-        _mockGameService.Verify(g => g.ClearBoard(playerId), Times.Once);
-    }
-    
-    [Fact]
-    public void ClearBoard_ShouldReturnFalse_WhenServiceReturnsFalse()
-    {
-        var playerId = Guid.NewGuid();
-        var request = new ClearBoardRequest(playerId);
-
-        _mockGameService.Setup(g => g.ClearBoard(playerId)).Returns(false);
-
-        bool result = CreateHub().ClearBoard(request);
-
-        result.Should().BeFalse();
         _mockGameService.Verify(g => g.ClearBoard(playerId), Times.Once);
     }
 }

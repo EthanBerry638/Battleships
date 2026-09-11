@@ -692,37 +692,16 @@ public class GameServiceTests
     }
     
     [Fact]
-    public void ClearBoard_ShouldReturnTrue_WhenEngineReturnsTrue()
+    public void ClearBoard_ShouldClearPlayersBoard_WhenPlayerIsInActiveGame()
     {
-        var (session, player1, _, board1Mock, _) = CreateSession();
+        var (session, player1, _, board1Mock, board2Mock) = CreateSession();
         string gameCode = "GAME1";
         SetupPlayerFoundInGame(player1.Id, gameCode, session);
-        board1Mock.Setup(b => b.ClearBoard()).Returns(true);
 
-        bool result = _gameService.ClearBoard(player1.Id);
+        _gameService.ClearBoard(player1.Id);
 
-        result.Should().BeTrue();
         board1Mock.Verify(b => b.ClearBoard(), Times.Once);
-        _gameRepositoryMock.Verify(
-            r => r.TryFindKeyByPlayerId(player1.Id, out gameCode!),
-            Times.Once);
-        _gameRepositoryMock.Verify(
-            r => r.TryGetGameByCode(gameCode, out session),
-            Times.Once);
-    }
-
-    [Fact]
-    public void ClearBoard_ShouldReturnFalse_WhenEngineReturnsFalse()
-    {
-        var (session, player1, _, board1Mock, _) = CreateSession();
-        string gameCode = "GAME1";
-        SetupPlayerFoundInGame(player1.Id, gameCode, session);
-        board1Mock.Setup(b => b.ClearBoard()).Returns(false);
-
-        bool result = _gameService.ClearBoard(player1.Id);
-
-        result.Should().BeFalse();
-        board1Mock.Verify(b => b.ClearBoard(), Times.Once);
+        board2Mock.Verify(b => b.ClearBoard(), Times.Never);
         _gameRepositoryMock.Verify(
             r => r.TryFindKeyByPlayerId(player1.Id, out gameCode!),
             Times.Once);
@@ -790,14 +769,10 @@ public class GameServiceTests
         string gameCode2 = "GAME2";
         SetupPlayerFoundInGame(player1.Id, gameCode1, session1);
         SetupPlayerFoundInGame(player3.Id, gameCode2, session2);
-        board1Mock.Setup(b => b.ClearBoard()).Returns(true);
-        board3Mock.Setup(b => b.ClearBoard()).Returns(false);
 
-        bool result1 = _gameService.ClearBoard(player1.Id);
-        bool result2 = _gameService.ClearBoard(player3.Id);
+        _gameService.ClearBoard(player1.Id);
+        _gameService.ClearBoard(player3.Id);
 
-        result1.Should().BeTrue();
-        result2.Should().BeFalse();
         board1Mock.Verify(b => b.ClearBoard(), Times.Once);
         board3Mock.Verify(b => b.ClearBoard(), Times.Once);
         _gameRepositoryMock.Verify(

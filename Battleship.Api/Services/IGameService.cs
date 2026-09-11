@@ -12,5 +12,5 @@ public interface IGameService
     Player? GetWinner(string gameCode);
     FleetValidationResult ValidateFleet(Guid playerId);
     ShotResponse Shoot(Guid playerId, Coordinate coordinate);
-    bool ClearBoard(Guid playerId);
+    void ClearBoard(Guid playerId);
 }

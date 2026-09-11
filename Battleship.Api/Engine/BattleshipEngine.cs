@@ -117,13 +117,13 @@ public class BattleshipEngine(IGameBoard playerOneBoard, IGameBoard playerTwoBoa
         return _gameBoards[playerIndex].ValidateFleet();
     }
 
-    public bool ClearBoard(Guid playerId)
+    public void ClearBoard(Guid playerId)
     {
         if (_gameState is not GameState.Setup)
             throw new GameNotInSetupException("You can't clear the board when you're not in the setup phase.");
         
         int playerIndex = Array.FindIndex(_players, p => p.Id == playerId);
 
-        return _gameBoards[playerIndex].ClearBoard();
+        _gameBoards[playerIndex].ClearBoard();
     }
 }

@@ -529,30 +529,20 @@ public class BattleshipEngineTests
             .WithMessage("You can't clear the board when you're not in the setup phase.");
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public void ClearBoard_ShouldReturnCorrectResult_WhenBoardReturnsTrueOrFalseForPlayer1(bool expectedResult)
+    [Fact]
+    public void ClearBoard_WithPlayer1_ShouldClearBoard1_WhenInSetupPhase()
     {
-        _mockGameBoard1.Setup(x => x.ClearBoard()).Returns(expectedResult);
-
-        bool result = _battleshipEngine.ClearBoard(_player1.Id);
+        _battleshipEngine.ClearBoard(_player1.Id);
         
-        result.Should().Be(expectedResult);
         _mockGameBoard1.Verify(x => x.ClearBoard(), Times.Once);
         _mockGameBoard2.Verify(x => x.ClearBoard(), Times.Never);
     }
     
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public void ClearBoard_ShouldReturnCorrectResult_WhenBoardReturnsTrueOrFalseForPlayer2(bool expectedResult)
+    [Fact]
+    public void ClearBoard_WithPlayer2_ShouldClearBoard2_WhenInSetupPhase()
     {
-        _mockGameBoard2.Setup(x => x.ClearBoard()).Returns(expectedResult);
-
-        bool result = _battleshipEngine.ClearBoard(_player2.Id);
+        _battleshipEngine.ClearBoard(_player2.Id);
         
-        result.Should().Be(expectedResult);
         _mockGameBoard1.Verify(x => x.ClearBoard(), Times.Never);
         _mockGameBoard2.Verify(x => x.ClearBoard(), Times.Once);
     }

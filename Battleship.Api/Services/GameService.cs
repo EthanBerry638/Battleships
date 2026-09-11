@@ -100,7 +100,7 @@ public class GameService (IGameRepository gameRepository) : IGameService
         }
     }
 
-    public bool ClearBoard(Guid playerId)
+    public void ClearBoard(Guid playerId)
     {
         if (!_gameRepository.TryFindKeyByPlayerId(playerId, out string? gameCode))
             throw new PlayerNotFoundException($"No active game found for player with id {playerId}.");
@@ -110,7 +110,7 @@ public class GameService (IGameRepository gameRepository) : IGameService
         
         lock (session!.Lock)
         {
-            return session.Engine.ClearBoard(playerId);
+            session.Engine.ClearBoard(playerId);
         }
     }
 }

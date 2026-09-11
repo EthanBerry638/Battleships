@@ -88,8 +88,8 @@ public class BattleshipHub(IGameService gameService, IConnectionService connecti
         await Clients.Group(response.GameCode).SendAsync("Shot", message);
     }
 
-    public bool ClearBoard(ClearBoardRequest request)
+    public void ClearBoard(ClearBoardRequest request)
     {
-        return _gameService.ClearBoard(request.PlayerId);
+        _gameService.ClearBoard(request.PlayerId);
     }
 }
