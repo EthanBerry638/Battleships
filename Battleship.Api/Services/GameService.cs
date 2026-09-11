@@ -99,4 +99,9 @@ public class GameService (IGameRepository gameRepository) : IGameService
             return new ShotResponse(result, gameCode!, playerId, coordinate);
         }
     }
+
+    public bool ClearBoard(Guid playerId)
+    {
+        throw new NotImplementedException();
+    }
 }
