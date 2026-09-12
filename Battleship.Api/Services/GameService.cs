@@ -99,4 +99,18 @@ public class GameService (IGameRepository gameRepository) : IGameService
             return new ShotResponse(result, gameCode!, playerId, coordinate);
         }
     }
+
+    public void ClearBoard(Guid playerId)
+    {
+        if (!_gameRepository.TryFindKeyByPlayerId(playerId, out string? gameCode))
+            throw new PlayerNotFoundException($"No active game found for player with id {playerId}.");
+
+        if (!_gameRepository.TryGetGameByCode(gameCode!, out GameSession? session))
+            throw new GameNotFoundException($"Game by game code: {gameCode} not found.");
+        
+        lock (session!.Lock)
+        {
+            session.Engine.ClearBoard(playerId);
+        }
+    }
 }

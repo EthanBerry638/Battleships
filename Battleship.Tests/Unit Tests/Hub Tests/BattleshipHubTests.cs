@@ -327,4 +327,15 @@ public class BattleshipHubTests
                 CancellationToken.None),
             Times.Once);
     }
+
+    [Fact]
+    public void ClearBoard_ShouldDelegateToService_WhenCalled()
+    {
+        var playerId = Guid.NewGuid();
+        var request = new ClearBoardRequest(playerId);
+
+        CreateHub().ClearBoard(request);
+
+        _mockGameService.Verify(g => g.ClearBoard(playerId), Times.Once);
+    }
 }

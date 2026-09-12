@@ -690,6 +690,104 @@ public class GameServiceTests
         _gameRepositoryMock.Verify(r => r.TryFindKeyByPlayerId(player3.Id, out gameCode2!), Times.Once);
         _gameRepositoryMock.Verify(r => r.TryGetGameByCode(gameCode2, out session2), Times.Once);
     }
+    
+    [Fact]
+    public void ClearBoard_ShouldClearPlayersBoard_WhenPlayerIsInActiveGame()
+    {
+        var (session, player1, _, board1Mock, board2Mock) = CreateSession();
+        string gameCode = "GAME1";
+        SetupPlayerFoundInGame(player1.Id, gameCode, session);
+
+        _gameService.ClearBoard(player1.Id);
+
+        board1Mock.Verify(b => b.ClearBoard(), Times.Once);
+        board2Mock.Verify(b => b.ClearBoard(), Times.Never);
+        _gameRepositoryMock.Verify(
+            r => r.TryFindKeyByPlayerId(player1.Id, out gameCode!),
+            Times.Once);
+        _gameRepositoryMock.Verify(
+            r => r.TryGetGameByCode(gameCode, out session),
+            Times.Once);
+    }
+    
+    [Fact]
+    public void ClearBoard_ShouldThrowPlayerNotFoundException_WhenPlayerIsNotInAnyActiveGame()
+    {
+        var playerId = Guid.NewGuid();
+        string? nullCode = null;
+        _gameRepositoryMock
+            .Setup(r => r.TryFindKeyByPlayerId(playerId, out nullCode))
+            .Returns(false);
+
+        var act = () => _gameService.ClearBoard(playerId);
+
+        act.Should()
+            .Throw<PlayerNotFoundException>()
+            .WithMessage($"No active game found for player with id {playerId}.");
+        _gameRepositoryMock.Verify(
+            r => r.TryFindKeyByPlayerId(playerId, out nullCode),
+            Times.Once);
+        _gameRepositoryMock.Verify(
+            r => r.TryGetGameByCode(
+                It.IsAny<string>(),
+                out It.Ref<GameSession?>.IsAny),
+            Times.Never);
+    }
+
+    [Fact]
+    public void ClearBoard_ShouldThrowGameNotFoundException_WhenGameCodeExistsButSessionNotFound()
+    {
+        var playerId = Guid.NewGuid();
+        string? gameCode = "GHOST";
+        GameSession? nullSession = null;
+        _gameRepositoryMock
+            .Setup(r => r.TryFindKeyByPlayerId(playerId, out gameCode))
+            .Returns(true);
+        _gameRepositoryMock
+            .Setup(r => r.TryGetGameByCode(gameCode, out nullSession))
+            .Returns(false);
+
+        var act = () => _gameService.ClearBoard(playerId);
+
+        act.Should()
+            .Throw<GameNotFoundException>()
+            .WithMessage($"Game by game code: {gameCode} not found.");
+        _gameRepositoryMock.Verify(
+            r => r.TryFindKeyByPlayerId(playerId, out gameCode),
+            Times.Once);
+        _gameRepositoryMock.Verify(
+            r => r.TryGetGameByCode(gameCode, out nullSession),
+            Times.Once);
+    }
+
+    [Fact]
+    public void ClearBoard_ShouldRouteToCorrectSession_WhenMultipleGamesAreActive()
+    {
+        var (session1, player1, _, board1Mock, _) = CreateSession();
+        var (session2, player3, _, board3Mock, _) = CreateSession();
+        string gameCode1 = "GAME1";
+        string gameCode2 = "GAME2";
+        SetupPlayerFoundInGame(player1.Id, gameCode1, session1);
+        SetupPlayerFoundInGame(player3.Id, gameCode2, session2);
+
+        _gameService.ClearBoard(player1.Id);
+        _gameService.ClearBoard(player3.Id);
+
+        board1Mock.Verify(b => b.ClearBoard(), Times.Once);
+        board3Mock.Verify(b => b.ClearBoard(), Times.Once);
+        _gameRepositoryMock.Verify(
+            r => r.TryFindKeyByPlayerId(player1.Id, out gameCode1!),
+            Times.Once);
+        _gameRepositoryMock.Verify(
+            r => r.TryGetGameByCode(gameCode1, out session1),
+            Times.Once);
+        _gameRepositoryMock.Verify(
+            r => r.TryFindKeyByPlayerId(player3.Id, out gameCode2!),
+            Times.Once);
+        _gameRepositoryMock.Verify(
+            r => r.TryGetGameByCode(gameCode2, out session2),
+            Times.Once);
+    }
 
     private static void SetupBoardForShotResult(Mock<IGameBoard> boardMock, Coordinate coordinate, ShotResult expectedResult)
     {

@@ -87,4 +87,9 @@ public class BattleshipHub(IGameService gameService, IConnectionService connecti
         
         await Clients.Group(response.GameCode).SendAsync("Shot", message);
     }
+
+    public void ClearBoard(ClearBoardRequest request)
+    {
+        _gameService.ClearBoard(request.PlayerId);
+    }
 }
