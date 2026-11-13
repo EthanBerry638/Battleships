@@ -47,18 +47,18 @@ public class BattleshipEngine(IGameBoard playerOneBoard, IGameBoard playerTwoBoa
     
     private ShotOutcome GetShotOutcome(Coordinate coordinate)
     {
-        if (!_shotsTaken[_currentPlayerIndex].Add(coordinate)) return new ShotOutcome(ShotResult.Duplicate, null);
+        if (!_shotsTaken[_currentPlayerIndex].Add(coordinate)) return new ShotOutcome(ShotResult.Duplicate);
 
         Tile tile = OpponentBoard.GetTile(coordinate);
 
-        if (!tile.HasShip) return new ShotOutcome(ShotResult.Miss, null);
+        if (!tile.HasShip) return new ShotOutcome(ShotResult.Miss);
 
         IShip ship = tile.OccupyingShip!;
         ship.RegisterHit(coordinate);
 
         return ship.IsSunk()
             ? new ShotOutcome(ShotResult.Sunk, ship.Coordinates)
-            : new ShotOutcome(ShotResult.Hit, null);
+            : new ShotOutcome(ShotResult.Hit);
     }
 
     private void SwitchTurns()

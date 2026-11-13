@@ -2,4 +2,4 @@
 
 public record ShotOutcome(
     ShotResult Result,
-    IReadOnlyList<Coordinate>? SunkCoordinates);
+    IReadOnlyList<Coordinate>? SunkCoordinates = null);
