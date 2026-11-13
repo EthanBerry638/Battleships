@@ -1,5 +1,6 @@
 ﻿using Battleship.Api.DTOs;
 using Battleship.Api.DTOs.Requests;
+using Battleship.Api.DTOs.Responses;
 using Battleship.Api.Engine;
 using Battleship.Api.Exceptions;
 using Battleship.Api.GamePieces.Board;
@@ -597,6 +598,7 @@ public class GameServiceTests
         result.GameCode.Should().Be(gameCode);
         result.ShooterId.Should().Be(player1.Id);
         result.Coordinate.Should().Be(coordinate);
+        AssertSunkCoordinates(result, coordinate, expectedResult);
         _gameRepositoryMock.Verify(r => r.TryFindKeyByPlayerId(player1.Id, out gameCode!), Times.Once);
         _gameRepositoryMock.Verify(r => r.TryGetGameByCode(gameCode, out session), Times.Once);
     }
@@ -619,6 +621,7 @@ public class GameServiceTests
         result.GameCode.Should().Be(gameCode);
         result.ShooterId.Should().Be(player1.Id);
         result.Coordinate.Should().Be(coordinate);
+        result.SunkCoordinates.Should().BeNull();
     }
 
     [Theory]
@@ -642,7 +645,8 @@ public class GameServiceTests
         result.GameCode.Should().Be(gameCode);
         result.ShooterId.Should().Be(player2.Id);
         result.Coordinate.Should().Be(coordinate);
-        _gameRepositoryMock.Verify(r => r.TryFindKeyByPlayerId(player2.Id, out gameCode!), Times.Once); 
+        AssertSunkCoordinates(result, coordinate, expectedResult);
+        _gameRepositoryMock.Verify(r => r.TryFindKeyByPlayerId(player2.Id, out gameCode!), Times.Once);
         _gameRepositoryMock.Verify(r => r.TryGetGameByCode(gameCode, out session), Times.Exactly(2));
     }
 
@@ -665,6 +669,7 @@ public class GameServiceTests
         result.GameCode.Should().Be(gameCode);
         result.ShooterId.Should().Be(player2.Id);
         result.Coordinate.Should().Be(coordinate);
+        result.SunkCoordinates.Should().BeNull();
     }
 
     [Fact]
@@ -787,6 +792,14 @@ public class GameServiceTests
         _gameRepositoryMock.Verify(
             r => r.TryGetGameByCode(gameCode2, out session2),
             Times.Once);
+    }
+    
+    private static void AssertSunkCoordinates(ShotResponse result, Coordinate coordinate, ShotResult expectedResult)
+    {
+        if (expectedResult is ShotResult.Sunk)
+            result.SunkCoordinates.Should().Equal(coordinate, new Coordinate(coordinate.X, coordinate.Y + 1));
+        else
+            result.SunkCoordinates.Should().BeNull();
     }
 
     private static void SetupBoardForShotResult(Mock<IGameBoard> boardMock, Coordinate coordinate, ShotResult expectedResult)
