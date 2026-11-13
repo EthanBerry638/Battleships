@@ -1,5 +1,5 @@
 ﻿namespace Battleship.Api.GamePieces.Data;
 
-public record ShootResult(
+public record ShotOutcome(
     ShotResult Result,
     IReadOnlyList<Coordinate>? SunkCoordinates);
