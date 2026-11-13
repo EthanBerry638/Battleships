@@ -18,6 +18,46 @@ export type GameCreatedMessage = {
     player2Id: string;
 }
 
+export const ShipType = {
+    Carrier: 0,
+    Battleship: 1,
+    Destroyer: 2,
+    Submarine: 3,
+    PatrolBoat: 4,
+} as const;
+
+export type ShipType = (typeof ShipType)[keyof typeof ShipType];
+
+export type Coordinate = {
+    x: number;
+    y: number;
+}
+
+export type PlaceShipRequest = {
+    playerId: string;
+    type: ShipType;
+    coordinates: Coordinate[];
+}
+
+export type PlacementResult = {
+    isSuccessful: boolean;
+    invalidCoordinates: Coordinate[] | null;
+}
+
+export function isSameCoordinate(a: Coordinate, b: Coordinate): boolean {
+    return a.x === b.x && a.y === b.y;
+}
+
+export const rowLabels = 'ABCDEFGHIJ';
+
+export function formatCoordinate({ x, y }: Coordinate): string {
+    return `${rowLabels[y]}${x + 1}`;
+}
+
+export function placeShip(request: PlaceShipRequest): Promise<PlacementResult> {
+    return connection.invoke<PlacementResult>('PlaceShip', request);
+}
+
 export function onGameCreated(handler: (response: GameCreatedMessage) => void){
     connection.on('GameCreated', handler);
 
@@ -51,4 +91,8 @@ export async function startConnection(
             onStatusChange('disconnected');
         }
     }
+}
+
+export function clearBoard(playerId: string): Promise<void> {
+    return connection.invoke('ClearBoard', { playerId });
 }

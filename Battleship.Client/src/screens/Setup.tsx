@@ -1,6 +1,14 @@
 ﻿import { useState, type DragEvent } from 'react';
 import Board from '../components/Board.tsx';
-import type {ConnectionStatus} from '../signalR.ts';
+import {
+    clearBoard,
+    formatCoordinate,
+    isSameCoordinate,
+    placeShip,
+    ShipType,
+    type ConnectionStatus,
+    type Coordinate,
+} from '../signalR.ts';
 
 interface SetupProps {
     playerId: string;
@@ -14,62 +22,58 @@ interface Ship {
     id: string;
     name: string;
     size: number;
+    type: ShipType;
 }
 
 interface PlacedShip extends Ship {
     orientation: Orientation;
-    coordinates: string[];
+    coordinates: Coordinate[];
 }
 
+const boardSize = 10;
+
 const fleet: Ship[] = [
-    { id: 'carrier', name: 'Carrier', size: 5 },
-    { id: 'battleship', name: 'Battleship', size: 4 },
-    { id: 'destroyer', name: 'Destroyer', size: 3 },
-    { id: 'submarine', name: 'Submarine', size: 3 },
-    { id: 'patrol boat', name: 'Patrol Boat', size: 2 },
+    { id: 'carrier', name: 'Carrier', size: 5, type: ShipType.Carrier },
+    { id: 'battleship', name: 'Battleship', size: 4, type: ShipType.Battleship },
+    { id: 'destroyer', name: 'Destroyer', size: 3, type: ShipType.Destroyer },
+    { id: 'submarine', name: 'Submarine', size: 3, type: ShipType.Submarine },
+    { id: 'patrol boat', name: 'Patrol Boat', size: 2, type: ShipType.PatrolBoat },
 ];
 
-function Setup( _props : SetupProps ) {
+function Setup({ playerId, connectionStatus }: SetupProps) {
     const [orientation, setOrientation] = useState<Orientation>('horizontal');
-    const [placedCells, setPlacedCells] = useState<string[]>([]);
+    const [placedCells, setPlacedCells] = useState<Coordinate[]>([]);
     const [placedShips, setPlacedShips] = useState<PlacedShip[]>([]);
+    const [isBusy, setIsBusy] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const isConnected = connectionStatus === 'connected';
 
     const toggleOrientation = () => {
         setOrientation((prev) => (prev === 'horizontal' ? 'vertical' : 'horizontal'));
     };
 
     const getShipCoordinates = (
-        origin: string,
+        origin: Coordinate,
         size: number,
         shipOrientation: Orientation,
-    ): string[] | null => {
-        const letters = 'ABCDEFGHIJ';
-        const startLetterIndex = letters.indexOf(origin.charAt(0));
-        const startNumber = parseInt(origin.slice(1), 10);
-
-        const coordinates: string[] = [];
+    ): Coordinate[] | null => {
+        const coordinates: Coordinate[] = [];
 
         for (let i = 0; i < size; i++) {
-            const letterIndex =
-                shipOrientation === 'vertical'
-                    ? startLetterIndex + i
-                    : startLetterIndex;
+            const x = shipOrientation === 'horizontal' ? origin.x + i : origin.x;
+            const y = shipOrientation === 'vertical' ? origin.y + i : origin.y;
 
-            const number =
-                shipOrientation === 'horizontal'
-                    ? startNumber + i
-                    : startNumber;
-
-            if (letterIndex >= letters.length || number > 10) {
+            if (x >= boardSize || y >= boardSize) {
                 return null;
             }
 
-            coordinates.push(`${letters[letterIndex]}${number}`);
+            coordinates.push({ x, y });
         }
 
         return coordinates;
     };
-    
+
     const handleDragStart = (e: DragEvent, itemData: string) => {
         e.dataTransfer.setData('text/plain', itemData);
         e.dataTransfer.effectAllowed = 'move';
@@ -79,8 +83,13 @@ function Setup( _props : SetupProps ) {
         e.preventDefault();
     };
 
-    const handleCellDrop = (coordinate: string, e: DragEvent) => {
+    const handleCellDrop = async (coordinate: Coordinate, e: DragEvent) => {
         e.preventDefault();
+        setError(null);
+
+        if (!isConnected || isBusy) {
+            return;
+        }
 
         const shipId = e.dataTransfer.getData('text/plain');
         const ship = fleet.find((candidate) => candidate.id === shipId);
@@ -104,38 +113,80 @@ function Setup( _props : SetupProps ) {
         );
 
         if (!targetCells) {
+            setError(`${ship.name} does not fit on the board at ${formatCoordinate(coordinate)}.`);
             return;
         }
 
         const hasOverlap = targetCells.some((cell) =>
-            placedCells.includes(cell),
+            placedCells.some((placed) => isSameCoordinate(placed, cell)),
         );
 
         if (hasOverlap) {
+            setError(`${ship.name} overlaps another ship.`);
             return;
         }
 
-        setPlacedShips((previous) => [
-            ...previous,
-            {
-                ...ship,
-                orientation,
+        setIsBusy(true);
+
+        try {
+            const result = await placeShip({
+                playerId,
+                type: ship.type,
                 coordinates: targetCells,
-            },
-        ]);
+            });
 
-        setPlacedCells((previous) => [...previous, ...targetCells]);
+            if (!result.isSuccessful) {
+                const invalid = result.invalidCoordinates?.map(formatCoordinate) ?? [];
+                setError(
+                    invalid.length > 0
+                        ? `Could not place ${ship.name}. Invalid cells: ${invalid.join(', ')}.`
+                        : `Could not place ${ship.name}.`,
+                );
+                return;
+            }
+
+            setPlacedShips((previous) => [
+                ...previous,
+                {
+                    ...ship,
+                    orientation,
+                    coordinates: targetCells,
+                },
+            ]);
+
+            setPlacedCells((previous) => [...previous, ...targetCells]);
+        } catch {
+            setError('Failed to reach the server. Please try again.');
+        } finally {
+            setIsBusy(false);
+        }
     };
 
-    const clearPlacement = () => {
-        setPlacedShips([]);
-        setPlacedCells([]);
+    const clearPlacement = async () => {
+        setError(null);
+        setIsBusy(true);
+
+        try {
+            await clearBoard(playerId);
+            setPlacedShips([]);
+            setPlacedCells([]);
+        } catch {
+            setError('Failed to clear the board. Please try again.');
+        } finally {
+            setIsBusy(false);
+        }
     };
+
+    const allShipsPlaced = placedShips.length === fleet.length;
 
     return (
         <div className='page-container'>
             <main>
                 <h1>Setup</h1>
+                {!isConnected && (
+                    <p role='status'>Connection status: {connectionStatus}</p>
+                )}
+                {error && <p role='alert'>{error}</p>}
                 <div className='ship-list'>
                     {fleet.map((ship) => {
                         const isPlaced = placedShips.some(
@@ -145,7 +196,7 @@ function Setup( _props : SetupProps ) {
                         return (
                             <div
                                 key={ship.id}
-                                draggable={!isPlaced}
+                                draggable={!isPlaced && isConnected && !isBusy}
                                 onDragStart={(e) => handleDragStart(e, ship.id)}
                                 className={`draggable-ship ${isPlaced ? 'ship-placed' : ''}`}
                             >
@@ -157,7 +208,7 @@ function Setup( _props : SetupProps ) {
                 <button
                     type='button'
                     onClick={clearPlacement}
-                    disabled={placedShips.length === 0}
+                    disabled={placedShips.length === 0 || !isConnected || isBusy}
                 >
                     Clear Placement
                 </button>
@@ -168,6 +219,7 @@ function Setup( _props : SetupProps ) {
                 >
                     {orientation === 'horizontal' ? '➡️ Horizontal' : '⬇️ Vertical'}
                 </button>
+                {allShipsPlaced && <p>All ships placed – you're ready to start.</p>}
                 <Board
                     placedCells={placedCells}
                     onCellDrop={handleCellDrop}
