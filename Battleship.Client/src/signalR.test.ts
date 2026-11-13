@@ -5,7 +5,10 @@ import type {
 } from './signalR';
 import {
     onGameCreated,
+    onGameNotStarted,
+    onGameStarted,
     startConnection,
+    tryStartGame,
 } from './signalR';
 
 const signalRMock = vi.hoisted(() => {
@@ -21,6 +24,8 @@ const signalRMock = vi.hoisted(() => {
     const connection = {
         state: 'Disconnected',
         start: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
+        invoke: vi.fn<(methodName: string, ...args: unknown[]) => Promise<unknown>>()
+            .mockResolvedValue(undefined),
         on: vi.fn((
             methodName: string,
             handler: (response: GameCreatedMessage) => void,
@@ -220,5 +225,47 @@ describe('startConnection', () => {
             );
             expect(signalRMock.handlers.gameCreated).toBeUndefined();
         });
+    });
+});
+
+describe.each([
+    ['GameStarted', onGameStarted],
+    ['GameNotStarted', onGameNotStarted],
+] as const)('%s listener', (eventName, subscribe) => {
+    beforeEach(() => {
+        signalRMock.connection.on.mockClear();
+        signalRMock.connection.off.mockClear();
+    });
+
+    it('registers the listener', () => {
+        const handler = vi.fn();
+
+        subscribe(handler);
+
+        expect(signalRMock.connection.on).toHaveBeenCalledOnce();
+        expect(signalRMock.connection.on).toHaveBeenCalledWith(eventName, handler);
+    });
+
+    it('removes the listener when unsubscribed', () => {
+        const handler = vi.fn();
+
+        subscribe(handler)();
+
+        expect(signalRMock.connection.off).toHaveBeenCalledOnce();
+        expect(signalRMock.connection.off).toHaveBeenCalledWith(eventName, handler);
+    });
+});
+
+describe('tryStartGame', () => {
+    it('invokes TryStartGame with the player ID', async () => {
+        signalRMock.connection.invoke.mockClear();
+
+        await tryStartGame('player-1');
+
+        expect(signalRMock.connection.invoke).toHaveBeenCalledOnce();
+        expect(signalRMock.connection.invoke).toHaveBeenCalledWith(
+            'TryStartGame',
+            { playerId: 'player-1' },
+        );
     });
 });

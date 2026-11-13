@@ -18,6 +18,18 @@ export type GameCreatedMessage = {
     player2Id: string;
 }
 
+export type StartGameMessage = {
+    isStarted: boolean;
+    startingPlayerId: string | null;
+    playerIds: string[] | null;
+}
+
+export type FleetValidationResult = {
+    isValid: boolean;
+    missingShips: ShipType[];
+    extraShips: ShipType[];
+};
+
 export const ShipType = {
     Carrier: 0,
     Battleship: 1,
@@ -66,6 +78,22 @@ export function onGameCreated(handler: (response: GameCreatedMessage) => void){
     };
 }
 
+export function onGameStarted(handler: (message: StartGameMessage) => void) {
+    connection.on('GameStarted', handler);
+
+    return () => {
+        connection.off('GameStarted', handler);
+    };
+}
+
+export function onGameNotStarted(handler: (message: StartGameMessage) => void) {
+    connection.on('GameNotStarted', handler);
+
+    return () => {
+        connection.off('GameNotStarted', handler);
+    };
+}
+
 export async function startConnection(
     onStatusChange: (status: ConnectionStatus) => void) {
     connection.onreconnecting(() => {
@@ -95,4 +123,12 @@ export async function startConnection(
 
 export function clearBoard(playerId: string): Promise<void> {
     return connection.invoke('ClearBoard', { playerId });
+}
+
+export function validateFleet(playerId: string): Promise<FleetValidationResult> {
+    return connection.invoke<FleetValidationResult>("ValidateFleet", { playerId })
+}
+
+export function tryStartGame(playerId: string): Promise<void> {
+    return connection.invoke('TryStartGame', { playerId });
 }

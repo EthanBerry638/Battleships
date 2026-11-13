@@ -9,17 +9,40 @@ afterEach(() => {
     vi.unstubAllGlobals();
 });
 
-const {startConnectionMock, onGameCreatedMock, unsubscribeMock,
+const {
+    startConnectionMock,
+    onGameCreatedMock,
+    unsubscribeMock,
+    onGameStartedMock,
+    unsubscribeGameStartedMock,
+    onGameNotStartedMock,
+    unsubscribeGameNotStartedMock,
 } = vi.hoisted(() => ({
     startConnectionMock: vi.fn(),
     onGameCreatedMock: vi.fn<(handler: unknown) => () => void>(),
     unsubscribeMock: vi.fn<() => void>(),
+    onGameStartedMock: vi.fn<(handler: unknown) => () => void>(),
+    unsubscribeGameStartedMock: vi.fn<() => void>(),
+    onGameNotStartedMock: vi.fn<(handler: unknown) => () => void>(),
+    unsubscribeGameNotStartedMock: vi.fn<() => void>(),
 }));
 
 vi.mock('./signalR', () => ({
     startConnection: startConnectionMock,
     onGameCreated: onGameCreatedMock,
+    onGameStarted: onGameStartedMock,
+    onGameNotStarted: onGameNotStartedMock,
 }));
+
+function emit(mock: typeof onGameCreatedMock) {
+    const handler = mock.mock.calls[0]?.[0] as (() => void) | undefined;
+
+    expect(handler).toEqual(expect.any(Function));
+
+    act(() => {
+        handler!();
+    });
+}
 
 vi.mock('./screens/Home', () => ({
     default: ({
@@ -70,9 +93,10 @@ vi.mock('./screens/JoinGame', () => ({
 }));
 
 vi.mock('./screens/Setup', () => ({
-    default: () => (
+    default: ({ waitingForOpponent }: { waitingForOpponent: boolean }) => (
         <div>
             <h1>Setup screen</h1>
+            <p>Waiting: {String(waitingForOpponent)}</p>
         </div>
     ),
 }));
@@ -88,6 +112,14 @@ describe('App', () => {
         unsubscribeMock.mockReset();
 
         onGameCreatedMock.mockReturnValue(unsubscribeMock);
+
+        onGameStartedMock.mockReset();
+        unsubscribeGameStartedMock.mockReset();
+        onGameStartedMock.mockReturnValue(unsubscribeGameStartedMock);
+
+        onGameNotStartedMock.mockReset();
+        unsubscribeGameNotStartedMock.mockReset();
+        onGameNotStartedMock.mockReturnValue(unsubscribeGameNotStartedMock);
 
         startConnectionMock.mockImplementation(
             async (onStatusChange: (status: ConnectionStatus) => void) => {
@@ -137,6 +169,48 @@ describe('App', () => {
         unmount();
 
         expect(unsubscribeMock).toHaveBeenCalledOnce();
+    });
+
+    it('subscribes to GameStarted and GameNotStarted when the app mounts', () => {
+        render(<App />);
+
+        expect(onGameStartedMock).toHaveBeenCalledOnce();
+        expect(onGameNotStartedMock).toHaveBeenCalledOnce();
+    });
+
+    it('switches to the game screen when the GameStarted event is received', () => {
+        render(<App />);
+
+        emit(onGameCreatedMock);
+        emit(onGameStartedMock);
+
+        expect(
+            screen.getByRole('heading', { name: 'Game started' }),
+        ).toBeInTheDocument();
+    });
+
+    it('stays on setup and marks the player as waiting when GameNotStarted is received', () => {
+        render(<App />);
+
+        emit(onGameCreatedMock);
+
+        expect(screen.getByText('Waiting: false')).toBeInTheDocument();
+
+        emit(onGameNotStartedMock);
+
+        expect(
+            screen.getByRole('heading', { name: 'Setup screen' }),
+        ).toBeInTheDocument();
+        expect(screen.getByText('Waiting: true')).toBeInTheDocument();
+    });
+
+    it('unsubscribes from GameStarted and GameNotStarted when the app unmounts', () => {
+        const { unmount } = render(<App />);
+
+        unmount();
+
+        expect(unsubscribeGameStartedMock).toHaveBeenCalledOnce();
+        expect(unsubscribeGameNotStartedMock).toHaveBeenCalledOnce();
     });
 
     it('renders Home when connected', () => {
