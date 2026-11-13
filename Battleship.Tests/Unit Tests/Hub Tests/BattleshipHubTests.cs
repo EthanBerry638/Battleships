@@ -306,7 +306,12 @@ public class BattleshipHubTests
         string gameCode = "ABC123";
         var coordinate = new Coordinate(x, y);
         var request = new ShootRequest(playerId, coordinate);
-        var response = new ShotResponse(expectedResult, gameCode, playerId, coordinate);
+        
+        IReadOnlyList<Coordinate>? sunkShipCoordinates = expectedResult == ShotResult.Sunk
+            ? new List<Coordinate> { coordinate, new Coordinate(x + 1, y) }
+            : null;
+        
+        var response = new ShotResponse(expectedResult, gameCode, playerId, coordinate, sunkShipCoordinates);
 
         _mockGameService.Setup(g => g.Shoot(playerId, coordinate)).Returns(response);
         _mockClients.Setup(c => c.Group(gameCode)).Returns(_mockClientProxy.Object);
@@ -323,7 +328,8 @@ public class BattleshipHubTests
                     args[0] is ShotMessage &&
                     ((ShotMessage)args[0]).Result == expectedResult &&
                     ((ShotMessage)args[0]).ShooterId == playerId &&
-                    ((ShotMessage)args[0]).Coordinate == coordinate),
+                    ((ShotMessage)args[0]).Coordinate == coordinate &&
+                    ((ShotMessage)args[0]).SunkCoordinates == sunkShipCoordinates),
                 CancellationToken.None),
             Times.Once);
     }
