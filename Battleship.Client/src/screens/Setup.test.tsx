@@ -1,14 +1,17 @@
 ﻿import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, screen, fireEvent, waitFor } from "@testing-library/react";
 import Setup from "./Setup";
-import { clearBoard, placeShip, ShipType, validateFleet } from "../signalR.ts";
+import { clearBoard, placeShip, ShipType, tryStartGame, validateFleet } from "../signalR.ts";
 
 vi.mock("../signalR.ts", async (importOriginal) => ({
     ...(await importOriginal<typeof import("../signalR.ts")>()),
     placeShip: vi.fn(),
     clearBoard: vi.fn(),
     validateFleet: vi.fn(),
+    tryStartGame: vi.fn(),
 }));
+
+const validFleet = { isValid: true, missingShips: [], extraShips: [] };
 
 const shipIds = ["carrier", "battleship", "destroyer", "submarine", "patrol boat"];
 const rows = "ABCDE";
@@ -33,6 +36,7 @@ describe("Setup", () => {
         vi.clearAllMocks();
         vi.mocked(placeShip).mockResolvedValue({ isSuccessful: true, invalidCoordinates: null });
         vi.mocked(clearBoard).mockResolvedValue();
+        vi.mocked(tryStartGame).mockResolvedValue();
     });
 
     afterEach(cleanup);
@@ -78,6 +82,7 @@ describe("Setup", () => {
 
         expect(await screen.findByText(/you're ready/i)).toBeInTheDocument();
         expect(validateFleet).toHaveBeenCalledWith("1");
+        expect(tryStartGame).toHaveBeenCalledWith("1");
         expect(screen.queryByRole("button", { name: "Ready up" })).not.toBeInTheDocument();
         expect(screen.getByRole("button", { name: "Clear Placement" })).toBeDisabled();
         expect(screen.getByRole("button", { name: "Toggle ship orientation" })).toBeDisabled();
@@ -105,5 +110,45 @@ describe("Setup", () => {
         expect(alert).toHaveTextContent("Extra ships: Destroyer.");
         expect(screen.getByRole("button", { name: "Ready up" })).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "Clear Placement" })).toBeEnabled();
+        expect(tryStartGame).not.toHaveBeenCalled();
+    });
+
+    it("shows an error and stays unlocked when starting the game fails", async () => {
+        vi.mocked(validateFleet).mockResolvedValue(validFleet);
+        vi.mocked(tryStartGame).mockRejectedValue(new Error("boom"));
+
+        render(<Setup playerId="1" playerName="Player" connectionStatus="connected" />);
+        await placeAllShips();
+
+        fireEvent.click(screen.getByRole("button", { name: "Ready up" }));
+
+        expect(await screen.findByRole("alert")).toHaveTextContent("Failed to ready up.");
+        expect(screen.getByRole("button", { name: "Ready up" })).toBeEnabled();
+        expect(screen.queryByText(/you're ready/i)).not.toBeInTheDocument();
+    });
+
+    it("shows a waiting message only once ready and the opponent is not", async () => {
+        vi.mocked(validateFleet).mockResolvedValue(validFleet);
+
+        const { rerender } = render(
+            <Setup playerId="1" playerName="Player" connectionStatus="connected" />,
+        );
+        await placeAllShips();
+
+        fireEvent.click(screen.getByRole("button", { name: "Ready up" }));
+        await screen.findByText(/you're ready/i);
+
+        expect(screen.queryByText(/waiting for opponent/i)).not.toBeInTheDocument();
+
+        rerender(
+            <Setup
+                playerId="1"
+                playerName="Player"
+                connectionStatus="connected"
+                waitingForOpponent
+            />,
+        );
+
+        expect(screen.getByText(/waiting for opponent/i)).toBeInTheDocument();
     });
 });

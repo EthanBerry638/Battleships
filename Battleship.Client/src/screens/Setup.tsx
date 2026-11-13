@@ -6,6 +6,7 @@ import {
     isSameCoordinate,
     placeShip,
     ShipType,
+    tryStartGame,
     validateFleet,
     type ConnectionStatus,
     type Coordinate,
@@ -15,6 +16,7 @@ interface SetupProps {
     playerId: string;
     playerName: string;
     connectionStatus: ConnectionStatus;
+    waitingForOpponent?: boolean;
 }
 
 type Orientation = 'horizontal' | 'vertical';
@@ -47,7 +49,7 @@ function formatShipTypes(types: ShipType[]): string {
         .join(', ');
 }
 
-function Setup({ playerId, connectionStatus }: SetupProps) {
+function Setup({ playerId, connectionStatus, waitingForOpponent = false }: SetupProps) {
     const [isReady, setIsReady] = useState(false);
     const [orientation, setOrientation] = useState<Orientation>('horizontal');
     const [placedCells, setPlacedCells] = useState<Coordinate[]>([]);
@@ -178,10 +180,19 @@ function Setup({ playerId, connectionStatus }: SetupProps) {
         setError(null);
         setIsBusy(true);
 
-        try {
-            const result = await validateFleet(playerId);
+        let result;
 
+        try {
+            result = await validateFleet(playerId);
+        } catch {
+            setError('Failed to validate your fleet. Please try again.');
+            setIsBusy(false);
+            return;
+        }
+
+        try {
             if (result.isValid) {
+                await tryStartGame(playerId);
                 setIsReady(true);
                 return;
             }
@@ -198,7 +209,7 @@ function Setup({ playerId, connectionStatus }: SetupProps) {
 
             setError(`Your fleet is not valid. ${problems.join(' ')}`.trim());
         } catch {
-            setError('Failed to validate your fleet. Please try again.');
+            setError('Failed to ready up. Please try again.');
         } finally {
             setIsBusy(false);
         }
@@ -279,6 +290,9 @@ function Setup({ playerId, connectionStatus }: SetupProps) {
                     <p role='status'>
                         Fleet validated – you're ready. Your ships are now locked in.
                     </p>
+                )}
+                {isReady && waitingForOpponent && (
+                    <p role='status'>Waiting for opponent…</p>
                 )}
                 <Board
                     placedCells={placedCells}
