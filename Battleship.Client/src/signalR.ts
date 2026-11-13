@@ -56,6 +56,21 @@ export type PlacementResult = {
     invalidCoordinates: Coordinate[] | null;
 }
 
+export const ShotResult = {
+    Miss: 0,
+    Hit: 1,
+    Sunk: 2,
+    Duplicate: 3,
+} as const;
+
+export type ShotResult = (typeof ShotResult)[keyof typeof ShotResult];
+
+export type ShotMessage = {
+    result: ShotResult;
+    shooterId: string;
+    coordinate: Coordinate;
+}
+
 export function isSameCoordinate(a: Coordinate, b: Coordinate): boolean {
     return a.x === b.x && a.y === b.y;
 }
@@ -131,4 +146,16 @@ export function validateFleet(playerId: string): Promise<FleetValidationResult> 
 
 export function tryStartGame(playerId: string): Promise<void> {
     return connection.invoke('TryStartGame', { playerId });
+}
+
+export function shoot(playerId: string, coordinate: Coordinate): Promise<void> {
+    return connection.invoke('Shoot', { playerId, coordinate });
+}
+
+export function onShot(handler: (message: ShotMessage) => void) {
+    connection.on('Shot', handler);
+
+    return () => {
+        connection.off('Shot', handler);
+    };
 }

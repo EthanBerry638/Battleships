@@ -38,3 +38,52 @@
 .cell-occupied {
     background: #4a708b;
 }
+
+button.cell {
+    padding: 0;
+    border-radius: 0;
+    font: inherit;
+}
+
+button.cell[aria-disabled="true"] {
+    cursor: not-allowed;
+}
+
+button.cell[aria-disabled="true"]:hover {
+    filter: none;
+}
+
+.board {
+    transition: opacity 0.2s ease;
+}
+
+.board-dimmed {
+    opacity: 0.45;
+}
+
+.cell-miss {
+    background: #c3d9e6;
+}
+
+.cell-hit {
+    background: #f6c1c1;
+}
+
+.cell-occupied.cell-hit {
+    background: #7a3b46;
+}
+
+.shot-marker {
+    width: 1.1rem;
+    height: 1.1rem;
+    border-radius: 50%;
+}
+
+.shot-marker-miss {
+    border: 2px solid #58869d;
+    background: #ffffff;
+}
+
+.shot-marker-hit {
+    background: #d62839;
+}

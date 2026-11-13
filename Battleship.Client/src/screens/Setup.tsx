@@ -17,6 +17,7 @@ interface SetupProps {
     playerName: string;
     connectionStatus: ConnectionStatus;
     waitingForOpponent?: boolean;
+    onFleetLocked?: (cells: Coordinate[]) => void;
 }
 
 type Orientation = 'horizontal' | 'vertical';
@@ -49,7 +50,7 @@ function formatShipTypes(types: ShipType[]): string {
         .join(', ');
 }
 
-function Setup({ playerId, connectionStatus, waitingForOpponent = false }: SetupProps) {
+function Setup({ playerId, connectionStatus, waitingForOpponent = false, onFleetLocked }: SetupProps) {
     const [isReady, setIsReady] = useState(false);
     const [orientation, setOrientation] = useState<Orientation>('horizontal');
     const [placedCells, setPlacedCells] = useState<Coordinate[]>([]);
@@ -192,6 +193,7 @@ function Setup({ playerId, connectionStatus, waitingForOpponent = false }: Setup
 
         try {
             if (result.isValid) {
+                onFleetLocked?.(placedCells);
                 await tryStartGame(playerId);
                 setIsReady(true);
                 return;

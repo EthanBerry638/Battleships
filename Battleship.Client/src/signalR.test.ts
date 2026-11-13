@@ -7,6 +7,8 @@ import {
     onGameCreated,
     onGameNotStarted,
     onGameStarted,
+    onShot,
+    shoot,
     startConnection,
     tryStartGame,
 } from './signalR';
@@ -231,6 +233,7 @@ describe('startConnection', () => {
 describe.each([
     ['GameStarted', onGameStarted],
     ['GameNotStarted', onGameNotStarted],
+    ['Shot', onShot],
 ] as const)('%s listener', (eventName, subscribe) => {
     beforeEach(() => {
         signalRMock.connection.on.mockClear();
@@ -266,6 +269,20 @@ describe('tryStartGame', () => {
         expect(signalRMock.connection.invoke).toHaveBeenCalledWith(
             'TryStartGame',
             { playerId: 'player-1' },
+        );
+    });
+});
+
+describe('shoot', () => {
+    it('invokes Shoot with the player ID and coordinate', async () => {
+        signalRMock.connection.invoke.mockClear();
+
+        await shoot('player-1', { x: 3, y: 1 });
+
+        expect(signalRMock.connection.invoke).toHaveBeenCalledOnce();
+        expect(signalRMock.connection.invoke).toHaveBeenCalledWith(
+            'Shoot',
+            { playerId: 'player-1', coordinate: { x: 3, y: 1 } },
         );
     });
 });

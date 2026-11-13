@@ -92,6 +92,31 @@ describe("Setup", () => {
         }
     });
 
+    it("hands over the fleet cells before starting the game", async () => {
+        vi.mocked(validateFleet).mockResolvedValue(validFleet);
+        const onFleetLocked = vi.fn(() => {
+            expect(tryStartGame).not.toHaveBeenCalled();
+        });
+
+        render(
+            <Setup
+                playerId="1"
+                playerName="Player"
+                connectionStatus="connected"
+                onFleetLocked={onFleetLocked}
+            />,
+        );
+        await placeAllShips();
+
+        fireEvent.click(screen.getByRole("button", { name: "Ready up" }));
+        await screen.findByText(/you're ready/i);
+
+        expect(onFleetLocked).toHaveBeenCalledOnce();
+        expect(onFleetLocked.mock.calls[0]).toEqual([expect.any(Array)]);
+        expect((onFleetLocked.mock.calls[0] as unknown[][])[0]).toHaveLength(17);
+        expect(tryStartGame).toHaveBeenCalledOnce();
+    });
+
     it("explains which ships are missing or extra when validation fails", async () => {
         vi.mocked(validateFleet).mockResolvedValue({
             isValid: false,
