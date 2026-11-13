@@ -1,14 +1,14 @@
 ﻿import { type DragEvent } from 'react';
+import { formatCoordinate, isSameCoordinate, rowLabels, type Coordinate } from '../signalR.ts';
 import "./Board.css";
 
 interface BoardProps {
-    placedCells: string[];
-    onCellDrop: (coordinate: string, e: DragEvent) => void;
+    placedCells: Coordinate[];
+    onCellDrop: (coordinate: Coordinate, e: DragEvent) => void;
     onCellDragOver: (e: DragEvent) => void;
 }
 
-const letters = "ABCDEFGHIJ".split("");
-const numbers = Array.from({ length: 10 }, (_, index) => index + 1);
+const indices = Array.from({ length: 10 }, (_, index) => index);
 
 function Board({
     placedCells,
@@ -19,25 +19,27 @@ function Board({
         <div className="board">
             <div />
 
-            {numbers.map((number) => (
-                <div className="label" key={number}>
-                    {number}
+            {indices.map((x) => (
+                <div className="label" key={x}>
+                    {x + 1}
                 </div>
             ))}
 
-            {letters.map((letter) => (
-                <div className="board-row" key={letter}>
-                    <div className="label">{letter}</div>
+            {indices.map((y) => (
+                <div className="board-row" key={y}>
+                    <div className="label">{rowLabels[y]}</div>
 
-                    {numbers.map((number) => {
-                        const coordinate = `${letter}${number}`;
-                        const isOccupied = placedCells.includes(coordinate);
-                        
+                    {indices.map((x) => {
+                        const coordinate: Coordinate = { x, y };
+                        const isOccupied = placedCells.some((cell) =>
+                            isSameCoordinate(cell, coordinate),
+                        );
+
                         return (
                             <div
                                 className={`cell ${isOccupied ? "cell-occupied" : ""}`}
-                                key={coordinate}
-                                title={coordinate}
+                                key={`${x}-${y}`}
+                                title={formatCoordinate(coordinate)}
                                 onDragOver={onCellDragOver}
                                 onDrop={(e) => onCellDrop(coordinate, e)}
                             >
