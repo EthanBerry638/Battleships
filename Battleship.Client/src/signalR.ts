@@ -18,6 +18,12 @@ export type GameCreatedMessage = {
     player2Id: string;
 }
 
+export type FleetValidationResult = {
+    isValid: boolean;
+    missingShips: ShipType[];
+    extraShips: ShipType[];
+};
+
 export const ShipType = {
     Carrier: 0,
     Battleship: 1,
@@ -95,4 +101,8 @@ export async function startConnection(
 
 export function clearBoard(playerId: string): Promise<void> {
     return connection.invoke('ClearBoard', { playerId });
+}
+
+export function validateFleet(playerId: string): Promise<FleetValidationResult> {
+    return connection.invoke<FleetValidationResult>("ValidateFleet", { playerId })
 }
