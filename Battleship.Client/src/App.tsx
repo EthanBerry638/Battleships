@@ -1,11 +1,17 @@
 import { useEffect, useState } from 'react';
-import { type ConnectionStatus, startConnection, onGameCreated } from './signalR';
+import {
+    type ConnectionStatus,
+    startConnection,
+    onGameCreated,
+    onGameNotStarted,
+    onGameStarted,
+} from './signalR';
 import JoinGame from './screens/JoinGame';
 import CreateGame from './screens/CreateGame';
 import Home from './screens/Home';
 import Setup from './screens/Setup';
 
-type Screen = 'home' | 'create' | 'join' | 'setup';
+type Screen = 'home' | 'create' | 'join' | 'setup' | 'game';
 
 function App() {
     const [screen, setScreen] = useState<Screen>('home');
@@ -13,14 +19,29 @@ function App() {
     const [playerName, setPlayerName] = useState<string>('Player');
     const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('connecting');
     
+    const [waitingForOpponent, setWaitingForOpponent] = useState(false);
+
     useEffect(() => {
-        const unsubscribe = onGameCreated(() => {
+        const unsubscribeGameCreated = onGameCreated(() => {
             setScreen('setup');
         });
-        
+
+        const unsubscribeGameStarted = onGameStarted(() => {
+            setWaitingForOpponent(false);
+            setScreen('game');
+        });
+
+        const unsubscribeGameNotStarted = onGameNotStarted(() => {
+            setWaitingForOpponent(true);
+        });
+
         void startConnection(setConnectionStatus);
-        
-        return unsubscribe;
+
+        return () => {
+            unsubscribeGameCreated();
+            unsubscribeGameStarted();
+            unsubscribeGameNotStarted();
+        };
     }, []);
     
     const renderCurrentScreen = () => {
@@ -49,8 +70,11 @@ function App() {
                         playerId={playerId}
                         playerName={playerName}
                         connectionStatus={connectionStatus}
+                        waitingForOpponent={waitingForOpponent}
                     />
                 );
+            case 'game':
+                return <h1>Game started</h1>;
             default:
                 return (
                     <Home
