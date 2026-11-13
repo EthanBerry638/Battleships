@@ -48,8 +48,10 @@ export function isSameCoordinate(a: Coordinate, b: Coordinate): boolean {
     return a.x === b.x && a.y === b.y;
 }
 
+export const rowLabels = 'ABCDEFGHIJ';
+
 export function formatCoordinate({ x, y }: Coordinate): string {
-    return `(${x + 1}, ${y + 1})`;
+    return `${rowLabels[y]}${x + 1}`;
 }
 
 export function placeShip(request: PlaceShipRequest): Promise<PlacementResult> {
