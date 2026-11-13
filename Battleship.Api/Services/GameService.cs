@@ -94,9 +94,9 @@ public class GameService (IGameRepository gameRepository) : IGameService
         {
             Player player = session.Engine.Players.First(p => p.Id == playerId);
             
-            ShotResult result = session.Engine.Shoot(player, coordinate);
+            ShotOutcome outcome = session.Engine.Shoot(player, coordinate);
 
-            return new ShotResponse(result, gameCode!, playerId, coordinate);
+            return new ShotResponse(outcome.Result, gameCode!, playerId, coordinate, outcome.SunkCoordinates);
         }
     }
 

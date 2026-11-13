@@ -6,4 +6,5 @@ public record ShotResponse(
     ShotResult Result,
     string GameCode,
     Guid ShooterId,
-    Coordinate Coordinate);
+    Coordinate Coordinate,
+    IReadOnlyList<Coordinate>? SunkCoordinates);

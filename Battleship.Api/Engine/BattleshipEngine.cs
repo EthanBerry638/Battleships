@@ -12,23 +12,25 @@ public class BattleshipEngine(IGameBoard playerOneBoard, IGameBoard playerTwoBoa
     private readonly Player[] _players = [playerOne, playerTwo];
     private readonly HashSet<Coordinate>[] _shotsTaken = [[], []];
     private int _currentPlayerIndex;
+    private int OpponentIndex => (_currentPlayerIndex + 1) % 2;
+    private IGameBoard OpponentBoard => _gameBoards[OpponentIndex];
     private GameState _gameState;
     private Player? _winner;
     public GameState GameState => _gameState;
     public Player CurrentPlayer => _players[_currentPlayerIndex];
     public IReadOnlyList<Player> Players => _players;
 
-    public ShotResult Shoot(Player player, Coordinate coordinate)
+    public ShotOutcome Shoot(Player player, Coordinate coordinate)
     {
         ValidateShotPreconditions(player);
 
-        ShotResult shotResult = GetShotResult(coordinate);
-
+        ShotOutcome shotOutcome = GetShotOutcome(coordinate);
+        
         CheckGameState();
 
         if (_gameState is not GameState.Finished) SwitchTurns();
 
-        return shotResult;
+        return shotOutcome;
     }
 
     private void ValidateShotPreconditions(Player player)
@@ -42,20 +44,21 @@ public class BattleshipEngine(IGameBoard playerOneBoard, IGameBoard playerTwoBoa
         if (_gameState is GameState.Finished)
             throw new GameOverException("Cannot shoot when game is over.");
     }
-
-    private ShotResult GetShotResult(Coordinate coordinate)
+    
+    private ShotOutcome GetShotOutcome(Coordinate coordinate)
     {
-        if (!_shotsTaken[_currentPlayerIndex].Add(coordinate)) return ShotResult.Duplicate;
+        if (!_shotsTaken[_currentPlayerIndex].Add(coordinate)) return new ShotOutcome(ShotResult.Duplicate);
 
-        int opponentIndex = (_currentPlayerIndex + 1) % 2;
-        IGameBoard opponentBoard = _gameBoards[opponentIndex];
+        Tile tile = OpponentBoard.GetTile(coordinate);
 
-        Tile tile = opponentBoard.GetTile(coordinate);
+        if (!tile.HasShip) return new ShotOutcome(ShotResult.Miss);
 
-        if (!tile.HasShip) return ShotResult.Miss;
+        IShip ship = tile.OccupyingShip!;
+        ship.RegisterHit(coordinate);
 
-        tile.OccupyingShip!.RegisterHit(coordinate);
-        return tile.OccupyingShip.IsSunk() ? ShotResult.Sunk : ShotResult.Hit;
+        return ship.IsSunk()
+            ? new ShotOutcome(ShotResult.Sunk, ship.Coordinates.AsReadOnly())
+            : new ShotOutcome(ShotResult.Hit);
     }
 
     private void SwitchTurns()

@@ -93,12 +93,22 @@ public class BattleshipFullGameFlowIntegrationTests : IAsyncLifetime
 
         ShotMessage p1Message = await ReadShotAsync(p1Shots);
         ShotMessage p2Message = await ReadShotAsync(p2Shots);
+        
+        List<Coordinate>? expectedSunkCoordinates =
+            expectedResult is ShotResult.Sunk
+                ? FleetRow(coordinate.Y, coordinate.X + 1)
+                : null;
 
         foreach (ShotMessage message in new[] { p1Message, p2Message })
         {
             message.ShooterId.Should().Be(shooterId);
             message.Coordinate.Should().Be(coordinate);
             message.Result.Should().Be(expectedResult);
+
+            if (expectedSunkCoordinates is null)
+                message.SunkCoordinates.Should().BeNull();
+            else
+                message.SunkCoordinates.Should().Equal(expectedSunkCoordinates);
         }
     }
 
