@@ -57,7 +57,7 @@ public class BattleshipEngine(IGameBoard playerOneBoard, IGameBoard playerTwoBoa
         ship.RegisterHit(coordinate);
 
         return ship.IsSunk()
-            ? new ShotOutcome(ShotResult.Sunk, ship.Coordinates)
+            ? new ShotOutcome(ShotResult.Sunk, ship.Coordinates.AsReadOnly())
             : new ShotOutcome(ShotResult.Hit);
     }
 
