@@ -1,6 +1,6 @@
 # Battleships 
 
-A real-time, multiplayer backend implementation of the classic Battleship game, built on ASP.NET Core and SignalR. Capable of hosting multiple independent game lobbies and active matches.
+A real-time, multiplayer implementation of the classic Battleship game, built on ASP.NET Core and SignalR, with a React front end in active development. The server can host multiple independent game lobbies and active matches.
 
 ---
 
@@ -8,23 +8,47 @@ A real-time, multiplayer backend implementation of the classic Battleship game, 
 
 This project provides a game server for playing Battleship live against another player. It handles lobby creation and joining, ship placement and validation, turn-based shooting, win detection, and disconnect handling.
 
+A React client is being built alongside the server. It connects to the SignalR hub and currently supports creating and joining lobbies and placing ships on the board. The rest of the game flow is still being built.
+
 ---
 
 ## Tech Stack 
+
+### Backend
 
 - **.NET 8 / ASP.NET Core**: API host
 - **SignalR**: real-time communication between server and clients
 - **FluentValidation**: request DTO validation
 - **xUnit, Moq, FluentAssertions**: test suite
 
+### Frontend
+
+- **React 19 + TypeScript**: UI
+- **Vite**: dev server and build tooling
+- **@microsoft/signalr**: client connection to the game hub
+- **Vitest + React Testing Library**: test suite
+- **oxlint**: linting
+
 ---
 
 ## Project Structure 
 
-The solution is organised into two projects:
+The repository is organised into three projects:
 
 - **Battleship.Api**: the game server, including SignalR hubs, services, repositories, game sessions, validation, and core game logic
 - **Battleship.Tests**: unit and integration tests covering the application from individual domain behaviour through to a complete multiplayer game
+- **Battleship.Client**: the React front end, *in active development*
+
+### Client
+
+The client is a single-page React app made up of screens that `App` switches between:
+
+- **`Home`**: enter a player name and choose to create or join a game
+- **`CreateGame`**: create a lobby and share the game code
+- **`JoinGame`**: join an existing lobby using a game code
+- **`Setup`**: place your fleet on the board, with drag-and-drop and horizontal/vertical orientation
+
+The shared `Board` component renders the 10×10 grid. `signalR.ts` manages the hub connection and its status, and wraps the hub methods and server events the screens use.
 
 ### Core Components
 
@@ -129,26 +153,51 @@ Messages and responses include:
 
 ## How to Run 
 
+### Backend
+
 Ensure you have the .NET SDK installed.
 Navigate to the `Battleship.Api` directory.
 Run the following command:
 
 ```bash
-dotnet run
+dotnet run --launch-profile https
 ```
 
-The SignalR hub is exposed at `/gameHub`.
+The SignalR hub is exposed at `/gameHub` (`https://localhost:7146/gameHub` when using the `https` profile).
 
-There is currently no GUI, so the backend can be interacted with a tool such as Postman.
+### Frontend
+
+Ensure you have Node.js installed and the backend is running.
+Navigate to the `Battleship.Client` directory.
+Run the following commands:
+
+```bash
+npm install
+npm run dev
+```
+
+The client runs at `http://localhost:5173`. The API's CORS policy allows this origin.
+
+To try it locally, open the client in two browser windows. Create a game in one, then join it with the game code in the other.
 
 ---
 
 ## Testing 
 
-To run the test suite, navigate to the repository root directory and execute:
+### Backend
+
+To run the backend test suite, navigate to the repository root directory and execute:
 
 ```bash
 dotnet test
+```
+
+### Frontend
+
+To run the frontend test suite, navigate to the `Battleship.Client` directory and execute:
+
+```bash
+npm test
 ```
 
 ---
@@ -156,5 +205,4 @@ dotnet test
 ## Future Ideas
 
 - **Data Persistence:** Transition lobby/game/connection storage to PostgreSQL
-- **Front End:** Develop a modern, responsive UI (React) that talks to the SignalR hub
 - **AI Opponent:** Optional single-player mode against a basic AI, reusing the existing engine
