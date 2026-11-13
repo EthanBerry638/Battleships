@@ -18,6 +18,12 @@ export type GameCreatedMessage = {
     player2Id: string;
 }
 
+export type StartGameMessage = {
+    isStarted: boolean;
+    startingPlayerId: string | null;
+    playerIds: string[] | null;
+}
+
 export type FleetValidationResult = {
     isValid: boolean;
     missingShips: ShipType[];
@@ -72,6 +78,22 @@ export function onGameCreated(handler: (response: GameCreatedMessage) => void){
     };
 }
 
+export function onGameStarted(handler: (message: StartGameMessage) => void) {
+    connection.on('GameStarted', handler);
+
+    return () => {
+        connection.off('GameStarted', handler);
+    };
+}
+
+export function onGameNotStarted(handler: (message: StartGameMessage) => void) {
+    connection.on('GameNotStarted', handler);
+
+    return () => {
+        connection.off('GameNotStarted', handler);
+    };
+}
+
 export async function startConnection(
     onStatusChange: (status: ConnectionStatus) => void) {
     connection.onreconnecting(() => {
@@ -105,4 +127,8 @@ export function clearBoard(playerId: string): Promise<void> {
 
 export function validateFleet(playerId: string): Promise<FleetValidationResult> {
     return connection.invoke<FleetValidationResult>("ValidateFleet", { playerId })
+}
+
+export function tryStartGame(playerId: string): Promise<void> {
+    return connection.invoke('TryStartGame', { playerId });
 }
