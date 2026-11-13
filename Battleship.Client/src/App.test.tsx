@@ -34,15 +34,34 @@ vi.mock('./signalR', () => ({
     onGameNotStarted: onGameNotStartedMock,
 }));
 
-function emit(mock: typeof onGameCreatedMock) {
-    const handler = mock.mock.calls[0]?.[0] as (() => void) | undefined;
+function emit(mock: typeof onGameCreatedMock, message: unknown = {}) {
+    const handler = mock.mock.calls[0]?.[0] as ((message: unknown) => void) | undefined;
 
     expect(handler).toEqual(expect.any(Function));
 
     act(() => {
-        handler!();
+        handler!(message);
     });
 }
+
+vi.mock('./screens/Game', () => ({
+    default: ({
+                  playerId,
+                  startingPlayerId,
+                  fleetCells,
+              }: {
+        playerId: string;
+        startingPlayerId: string | null;
+        fleetCells: unknown[];
+    }) => (
+        <div>
+            <h1>Game screen</h1>
+            <p>Player ID: {playerId}</p>
+            <p>Starting player: {startingPlayerId}</p>
+            <p>Fleet cells: {fleetCells.length}</p>
+        </div>
+    ),
+}));
 
 vi.mock('./screens/Home', () => ({
     default: ({
@@ -93,10 +112,19 @@ vi.mock('./screens/JoinGame', () => ({
 }));
 
 vi.mock('./screens/Setup', () => ({
-    default: ({ waitingForOpponent }: { waitingForOpponent: boolean }) => (
+    default: ({
+                  waitingForOpponent,
+                  onFleetLocked,
+              }: {
+        waitingForOpponent: boolean;
+        onFleetLocked: (cells: { x: number; y: number }[]) => void;
+    }) => (
         <div>
             <h1>Setup screen</h1>
             <p>Waiting: {String(waitingForOpponent)}</p>
+            <button onClick={() => onFleetLocked([{ x: 0, y: 0 }, { x: 1, y: 0 }])}>
+                Lock fleet
+            </button>
         </div>
     ),
 }));
@@ -185,8 +213,26 @@ describe('App', () => {
         emit(onGameStartedMock);
 
         expect(
-            screen.getByRole('heading', { name: 'Game started' }),
+            screen.getByRole('heading', { name: 'Game screen' }),
         ).toBeInTheDocument();
+    });
+
+    it('passes the starting player and the locked fleet to the game screen', async () => {
+        const user = userEvent.setup();
+
+        render(<App />);
+
+        emit(onGameCreatedMock);
+        await user.click(screen.getByRole('button', { name: 'Lock fleet' }));
+        emit(onGameStartedMock, {
+            isStarted: true,
+            startingPlayerId: 'opponent-id',
+            playerIds: ['test-player-id', 'opponent-id'],
+        });
+
+        expect(screen.getByText('Player ID: test-player-id')).toBeInTheDocument();
+        expect(screen.getByText('Starting player: opponent-id')).toBeInTheDocument();
+        expect(screen.getByText('Fleet cells: 2')).toBeInTheDocument();
     });
 
     it('stays on setup and marks the player as waiting when GameNotStarted is received', () => {

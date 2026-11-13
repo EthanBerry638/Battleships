@@ -5,11 +5,13 @@ import {
     onGameCreated,
     onGameNotStarted,
     onGameStarted,
+    type Coordinate,
 } from './signalR';
 import JoinGame from './screens/JoinGame';
 import CreateGame from './screens/CreateGame';
 import Home from './screens/Home';
 import Setup from './screens/Setup';
+import Game from './screens/Game';
 
 type Screen = 'home' | 'create' | 'join' | 'setup' | 'game';
 
@@ -20,13 +22,16 @@ function App() {
     const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('connecting');
     
     const [waitingForOpponent, setWaitingForOpponent] = useState(false);
+    const [fleetCells, setFleetCells] = useState<Coordinate[]>([]);
+    const [startingPlayerId, setStartingPlayerId] = useState<string | null>(null);
 
     useEffect(() => {
         const unsubscribeGameCreated = onGameCreated(() => {
             setScreen('setup');
         });
 
-        const unsubscribeGameStarted = onGameStarted(() => {
+        const unsubscribeGameStarted = onGameStarted((message) => {
+            setStartingPlayerId(message.startingPlayerId);
             setWaitingForOpponent(false);
             setScreen('game');
         });
@@ -71,10 +76,18 @@ function App() {
                         playerName={playerName}
                         connectionStatus={connectionStatus}
                         waitingForOpponent={waitingForOpponent}
+                        onFleetLocked={setFleetCells}
                     />
                 );
             case 'game':
-                return <h1>Game started</h1>;
+                return (
+                    <Game
+                        playerId={playerId}
+                        connectionStatus={connectionStatus}
+                        startingPlayerId={startingPlayerId}
+                        fleetCells={fleetCells}
+                    />
+                );
             default:
                 return (
                     <Home
