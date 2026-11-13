@@ -6,6 +6,7 @@ import {
     isSameCoordinate,
     placeShip,
     ShipType,
+    validateFleet,
     type ConnectionStatus,
     type Coordinate,
 } from '../signalR.ts';
@@ -40,7 +41,14 @@ const fleet: Ship[] = [
     { id: 'patrol boat', name: 'Patrol Boat', size: 2, type: ShipType.PatrolBoat },
 ];
 
+function formatShipTypes(types: ShipType[]): string {
+    return types
+        .map((type) => fleet.find((ship) => ship.type === type)?.name ?? `Unknown ship (${type})`)
+        .join(', ');
+}
+
 function Setup({ playerId, connectionStatus }: SetupProps) {
+    const [isReady, setIsReady] = useState(false);
     const [orientation, setOrientation] = useState<Orientation>('horizontal');
     const [placedCells, setPlacedCells] = useState<Coordinate[]>([]);
     const [placedShips, setPlacedShips] = useState<PlacedShip[]>([]);
@@ -87,7 +95,7 @@ function Setup({ playerId, connectionStatus }: SetupProps) {
         e.preventDefault();
         setError(null);
 
-        if (!isConnected || isBusy) {
+        if (!isConnected || isBusy || isReady) {
             return;
         }
 
@@ -162,7 +170,45 @@ function Setup({ playerId, connectionStatus }: SetupProps) {
         }
     };
 
+    const readyUp = async () => {
+        if (!isConnected || isBusy || isReady) {
+            return;
+        }
+
+        setError(null);
+        setIsBusy(true);
+
+        try {
+            const result = await validateFleet(playerId);
+
+            if (result.isValid) {
+                setIsReady(true);
+                return;
+            }
+
+            const problems: string[] = [];
+
+            if (result.missingShips.length > 0) {
+                problems.push(`Missing ships: ${formatShipTypes(result.missingShips)}.`);
+            }
+
+            if (result.extraShips.length > 0) {
+                problems.push(`Extra ships: ${formatShipTypes(result.extraShips)}.`);
+            }
+
+            setError(`Your fleet is not valid. ${problems.join(' ')}`.trim());
+        } catch {
+            setError('Failed to validate your fleet. Please try again.');
+        } finally {
+            setIsBusy(false);
+        }
+    };
+
     const clearPlacement = async () => {
+        if (isReady) {
+            return;
+        }
+
         setError(null);
         setIsBusy(true);
 
@@ -196,7 +242,7 @@ function Setup({ playerId, connectionStatus }: SetupProps) {
                         return (
                             <div
                                 key={ship.id}
-                                draggable={!isPlaced && isConnected && !isBusy}
+                                draggable={!isPlaced && isConnected && !isBusy && !isReady}
                                 onDragStart={(e) => handleDragStart(e, ship.id)}
                                 className={`draggable-ship ${isPlaced ? 'ship-placed' : ''}`}
                             >
@@ -208,7 +254,7 @@ function Setup({ playerId, connectionStatus }: SetupProps) {
                 <button
                     type='button'
                     onClick={clearPlacement}
-                    disabled={placedShips.length === 0 || !isConnected || isBusy}
+                    disabled={placedShips.length === 0 || !isConnected || isBusy || isReady}
                 >
                     Clear Placement
                 </button>
@@ -216,10 +262,24 @@ function Setup({ playerId, connectionStatus }: SetupProps) {
                     type='button'
                     onClick={toggleOrientation}
                     aria-label='Toggle ship orientation'
+                    disabled={isReady}
                 >
                     {orientation === 'horizontal' ? '➡️ Horizontal' : '⬇️ Vertical'}
                 </button>
-                {allShipsPlaced && <p>All ships placed – you're ready to start.</p>}
+                {allShipsPlaced && !isReady && (
+                    <button
+                        type='button'
+                        onClick={readyUp}
+                        disabled={!isConnected || isBusy}
+                    >
+                        Ready up
+                    </button>
+                )}
+                {isReady && (
+                    <p role='status'>
+                        Fleet validated – you're ready. Your ships are now locked in.
+                    </p>
+                )}
                 <Board
                     placedCells={placedCells}
                     onCellDrop={handleCellDrop}
