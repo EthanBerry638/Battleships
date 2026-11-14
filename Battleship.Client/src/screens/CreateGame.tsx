@@ -1,5 +1,5 @@
 ﻿import { useState } from 'react';
-import { connection } from '../signalR';
+import { connection, leaveLobby } from '../signalR';
 import type { ConnectionStatus } from '../signalR';
 
 interface CreateGameProps {
@@ -12,11 +12,15 @@ interface CreateGameProps {
 function CreateGame({ playerId, playerName, onBack, connectionStatus }: CreateGameProps) {
     const [gameCode, setGameCode] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
-    const canCreate = connectionStatus === 'connected';
+    const [isCreating, setIsCreating] = useState(false);
+    const [isLeaving, setIsLeaving] = useState(false);
+    const canCreate = connectionStatus === 'connected' && !isCreating && gameCode === null;
+    const canGoBack = !isCreating && !isLeaving;
 
     async function createGame() {
         setGameCode(null);
         setError(null);
+        setIsCreating(true);
 
         try {
             const code = await connection.invoke<string>(
@@ -37,6 +41,25 @@ function CreateGame({ playerId, playerName, onBack, connectionStatus }: CreateGa
             else {
                 setError('Unable to generate a game code. Please try again.');
             }
+        } finally {
+            setIsCreating(false);
+        }
+    }
+
+    async function handleBack() {
+        if (gameCode === null) {
+            onBack();
+            return;
+        }
+
+        setIsLeaving(true);
+
+        try {
+            await leaveLobby();
+        } catch {
+            // If the connection dropped, the server's disconnect handling cleans up the lobby.
+        } finally {
+            onBack();
         }
     }
 
@@ -46,14 +69,13 @@ function CreateGame({ playerId, playerName, onBack, connectionStatus }: CreateGa
                 <h1>Create Game</h1>
                 {gameCode && <p>Game Code: <strong>{gameCode}</strong></p>}
                 {error && <p>{error}</p>}
-                <button 
-                    onClick={createGame} 
+                <button
+                    onClick={createGame}
                     disabled={!canCreate}
                 >
                     Generate Game Code
                 </button>
-                <p><small>Right now, once you generate a code you cannot join another person's game.</small></p>
-                <button onClick={onBack}>Back</button>
+                <button onClick={handleBack} disabled={!canGoBack}>Back</button>
             </div>
         </div>
     );
