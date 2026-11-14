@@ -69,6 +69,7 @@ export type ShotMessage = {
     result: ShotResult;
     shooterId: string;
     coordinate: Coordinate;
+    isGameOver: boolean;
 }
 
 export function isSameCoordinate(a: Coordinate, b: Coordinate): boolean {

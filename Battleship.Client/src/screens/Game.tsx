@@ -1,5 +1,6 @@
 ﻿import { useEffect, useState } from 'react';
 import Board, { type ShotMarks } from '../components/Board.tsx';
+import GameOver from '../components/GameOver.tsx';
 import {
     formatCoordinate,
     onShot,
@@ -16,6 +17,7 @@ interface GameProps {
     connectionStatus: ConnectionStatus;
     startingPlayerId: string | null;
     fleetCells: Coordinate[];
+    onBackToHome: () => void;
 }
 
 function describeShot({ result, coordinate }: ShotMessage, isMine: boolean): string {
@@ -35,26 +37,26 @@ function describeShot({ result, coordinate }: ShotMessage, isMine: boolean): str
 }
 
 function describeError(error: unknown): string {
-    // SignalR wraps server errors as "... HubException: <message>".
     const message = error instanceof Error ? error.message : '';
     const serverMessage = message.split('HubException: ')[1];
 
     return serverMessage ?? 'Failed to reach the server. Please try again.';
 }
 
-function Game({ playerId, connectionStatus, startingPlayerId, fleetCells }: GameProps) {
+function Game({ playerId, connectionStatus, startingPlayerId, fleetCells, onBackToHome }: GameProps) {
     const [isMyTurn, setIsMyTurn] = useState(startingPlayerId === playerId);
     const [incomingShots, setIncomingShots] = useState<ShotMarks>({});
     const [outgoingShots, setOutgoingShots] = useState<ShotMarks>({});
     const [lastShot, setLastShot] = useState<string | null>(null);
     const [isBusy, setIsBusy] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [winnerId, setWinnerId] = useState<string | null>(null);
 
     const isConnected = connectionStatus === 'connected';
-    const canShoot = isMyTurn && isConnected && !isBusy;
+    const isGameOver = winnerId !== null;
+    const canShoot = isMyTurn && isConnected && !isBusy && !isGameOver;
 
     useEffect(() => {
-        // The server is the authority: boards and turn only change on its Shot events.
         return onShot((message) => {
             const isMine = message.shooterId === playerId;
 
@@ -67,10 +69,13 @@ function Game({ playerId, connectionStatus, startingPlayerId, fleetCells }: Game
                     [formatCoordinate(message.coordinate)]: mark,
                 }));
             }
-
-            // The turn passes after every shot.
+            
             setIsMyTurn(!isMine);
             setLastShot(describeShot(message, isMine));
+            
+            if (message.isGameOver) {
+                setWinnerId(message.shooterId);
+            }
         });
     }, [playerId]);
 
@@ -95,9 +100,13 @@ function Game({ playerId, connectionStatus, startingPlayerId, fleetCells }: Game
         <div className="page-container">
             <div className="game">
                 <h1>Battleships</h1>
-                <p role="status" className="game-turn">
-                    {isMyTurn ? 'Your turn' : "Opponent's turn"}
-                </p>
+                {isGameOver ? (
+                    <GameOver isWinner={winnerId === playerId} onBackToHome={onBackToHome} />
+                ) : (
+                    <p role="status" className="game-turn">
+                        {isMyTurn ? 'Your turn' : "Opponent's turn"}
+                    </p>
+                )}
                 {!isConnected && (
                     <p role="status">Connection status: {connectionStatus}</p>
                 )}
