@@ -369,6 +369,54 @@ public class BattleshipHubTests
     }
 
     [Fact]
+    public async Task Shoot_ShouldRemoveBothPlayersConnectionsFromGroupAfterBroadcast_WhenGameIsOver()
+    {
+        var playerId = SetupCallerPlayer();
+        var opponentId = Guid.NewGuid();
+        string gameCode = "ABC123";
+        var coordinate = new Coordinate(0, 0);
+        List<Guid> playerIds = [playerId, opponentId];
+        var response = new ShotResponse(ShotResult.Sunk, gameCode, playerId, coordinate, [coordinate], true,
+            playerIds);
+        var calls = new List<string>();
+
+        _mockGameService.Setup(g => g.Shoot(playerId, coordinate)).Returns(response);
+        _mockConnectionService.Setup(c => c.GetConnectionIds(playerIds))
+            .Returns([ConnectionId, "opponent-connection-id"]);
+        _mockClients.Setup(c => c.Group(gameCode)).Returns(_mockClientProxy.Object);
+        _mockClientProxy
+            .Setup(p => p.SendCoreAsync("Shot", It.IsAny<object[]>(), It.IsAny<CancellationToken>()))
+            .Callback(() => calls.Add("broadcast"))
+            .Returns(Task.CompletedTask);
+        _mockGroups
+            .Setup(g => g.RemoveFromGroupAsync(It.IsAny<string>(), gameCode, It.IsAny<CancellationToken>()))
+            .Callback<string, string, CancellationToken>((connectionId, _, _) => calls.Add($"remove {connectionId}"))
+            .Returns(Task.CompletedTask);
+
+        await CreateHub().Shoot(new ShootRequest(coordinate));
+
+        calls.Should().Equal("broadcast", $"remove {ConnectionId}", "remove opponent-connection-id");
+    }
+
+    [Fact]
+    public async Task Shoot_ShouldNotRemoveAnyoneFromGroup_WhenGameIsNotOver()
+    {
+        var playerId = SetupCallerPlayer();
+        string gameCode = "ABC123";
+        var coordinate = new Coordinate(0, 0);
+        var response = new ShotResponse(ShotResult.Hit, gameCode, playerId, coordinate, null, false);
+        _mockGameService.Setup(g => g.Shoot(playerId, coordinate)).Returns(response);
+        _mockClients.Setup(c => c.Group(gameCode)).Returns(_mockClientProxy.Object);
+
+        await CreateHub().Shoot(new ShootRequest(coordinate));
+
+        _mockConnectionService.Verify(c => c.GetConnectionIds(It.IsAny<IEnumerable<Guid>>()), Times.Never);
+        _mockGroups.Verify(
+            g => g.RemoveFromGroupAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
     public void ClearBoard_ShouldDelegateToService_WhenCalled()
     {
         var playerId = SetupCallerPlayer();
