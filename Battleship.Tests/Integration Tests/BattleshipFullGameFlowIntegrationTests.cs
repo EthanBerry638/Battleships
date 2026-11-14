@@ -288,14 +288,26 @@ public class BattleshipFullGameFlowIntegrationTests : IAsyncLifetime
                 p2Shots.Reader);
         }
 
-        // The finished game is still in the repository, so the connection is still
-        // in a game and can't start another one, even with a fresh player id.
-        Func<Task> createAgain = () => _p1Conn.InvokeAsync<string>(
-            "CreateLobby",
-            new CreateLobbyRequest(Guid.NewGuid(), "Player 1"));
+        // The winning shot removed the finished game, so in-game calls find nothing.
+        Func<Task> clearFinishedBoard = () => _p1Conn.InvokeAsync("ClearBoard");
 
-        var exception = await createAgain.Should().ThrowAsync<HubException>();
-        exception.Which.Message.Should().Contain("This connection is already in a lobby or game.");
+        var exception = await clearFinishedBoard.Should().ThrowAsync<HubException>();
+        exception.Which.Message.Should().Contain($"No active game found for player with id {p1Id}.");
+
+        // Both players can start a new game on the same connections:
+        // Player 1 keeps their id and Player 2 joins with a fresh one.
+        string newGameCode = await _p1Conn.InvokeAsync<string>(
+            "CreateLobby",
+            new CreateLobbyRequest(p1Id, "Player 1"));
+
+        bool rejoined = await _p2Conn.InvokeAsync<bool>(
+            "JoinLobby",
+            new JoinLobbyRequest(newGameCode, Guid.NewGuid(), "Player 2"));
+
+        rejoined.Should().BeTrue();
+
+        await PlaceFleet(_p1Conn, "Player 1");
+        await PlaceFleet(_p2Conn, "Player 2");
     }
 
     private async Task StartGameAsync(Guid p1Id, Guid p2Id)
