@@ -1,5 +1,4 @@
 ﻿using Battleship.Api.Repositories;
-using Battleship.Api.DTOs.Requests;
 using Battleship.Api.DTOs.Responses;
 using Battleship.Api.Exceptions;
 using Battleship.Api.GamePieces.Data;
@@ -12,22 +11,22 @@ public class GameService (IGameRepository gameRepository) : IGameService
 {
     private readonly IGameRepository _gameRepository = gameRepository;
     
-    public PlacementResult PlaceShip(PlaceShipRequest request)
+    public PlacementResult PlaceShip(Guid playerId, ShipType type, List<Coordinate> coordinates)
     {
-        if (!_gameRepository.TryFindKeyByPlayerId(request.PlayerId, out string? gameCode))
-            throw new PlayerNotFoundException($"No active game found for player with id {request.PlayerId}.");
-            
+        if (!_gameRepository.TryFindKeyByPlayerId(playerId, out string? gameCode))
+            throw new PlayerNotFoundException($"No active game found for player with id {playerId}.");
+
         if (!_gameRepository.TryGetGameByCode(gameCode!, out GameSession? session))
             throw new GameNotFoundException($"Game by game code: {gameCode} not found.");
 
-        IShip ship = new Ship(request.Type, request.Coordinates);
-        
+        IShip ship = new Ship(type, coordinates);
+
         lock (session!.Lock)
         {
-            if (session.IsPlayerReady(request.PlayerId))
+            if (session.IsPlayerReady(playerId))
                 throw new FleetLockedException("You can't place a ship after readying.");
-            
-            return session.Engine.PlaceShip(request.PlayerId, ship);
+
+            return session.Engine.PlaceShip(playerId, ship);
         }
     }
     

@@ -42,7 +42,7 @@ describe("Setup", () => {
     afterEach(cleanup);
 
     it("sets the correct dataTransfer payload when drag starts", () => {
-        render(<Setup playerId="1" playerName="Player" connectionStatus="connected" />);
+        render(<Setup playerName="Player" connectionStatus="connected" />);
 
         const draggableItem = screen.getByText(/Carrier/i);
         expect(draggableItem).toHaveAttribute("draggable", "true");
@@ -59,7 +59,7 @@ describe("Setup", () => {
     });
 
     it("only shows the Ready up button once every ship is placed", async () => {
-        render(<Setup playerId="1" playerName="Player" connectionStatus="connected" />);
+        render(<Setup playerName="Player" connectionStatus="connected" />);
 
         expect(screen.queryByRole("button", { name: "Ready up" })).not.toBeInTheDocument();
 
@@ -75,14 +75,14 @@ describe("Setup", () => {
             extraShips: [],
         });
 
-        render(<Setup playerId="1" playerName="Player" connectionStatus="connected" />);
+        render(<Setup playerName="Player" connectionStatus="connected" />);
         await placeAllShips();
 
         fireEvent.click(screen.getByRole("button", { name: "Ready up" }));
 
         expect(await screen.findByText(/you're ready/i)).toBeInTheDocument();
-        expect(validateFleet).toHaveBeenCalledWith("1");
-        expect(tryStartGame).toHaveBeenCalledWith("1");
+        expect(validateFleet).toHaveBeenCalledOnce();
+        expect(tryStartGame).toHaveBeenCalledOnce();
         expect(screen.queryByRole("button", { name: "Ready up" })).not.toBeInTheDocument();
         expect(screen.getByRole("button", { name: "Clear Placement" })).toBeDisabled();
         expect(screen.getByRole("button", { name: "Toggle ship orientation" })).toBeDisabled();
@@ -100,7 +100,6 @@ describe("Setup", () => {
 
         render(
             <Setup
-                playerId="1"
                 playerName="Player"
                 connectionStatus="connected"
                 onFleetLocked={onFleetLocked}
@@ -124,7 +123,7 @@ describe("Setup", () => {
             extraShips: [ShipType.Destroyer],
         });
 
-        render(<Setup playerId="1" playerName="Player" connectionStatus="connected" />);
+        render(<Setup playerName="Player" connectionStatus="connected" />);
         await placeAllShips();
 
         fireEvent.click(screen.getByRole("button", { name: "Ready up" }));
@@ -142,7 +141,7 @@ describe("Setup", () => {
         vi.mocked(validateFleet).mockResolvedValue(validFleet);
         vi.mocked(tryStartGame).mockRejectedValue(new Error("boom"));
 
-        render(<Setup playerId="1" playerName="Player" connectionStatus="connected" />);
+        render(<Setup playerName="Player" connectionStatus="connected" />);
         await placeAllShips();
 
         fireEvent.click(screen.getByRole("button", { name: "Ready up" }));
@@ -156,7 +155,7 @@ describe("Setup", () => {
         vi.mocked(validateFleet).mockResolvedValue(validFleet);
 
         const { rerender } = render(
-            <Setup playerId="1" playerName="Player" connectionStatus="connected" />,
+            <Setup playerName="Player" connectionStatus="connected" />,
         );
         await placeAllShips();
 
@@ -167,7 +166,6 @@ describe("Setup", () => {
 
         rerender(
             <Setup
-                playerId="1"
                 playerName="Player"
                 connectionStatus="connected"
                 waitingForOpponent

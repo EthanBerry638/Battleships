@@ -10,29 +10,44 @@ public class ConnectionRepositoryTests
     private const string Connection = "connection-1";
     
     [Fact]
-    public void TryAddConnection_ShouldReturnTrue_WhenConnectionDoesNotExist()
+    public void SetConnection_ShouldMapConnectionToPlayer_WhenConnectionDoesNotExist()
     {
-        bool result = _connectionRepository.TryAddConnection(Connection, Guid.NewGuid());
+        Guid id = Guid.NewGuid();
 
-        result.Should().BeTrue();
+        _connectionRepository.SetConnection(Connection, id);
+
+        _connectionRepository.TryGetPlayerId(Connection, out Guid playerId).Should().BeTrue();
+        playerId.Should().Be(id);
     }
 
     [Fact]
-    public void TryAddConnection_ShouldReturnFalse_WhenConnectionAlreadyExists()
+    public void SetConnection_ShouldReplacePlayer_WhenConnectionAlreadyExists()
     {
-        Guid id = Guid.NewGuid();
-        _connectionRepository.TryAddConnection(Connection, id);
+        Guid oldId = Guid.NewGuid();
+        Guid newId = Guid.NewGuid();
+        _connectionRepository.SetConnection(Connection, oldId);
 
-        bool result = _connectionRepository.TryAddConnection(Connection, id);
+        _connectionRepository.SetConnection(Connection, newId);
+
+        _connectionRepository.TryGetPlayerId(Connection, out Guid playerId).Should().BeTrue();
+        playerId.Should().Be(newId);
+        _connectionRepository.ContainsPlayer(oldId).Should().BeFalse();
+    }
+
+    [Fact]
+    public void TryGetPlayerId_ShouldReturnFalse_WhenConnectionDoesNotExist()
+    {
+        bool result = _connectionRepository.TryGetPlayerId(Connection, out Guid playerId);
 
         result.Should().BeFalse();
+        playerId.Should().Be(Guid.Empty);
     }
-    
+
     [Fact]
     public void TryRemoveConnection_ShouldReturnTrueAndOutputPlayerId_WhenConnectionExists()
     {
         Guid id = Guid.NewGuid();
-        _connectionRepository.TryAddConnection(Connection, id);
+        _connectionRepository.SetConnection(Connection, id);
 
         bool result = _connectionRepository.TryRemoveConnection(Connection, out Guid removedPlayerId);
 
@@ -50,21 +65,21 @@ public class ConnectionRepositoryTests
     }
 
     [Fact]
-    public void TryRemoveConnection_ShouldAllowReuse_WhenConnectionHasBeenRemoved()
+    public void TryRemoveConnection_ShouldRemovePlayerLookup_WhenConnectionHasBeenRemoved()
     {
         Guid id = Guid.NewGuid();
-        _connectionRepository.TryAddConnection(Connection, id);
+        _connectionRepository.SetConnection(Connection, id);
         _connectionRepository.TryRemoveConnection(Connection, out _);
 
-        bool result = _connectionRepository.TryAddConnection(Connection, id);
+        bool result = _connectionRepository.TryGetPlayerId(Connection, out _);
 
-        result.Should().BeTrue();
+        result.Should().BeFalse();
     }
     
     [Fact]
     public void ContainsConnection_ShouldReturnTrue_WhenConnectionExists()
     {
-        _connectionRepository.TryAddConnection(Connection, Guid.NewGuid());
+        _connectionRepository.SetConnection(Connection, Guid.NewGuid());
 
         bool result = _connectionRepository.ContainsConnection(Connection);
 
@@ -82,7 +97,7 @@ public class ConnectionRepositoryTests
     [Fact]
     public void ContainsConnection_ShouldReturnFalse_WhenConnectionHasBeenRemoved()
     {
-        _connectionRepository.TryAddConnection(Connection, Guid.NewGuid());
+        _connectionRepository.SetConnection(Connection, Guid.NewGuid());
         _connectionRepository.TryRemoveConnection(Connection, out _);
 
         bool result = _connectionRepository.ContainsConnection(Connection);
@@ -94,7 +109,7 @@ public class ConnectionRepositoryTests
     public void ContainsPlayer_ShouldReturnTrue_WhenPlayerExists()
     {
         var playerId = Guid.NewGuid();
-        _connectionRepository.TryAddConnection(Connection, playerId);
+        _connectionRepository.SetConnection(Connection, playerId);
 
         bool result = _connectionRepository.ContainsPlayer(playerId);
 
@@ -113,7 +128,7 @@ public class ConnectionRepositoryTests
     public void ContainsPlayer_ShouldReturnFalse_WhenPlayerHasBeenRemoved()
     {
         var playerId = Guid.NewGuid();
-        _connectionRepository.TryAddConnection(Connection, playerId);
+        _connectionRepository.SetConnection(Connection, playerId);
         _connectionRepository.TryRemoveConnection(Connection, out _);
 
         bool result = _connectionRepository.ContainsPlayer(playerId);
@@ -125,8 +140,8 @@ public class ConnectionRepositoryTests
     public void ContainsPlayer_ShouldReturnTrue_WhenPlayerHasMultipleConnections()
     {
         var playerId = Guid.NewGuid();
-        _connectionRepository.TryAddConnection(Connection, playerId);
-        _connectionRepository.TryAddConnection("connection-2", playerId);
+        _connectionRepository.SetConnection(Connection, playerId);
+        _connectionRepository.SetConnection("connection-2", playerId);
         _connectionRepository.TryRemoveConnection(Connection, out _);
 
         bool result = _connectionRepository.ContainsPlayer(playerId);

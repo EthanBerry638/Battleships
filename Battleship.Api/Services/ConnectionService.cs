@@ -1,5 +1,6 @@
 ﻿using Battleship.Api.Repositories;
 using Battleship.Api.DTOs;
+using Battleship.Api.Exceptions;
 
 namespace Battleship.Api.Services;
 
@@ -9,11 +10,28 @@ public class ConnectionService (IConnectionRepository connectionRepository, IGam
     private readonly IGameRepository _gameRepository = gameRepository;
     private readonly ILobbyRepository _lobbyRepository = lobbyRepository;
     
-    public bool AddConnection(string connectionId, Guid playerId)
+    public void EnsureConnectionIsFree(string connectionId)
     {
-        return _connectionRepository.TryAddConnection(connectionId, playerId);
+        if (!_connectionRepository.TryGetPlayerId(connectionId, out Guid playerId))
+            return;
+
+        if (_lobbyRepository.IsPlayerInLobby(playerId) || _gameRepository.IsPlayerInGame(playerId))
+            throw new PlayerAlreadyInSessionException("This connection is already in a lobby or game.");
     }
-    
+
+    public void RegisterConnection(string connectionId, Guid playerId)
+    {
+        _connectionRepository.SetConnection(connectionId, playerId);
+    }
+
+    public Guid GetPlayerId(string connectionId)
+    {
+        if (!_connectionRepository.TryGetPlayerId(connectionId, out Guid playerId))
+            throw new PlayerNotFoundException("No player is registered for this connection.");
+
+        return playerId;
+    }
+
     public async Task<string?> HandleDisconnectAsync(string connectionId, TimeSpan delay = default)
     {
         if (!_connectionRepository.TryRemoveConnection(connectionId, out Guid playerId))

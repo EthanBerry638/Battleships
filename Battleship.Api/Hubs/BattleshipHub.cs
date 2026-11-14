@@ -14,6 +14,8 @@ public class BattleshipHub(IGameService gameService, IConnectionService connecti
     private readonly IConnectionService _connectionService = connectionService;
     private readonly ISessionService _sessionService = sessionService;
 
+    private Guid CallerPlayerId => _connectionService.GetPlayerId(Context.ConnectionId);
+
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
         string? gameCode =
@@ -27,23 +29,27 @@ public class BattleshipHub(IGameService gameService, IConnectionService connecti
 
     public async Task<string> CreateLobby(CreateLobbyRequest request)
     {
+        _connectionService.EnsureConnectionIsFree(Context.ConnectionId);
+
         var player = new Player(request.PlayerId, request.PlayerName);
 
         string gameCode = _sessionService.CreateLobby(player);
 
-        _connectionService.AddConnection(Context.ConnectionId, player.Id);
+        _connectionService.RegisterConnection(Context.ConnectionId, player.Id);
         await Groups.AddToGroupAsync(Context.ConnectionId, gameCode);
         return gameCode;
     }
     
     public async Task<bool> JoinLobby(JoinLobbyRequest request)
     {
+        _connectionService.EnsureConnectionIsFree(Context.ConnectionId);
+
         var player = new Player(request.PlayerId, request.PlayerName);
         BattleshipEngine? engine = _sessionService.JoinLobby(request.GameCode, player);
 
         if (engine is null) return false;
 
-        _connectionService.AddConnection(Context.ConnectionId, player.Id);
+        _connectionService.RegisterConnection(Context.ConnectionId, player.Id);
         await Groups.AddToGroupAsync(Context.ConnectionId, request.GameCode);
         
         var message = new GameCreatedResponse(engine.CurrentPlayer, engine.Players[0].Id, engine.Players[1].Id);
@@ -54,12 +60,12 @@ public class BattleshipHub(IGameService gameService, IConnectionService connecti
 
     public PlacementResult PlaceShip(PlaceShipRequest request)
     {
-        return _gameService.PlaceShip(request);
+        return _gameService.PlaceShip(CallerPlayerId, request.Type, request.Coordinates);
     }
 
-    public async Task TryStartGame(TryStartGameRequest request)
+    public async Task TryStartGame()
     {
-        StartGameResponse response = _gameService.TryStartGame(request.PlayerId);
+        StartGameResponse response = _gameService.TryStartGame(CallerPlayerId);
         
         StartGameMessage message = new(response.IsStarted, response.StartingPlayerId, response.PlayerIds);
         
@@ -69,14 +75,14 @@ public class BattleshipHub(IGameService gameService, IConnectionService connecti
             await Clients.Caller.SendAsync("GameNotStarted", message);
     }
 
-    public FleetValidationResult ValidateFleet(ValidateFleetRequest request)
+    public FleetValidationResult ValidateFleet()
     {
-        return _gameService.ValidateFleet(request.PlayerId);
+        return _gameService.ValidateFleet(CallerPlayerId);
     }
 
     public async Task Shoot(ShootRequest request)
     {
-        ShotResponse response = _gameService.Shoot(request.PlayerId, request.Coordinate);
+        ShotResponse response = _gameService.Shoot(CallerPlayerId, request.Coordinate);
         
         ShotMessage message = new(response.Result, response.ShooterId, response.Coordinate, response.SunkCoordinates,
             response.IsGameOver);
@@ -84,8 +90,8 @@ public class BattleshipHub(IGameService gameService, IConnectionService connecti
         await Clients.Group(response.GameCode).SendAsync("Shot", message);
     }
 
-    public void ClearBoard(ClearBoardRequest request)
+    public void ClearBoard()
     {
-        _gameService.ClearBoard(request.PlayerId);
+        _gameService.ClearBoard(CallerPlayerId);
     }
 }

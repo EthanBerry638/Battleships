@@ -4,7 +4,8 @@ namespace Battleship.Api.Repositories;
 
 public interface IConnectionRepository
 {
-    bool TryAddConnection(string connectionId, Guid playerId);
+    void SetConnection(string connectionId, Guid playerId);
+    bool TryGetPlayerId(string connectionId, out Guid playerId);
     bool TryRemoveConnection(string connectionId, out Guid playerId);
     bool ContainsConnection(string connectionId);
     bool ContainsPlayer(Guid playerId);

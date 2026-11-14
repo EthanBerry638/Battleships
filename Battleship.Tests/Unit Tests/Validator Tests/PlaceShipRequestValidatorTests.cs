@@ -14,27 +14,16 @@ public class PlaceShipRequestValidatorTests
     [Fact]
     public void ShouldNotHaveError_WhenRequestIsValid()
     {
-        var request = new PlaceShipRequest(Guid.NewGuid(), ShipType.PatrolBoat, ValidCoordinates);
+        var request = new PlaceShipRequest(ShipType.PatrolBoat, ValidCoordinates);
 
         var result = _validator.TestValidate(request);
 
         result.ShouldNotHaveAnyValidationErrors();
     }
-
-    [Fact]
-    public void ShouldHaveError_WhenPlayerIdIsEmpty()
-    {
-        var request = new PlaceShipRequest(Guid.Empty, ShipType.PatrolBoat, ValidCoordinates);
-
-        var result = _validator.TestValidate(request);
-
-        result.ShouldHaveValidationErrorFor(x => x.PlayerId);
-    }
-
     [Fact]
     public void ShouldHaveError_WhenShipTypeIsNotDefined()
     {
-        var request = new PlaceShipRequest(Guid.NewGuid(), (ShipType)999, ValidCoordinates);
+        var request = new PlaceShipRequest((ShipType)999, ValidCoordinates);
 
         var result = _validator.TestValidate(request);
 
@@ -44,7 +33,7 @@ public class PlaceShipRequestValidatorTests
     [Fact]
     public void ShouldHaveError_WhenCoordinatesIsNull()
     {
-        var request = new PlaceShipRequest(Guid.NewGuid(), ShipType.PatrolBoat, null!);
+        var request = new PlaceShipRequest(ShipType.PatrolBoat, null!);
 
         var result = _validator.TestValidate(request);
 
@@ -54,7 +43,7 @@ public class PlaceShipRequestValidatorTests
     [Fact]
     public void ShouldHaveError_WhenCoordinatesIsEmpty()
     {
-        var request = new PlaceShipRequest(Guid.NewGuid(), ShipType.PatrolBoat, []);
+        var request = new PlaceShipRequest(ShipType.PatrolBoat, []);
 
         var result = _validator.TestValidate(request);
 
@@ -64,7 +53,7 @@ public class PlaceShipRequestValidatorTests
     [Fact]
     public void ShouldHaveError_WhenCoordinatesContainsNullEntry()
     {
-        var request = new PlaceShipRequest(Guid.NewGuid(), ShipType.PatrolBoat, [new Coordinate(0, 0), null!]);
+        var request = new PlaceShipRequest(ShipType.PatrolBoat, [new Coordinate(0, 0), null!]);
 
         var result = _validator.TestValidate(request);
 
@@ -74,11 +63,10 @@ public class PlaceShipRequestValidatorTests
     [Fact]
     public void ShouldHaveErrorsForAllFields_WhenEverythingIsInvalid()
     {
-        var request = new PlaceShipRequest(Guid.Empty, (ShipType)999, []);
+        var request = new PlaceShipRequest((ShipType)999, []);
 
         var result = _validator.TestValidate(request);
 
-        result.ShouldHaveValidationErrorFor(x => x.PlayerId);
         result.ShouldHaveValidationErrorFor(x => x.Type);
         result.ShouldHaveValidationErrorFor(x => x.Coordinates);
     }

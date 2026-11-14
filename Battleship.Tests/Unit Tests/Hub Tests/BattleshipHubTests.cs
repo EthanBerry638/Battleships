@@ -25,6 +25,16 @@ public class BattleshipHubTests
     private readonly Mock<IClientProxy> _mockClientProxy = new();
     private readonly Mock<ISingleClientProxy> _mockCallerProxy = new();
 
+    private const string ConnectionId = "test-connection-id";
+
+    private Guid SetupCallerPlayer()
+    {
+        var playerId = Guid.NewGuid();
+        _mockContext.Setup(c => c.ConnectionId).Returns(ConnectionId);
+        _mockConnectionService.Setup(c => c.GetPlayerId(ConnectionId)).Returns(playerId);
+        return playerId;
+    }
+
     private BattleshipHub CreateHub()
     {
         return new BattleshipHub(_mockGameService.Object, _mockConnectionService.Object, _mockSessionService.Object)
@@ -56,7 +66,7 @@ public class BattleshipHubTests
 
         result.Should().BeFalse();
         _mockSessionService.Verify(s => s.JoinLobby("DOESNOTEXIST", It.IsAny<Player>()), Times.Once);
-        _mockContext.Verify(c => c.ConnectionId, Times.Never);
+        _mockConnectionService.Verify(c => c.RegisterConnection(It.IsAny<string>(), It.IsAny<Guid>()), Times.Never);
         _mockGroups.Verify(g => g.AddToGroupAsync(
             It.IsAny<string>(), It.IsAny<string>(),
             It.IsAny<CancellationToken>()), Times.Never);
@@ -72,7 +82,6 @@ public class BattleshipHubTests
         var expectedEngine = CreateEngine();
         _mockSessionService.Setup(s => s.JoinLobby(gameCode, It.IsAny<Player>()))
             .Returns(expectedEngine);
-        _mockConnectionService.Setup(c => c.AddConnection("test-connection-id", request.PlayerId));
         _mockContext.Setup(c => c.ConnectionId).Returns("test-connection-id");
         _mockGroups
             .Setup(g => g.AddToGroupAsync(It.IsAny<string>(), It.IsAny<string>(),
@@ -84,9 +93,9 @@ public class BattleshipHubTests
 
         result.Should().BeTrue();
         _mockSessionService.Verify(s => s.JoinLobby(gameCode, It.IsAny<Player>()), Times.Once);
-        _mockConnectionService.Verify(c => c.AddConnection("test-connection-id", request.PlayerId),
+        _mockConnectionService.Verify(c => c.EnsureConnectionIsFree("test-connection-id"), Times.Once);
+        _mockConnectionService.Verify(c => c.RegisterConnection("test-connection-id", request.PlayerId),
             Times.Once);
-        _mockContext.Verify(c => c.ConnectionId, Times.Exactly(2));
         _mockGroups.Verify(g => g.AddToGroupAsync(
             "test-connection-id", gameCode,
             It.IsAny<CancellationToken>()), Times.Once);
@@ -110,7 +119,6 @@ public class BattleshipHubTests
         var request = new CreateLobbyRequest(Guid.NewGuid(), "Player 1");
         _mockSessionService.Setup(s => s.CreateLobby(It.IsAny<Player>()))
             .Returns("ABC123");
-        _mockConnectionService.Setup(c => c.AddConnection("test-connection-id", request.PlayerId));
         _mockContext.Setup(c => c.ConnectionId).Returns("test-connection-id");
         _mockGroups
             .Setup(g => g.AddToGroupAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
@@ -120,11 +128,41 @@ public class BattleshipHubTests
 
         result.Should().Be("ABC123");
         _mockSessionService.Verify(s => s.CreateLobby(It.IsAny<Player>()), Times.Once);
-        _mockConnectionService.Verify(c => c.AddConnection("test-connection-id", request.PlayerId),
+        _mockConnectionService.Verify(c => c.EnsureConnectionIsFree("test-connection-id"), Times.Once);
+        _mockConnectionService.Verify(c => c.RegisterConnection("test-connection-id", request.PlayerId),
             Times.Once);
-        _mockContext.Verify(c => c.ConnectionId, Times.Exactly(2));
         _mockGroups.Verify(g => g.AddToGroupAsync(
             "test-connection-id", "ABC123", It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task CreateLobby_ShouldNotCreateLobby_WhenConnectionIsAlreadyInASession()
+    {
+        var request = new CreateLobbyRequest(Guid.NewGuid(), "Player 1");
+        _mockContext.Setup(c => c.ConnectionId).Returns(ConnectionId);
+        _mockConnectionService.Setup(c => c.EnsureConnectionIsFree(ConnectionId))
+            .Throws(new PlayerAlreadyInSessionException("busy"));
+
+        Func<Task> act = () => CreateHub().CreateLobby(request);
+
+        await act.Should().ThrowAsync<PlayerAlreadyInSessionException>();
+        _mockSessionService.Verify(s => s.CreateLobby(It.IsAny<Player>()), Times.Never);
+        _mockConnectionService.Verify(c => c.RegisterConnection(It.IsAny<string>(), It.IsAny<Guid>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task JoinLobby_ShouldNotJoinLobby_WhenConnectionIsAlreadyInASession()
+    {
+        var request = new JoinLobbyRequest("ABC123", Guid.NewGuid(), "Player 2");
+        _mockContext.Setup(c => c.ConnectionId).Returns(ConnectionId);
+        _mockConnectionService.Setup(c => c.EnsureConnectionIsFree(ConnectionId))
+            .Throws(new PlayerAlreadyInSessionException("busy"));
+
+        Func<Task> act = () => CreateHub().JoinLobby(request);
+
+        await act.Should().ThrowAsync<PlayerAlreadyInSessionException>();
+        _mockSessionService.Verify(s => s.JoinLobby(It.IsAny<string>(), It.IsAny<Player>()), Times.Never);
+        _mockConnectionService.Verify(c => c.RegisterConnection(It.IsAny<string>(), It.IsAny<Guid>()), Times.Never);
     }
 
     [Fact]
@@ -164,41 +202,56 @@ public class BattleshipHubTests
     [Fact]
     public void PlaceShip_ShouldSendSuccessResultToCaller_WhenGameServiceReturnsSuccess()
     {
+        var playerId = SetupCallerPlayer();
         var expectedResult = new PlacementResult(true);
-        _mockGameService.Setup(g => g.PlaceShip(It.IsAny<PlaceShipRequest>())).Returns(expectedResult);
+        List<Coordinate> coordinates = [new Coordinate(0, 0), new Coordinate(0, 1)];
+        _mockGameService.Setup(g => g.PlaceShip(playerId, ShipType.Carrier, coordinates)).Returns(expectedResult);
 
-        var result = CreateHub().PlaceShip(new PlaceShipRequest(Guid.NewGuid(), ShipType.Carrier,
-            [new Coordinate(0, 0), new Coordinate(0, 1)]));
+        var result = CreateHub().PlaceShip(new PlaceShipRequest(ShipType.Carrier, coordinates));
 
         result.Should().Be(expectedResult);
-        _mockGameService.Verify(g => g.PlaceShip(It.IsAny<PlaceShipRequest>()), Times.Once);
+        _mockGameService.Verify(g => g.PlaceShip(playerId, ShipType.Carrier, coordinates), Times.Once);
     }
 
     [Fact]
     public void PlaceShip_ShouldSendFailureResultToCaller_WhenGameServiceReturnsFailure()
     {
+        var playerId = SetupCallerPlayer();
         var expectedResult = new PlacementResult(false, [new Coordinate(0, 0), new Coordinate(1, 1)]);
-        _mockGameService.Setup(g => g.PlaceShip(It.IsAny<PlaceShipRequest>())).Returns(expectedResult);
-        _mockClients.Setup(c => c.Caller).Returns(_mockCallerProxy.Object);
+        List<Coordinate> coordinates = [new Coordinate(0, 0), new Coordinate(0, 1)];
+        _mockGameService.Setup(g => g.PlaceShip(playerId, ShipType.Carrier, coordinates)).Returns(expectedResult);
 
-        var result = CreateHub().PlaceShip(new PlaceShipRequest(Guid.NewGuid(), ShipType.Carrier,
-            [new Coordinate(0, 0), new Coordinate(0, 1)]));
+        var result = CreateHub().PlaceShip(new PlaceShipRequest(ShipType.Carrier, coordinates));
 
         result.Should().Be(expectedResult);
-        _mockGameService.Verify(g => g.PlaceShip(It.IsAny<PlaceShipRequest>()), Times.Once);
+        _mockGameService.Verify(g => g.PlaceShip(playerId, ShipType.Carrier, coordinates), Times.Once);
+    }
+
+    [Fact]
+    public void PlaceShip_ShouldThrowAndNotCallService_WhenConnectionHasNoPlayer()
+    {
+        _mockContext.Setup(c => c.ConnectionId).Returns(ConnectionId);
+        _mockConnectionService.Setup(c => c.GetPlayerId(ConnectionId))
+            .Throws(new PlayerNotFoundException("No player is registered for this connection."));
+
+        Action act = () => CreateHub().PlaceShip(new PlaceShipRequest(ShipType.Carrier, [new Coordinate(0, 0)]));
+
+        act.Should().Throw<PlayerNotFoundException>();
+        _mockGameService.Verify(
+            g => g.PlaceShip(It.IsAny<Guid>(), It.IsAny<ShipType>(), It.IsAny<List<Coordinate>>()), Times.Never);
     }
 
     [Fact]
     public async Task TryStartGame_ShouldSendResultToGroup_WhenGameStarted()
     {
-        var playerId = Guid.NewGuid();
+        var playerId = SetupCallerPlayer();
         var playerIds = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
         var startingPlayerId = playerIds[0];
         var outcome = new StartGameResponse(true, "ABC123", startingPlayerId, playerIds);
         _mockGameService.Setup(g => g.TryStartGame(playerId)).Returns(outcome);
         _mockClients.Setup(c => c.Group("ABC123")).Returns(_mockClientProxy.Object);
 
-        await CreateHub().TryStartGame(new TryStartGameRequest(playerId));
+        await CreateHub().TryStartGame();
 
         _mockGameService.Verify(g => g.TryStartGame(playerId), Times.Once);
         _mockClients.Verify(c => c.Group("ABC123"), Times.Once);
@@ -218,12 +271,12 @@ public class BattleshipHubTests
     [Fact]
     public async Task TryStartGame_ShouldSendResultToCaller_WhenWaitingForOpponent()
     {
-        var playerId = Guid.NewGuid();
+        var playerId = SetupCallerPlayer();
         var outcome = new StartGameResponse(false);
         _mockGameService.Setup(g => g.TryStartGame(playerId)).Returns(outcome);
         _mockClients.Setup(c => c.Caller).Returns(_mockCallerProxy.Object);
 
-        await CreateHub().TryStartGame(new TryStartGameRequest(playerId));
+        await CreateHub().TryStartGame();
 
         _mockGameService.Verify(g => g.TryStartGame(playerId), Times.Once);
         _mockCallerProxy.Verify(
@@ -246,11 +299,11 @@ public class BattleshipHubTests
     [Fact]
     public void ValidateFleet_ShouldReturnValidResult_WhenGameServiceReturnsValid()
     {
-        var playerId = Guid.NewGuid();
+        var playerId = SetupCallerPlayer();
         var expectedResult = new FleetValidationResult(true, [], []);
         _mockGameService.Setup(g => g.ValidateFleet(playerId)).Returns(expectedResult);
 
-        var result = CreateHub().ValidateFleet(new ValidateFleetRequest(playerId));
+        var result = CreateHub().ValidateFleet();
 
         result.Should().Be(expectedResult);
         _mockGameService.Verify(g => g.ValidateFleet(playerId), Times.Once);
@@ -259,11 +312,11 @@ public class BattleshipHubTests
     [Fact]
     public void ValidateFleet_ShouldReturnInvalidResult_WhenGameServiceReturnsInvalid()
     {
-        var playerId = Guid.NewGuid();
+        var playerId = SetupCallerPlayer();
         var expectedResult = new FleetValidationResult(false, [ShipType.Carrier], []);
         _mockGameService.Setup(g => g.ValidateFleet(playerId)).Returns(expectedResult);
 
-        var result = CreateHub().ValidateFleet(new ValidateFleetRequest(playerId));
+        var result = CreateHub().ValidateFleet();
 
         result.Should().Be(expectedResult);
         _mockGameService.Verify(g => g.ValidateFleet(playerId), Times.Once);
@@ -281,10 +334,10 @@ public class BattleshipHubTests
         int y,
         bool isGameOver)
     {
-        var playerId = Guid.NewGuid();
+        var playerId = SetupCallerPlayer();
         string gameCode = "ABC123";
         var coordinate = new Coordinate(x, y);
-        var request = new ShootRequest(playerId, coordinate);
+        var request = new ShootRequest(coordinate);
         
         IReadOnlyList<Coordinate>? sunkShipCoordinates = expectedResult == ShotResult.Sunk
             ? new List<Coordinate> { coordinate, new Coordinate(x + 1, y) }
@@ -318,10 +371,9 @@ public class BattleshipHubTests
     [Fact]
     public void ClearBoard_ShouldDelegateToService_WhenCalled()
     {
-        var playerId = Guid.NewGuid();
-        var request = new ClearBoardRequest(playerId);
+        var playerId = SetupCallerPlayer();
 
-        CreateHub().ClearBoard(request);
+        CreateHub().ClearBoard();
 
         _mockGameService.Verify(g => g.ClearBoard(playerId), Times.Once);
     }
