@@ -2,6 +2,7 @@
 using Battleship.Api.GamePieces.Entities;
 using Battleship.Api.Repositories;
 using Battleship.Api.Engine;
+using Battleship.Api.Exceptions;
 using Moq;
 using FluentAssertions;
 
@@ -21,29 +22,85 @@ public class ConnectionServiceTests
     }
 
     [Fact]
-    public void AddConnection_ShouldReturnTrue_WhenConnectionIsValid()
+    public void RegisterConnection_ShouldMapConnectionToPlayer_WhenCalled()
     {
         Guid id = Guid.NewGuid();
-        _connectionRepositoryMock.Setup(r => r.TryAddConnection(ConnectionId, id)).Returns(true);
 
-        bool result = _connectionService.AddConnection(ConnectionId, id);
-        
-        result.Should().BeTrue();
-        _connectionRepositoryMock.Verify(r => r.TryAddConnection(ConnectionId, id), Times.Once);
+        _connectionService.RegisterConnection(ConnectionId, id);
+
+        _connectionRepositoryMock.Verify(r => r.SetConnection(ConnectionId, id), Times.Once);
         _gameRepositoryMock.Verify(r => r.TryAddGame(It.IsAny<string>(), It.IsAny<GameSession>()), Times.Never);
         _lobbyRepositoryMock.Verify(r => r.TryAddLobby(It.IsAny<string>(), It.IsAny<Player>()), Times.Never);
     }
-    
+
     [Fact]
-    public void AddConnection_ShouldReturnFalse_WhenConnectionAlreadyExists()
+    public void GetPlayerId_ShouldReturnPlayerId_WhenConnectionIsRegistered()
     {
         Guid id = Guid.NewGuid();
-        _connectionRepositoryMock.Setup(r => r.TryAddConnection(ConnectionId, id)).Returns(false);
+        _connectionRepositoryMock.Setup(r => r.TryGetPlayerId(ConnectionId, out id)).Returns(true);
 
-        bool result = _connectionService.AddConnection(ConnectionId, id);
+        Guid result = _connectionService.GetPlayerId(ConnectionId);
 
-        result.Should().BeFalse();
-        _connectionRepositoryMock.Verify(r => r.TryAddConnection(ConnectionId, id), Times.Once);
+        result.Should().Be(id);
+    }
+
+    [Fact]
+    public void GetPlayerId_ShouldThrowPlayerNotFoundException_WhenConnectionIsNotRegistered()
+    {
+        Guid id = Guid.Empty;
+        _connectionRepositoryMock.Setup(r => r.TryGetPlayerId(ConnectionId, out id)).Returns(false);
+
+        Action act = () => _connectionService.GetPlayerId(ConnectionId);
+
+        act.Should().Throw<PlayerNotFoundException>();
+    }
+
+    [Fact]
+    public void EnsureConnectionIsFree_ShouldNotThrow_WhenConnectionIsNotRegistered()
+    {
+        Guid id = Guid.Empty;
+        _connectionRepositoryMock.Setup(r => r.TryGetPlayerId(ConnectionId, out id)).Returns(false);
+
+        Action act = () => _connectionService.EnsureConnectionIsFree(ConnectionId);
+
+        act.Should().NotThrow();
+    }
+
+    [Fact]
+    public void EnsureConnectionIsFree_ShouldThrow_WhenConnectionsPlayerIsInLobby()
+    {
+        Guid id = Guid.NewGuid();
+        _connectionRepositoryMock.Setup(r => r.TryGetPlayerId(ConnectionId, out id)).Returns(true);
+        _lobbyRepositoryMock.Setup(r => r.IsPlayerInLobby(id)).Returns(true);
+
+        Action act = () => _connectionService.EnsureConnectionIsFree(ConnectionId);
+
+        act.Should().Throw<PlayerAlreadyInSessionException>();
+    }
+
+    [Fact]
+    public void EnsureConnectionIsFree_ShouldThrow_WhenConnectionsPlayerIsInGame()
+    {
+        Guid id = Guid.NewGuid();
+        _connectionRepositoryMock.Setup(r => r.TryGetPlayerId(ConnectionId, out id)).Returns(true);
+        _gameRepositoryMock.Setup(r => r.IsPlayerInGame(id)).Returns(true);
+
+        Action act = () => _connectionService.EnsureConnectionIsFree(ConnectionId);
+
+        act.Should().Throw<PlayerAlreadyInSessionException>();
+    }
+
+    [Fact]
+    public void EnsureConnectionIsFree_ShouldNotThrow_WhenConnectionsPlayerIsNotInLobbyOrGame()
+    {
+        Guid id = Guid.NewGuid();
+        _connectionRepositoryMock.Setup(r => r.TryGetPlayerId(ConnectionId, out id)).Returns(true);
+        _lobbyRepositoryMock.Setup(r => r.IsPlayerInLobby(id)).Returns(false);
+        _gameRepositoryMock.Setup(r => r.IsPlayerInGame(id)).Returns(false);
+
+        Action act = () => _connectionService.EnsureConnectionIsFree(ConnectionId);
+
+        act.Should().NotThrow();
     }
 
     [Fact]
