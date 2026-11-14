@@ -109,6 +109,14 @@ export function onGameNotStarted(handler: (message: StartGameMessage) => void) {
     };
 }
 
+export function onOpponentDisconnected(handler: () => void) {
+    connection.on('OpponentDisconnected', handler);
+
+    return () => {
+        connection.off('OpponentDisconnected', handler);
+    };
+}
+
 export async function startConnection(
     onStatusChange: (status: ConnectionStatus) => void) {
     connection.onreconnecting(() => {
