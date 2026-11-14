@@ -85,7 +85,8 @@ public class BattleshipFullGameFlowIntegrationTests : IAsyncLifetime
         Coordinate coordinate,
         ShotResult expectedResult,
         ChannelReader<ShotMessage> p1Shots,
-        ChannelReader<ShotMessage> p2Shots)
+        ChannelReader<ShotMessage> p2Shots,
+        bool expectedIsGameOver = false)
     {
         await shooterConnection.InvokeAsync(
             "Shoot",
@@ -104,6 +105,7 @@ public class BattleshipFullGameFlowIntegrationTests : IAsyncLifetime
             message.ShooterId.Should().Be(shooterId);
             message.Coordinate.Should().Be(coordinate);
             message.Result.Should().Be(expectedResult);
+            message.IsGameOver.Should().Be(expectedIsGameOver);
 
             if (expectedSunkCoordinates is null)
                 message.SunkCoordinates.Should().BeNull();
@@ -239,16 +241,20 @@ public class BattleshipFullGameFlowIntegrationTests : IAsyncLifetime
         for (int i = 0; i < winningShots.Count; i++)
         {
             var p1Shot = winningShots[i];
+            bool isWinningShot = i == winningShots.Count - 1;
 
+            // The final shot sinks Player 2's last ship, so the
+            // broadcast should flag the game as over with P1 as shooter.
             await ShootAndAssertAsync(
                 _p1Conn,
                 p1Id,
                 p1Shot.Coordinate,
                 p1Shot.Result,
                 p1Shots.Reader,
-                p2Shots.Reader);
+                p2Shots.Reader,
+                expectedIsGameOver: isWinningShot);
 
-            if (i == winningShots.Count - 1)
+            if (isWinningShot)
                 break;
 
             // Give Player 2 one Hit, one Duplicate and one Miss.
@@ -288,11 +294,5 @@ public class BattleshipFullGameFlowIntegrationTests : IAsyncLifetime
                 p1Shots.Reader,
                 p2Shots.Reader);
         }
-        
-        Player? winner = await _p1Conn.InvokeAsync<Player?>(
-            "GetWinner",
-            new GetWinnerRequest(gameCode));
-        
-        winner!.Id.Should().Be(p1Id);
     }
 }
