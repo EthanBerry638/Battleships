@@ -12,6 +12,7 @@ vi.mock('../signalR.ts', async (importOriginal) => ({
 const me = 'me';
 const opponent = 'opponent';
 const unsubscribe = vi.fn();
+const onBackToHome = vi.fn();
 
 function renderGame(props: Partial<Parameters<typeof Game>[0]> = {}) {
     return render(
@@ -20,15 +21,16 @@ function renderGame(props: Partial<Parameters<typeof Game>[0]> = {}) {
             connectionStatus="connected"
             startingPlayerId={me}
             fleetCells={[{ x: 0, y: 0 }, { x: 1, y: 0 }]}
+            onBackToHome={onBackToHome}
             {...props}
         />,
     );
 }
 
-function emitShot(message: ShotMessage) {
+function emitShot(message: Omit<ShotMessage, 'isGameOver'> & Partial<ShotMessage>) {
     const handler = vi.mocked(onShot).mock.calls[0]![0];
 
-    act(() => handler(message));
+    act(() => handler({ isGameOver: false, ...message }));
 }
 
 const ownBoard = () => within(screen.getByRole('region', { name: 'Your fleet' }));
@@ -156,6 +158,79 @@ describe('Game', () => {
             'Cannot shoot when it is not your turn.',
         );
         expect(opponentBoard().getByTitle('B4')).not.toHaveClass('cell-hit');
+    });
+
+    it('does not show the game over panel while the game is in progress', () => {
+        renderGame();
+
+        emitShot({ result: ShotResult.Sunk, shooterId: me, coordinate: { x: 3, y: 1 } });
+
+        expect(screen.queryByRole('region', { name: 'Game over' })).toBeNull();
+    });
+
+    it('announces a win when my shot ends the game', () => {
+        renderGame();
+
+        emitShot({
+            result: ShotResult.Sunk,
+            shooterId: me,
+            coordinate: { x: 3, y: 1 },
+            isGameOver: true,
+        });
+
+        const gameOver = within(screen.getByRole('region', { name: 'Game over' }));
+
+        expect(gameOver.getByRole('heading', { name: 'You win!' })).toBeInTheDocument();
+        expect(opponentBoard().getByTitle('B4')).toHaveClass('cell-hit');
+        expect(screen.queryByText("Opponent's turn")).toBeNull();
+    });
+
+    it('announces a loss when the opponent shot ends the game', () => {
+        renderGame({ startingPlayerId: opponent });
+
+        emitShot({
+            result: ShotResult.Sunk,
+            shooterId: opponent,
+            coordinate: { x: 0, y: 0 },
+            isGameOver: true,
+        });
+
+        const gameOver = within(screen.getByRole('region', { name: 'Game over' }));
+
+        expect(gameOver.getByRole('heading', { name: 'Opponent wins!' })).toBeInTheDocument();
+        expect(ownBoard().getByTitle('A1')).toHaveClass('cell-hit');
+        expect(screen.queryByText('Your turn')).toBeNull();
+    });
+
+    it('blocks shooting and dims the opponent board once the game is over', () => {
+        renderGame({ startingPlayerId: opponent });
+
+        emitShot({
+            result: ShotResult.Sunk,
+            shooterId: opponent,
+            coordinate: { x: 0, y: 0 },
+            isGameOver: true,
+        });
+
+        fireEvent.click(opponentBoard().getByTitle('B4'));
+
+        expect(shoot).not.toHaveBeenCalled();
+        expect(opponentBoard().getByTitle('B4').closest('.board')).toHaveClass('board-dimmed');
+    });
+
+    it('goes back to home when Back to home is clicked', () => {
+        renderGame();
+
+        emitShot({
+            result: ShotResult.Sunk,
+            shooterId: me,
+            coordinate: { x: 3, y: 1 },
+            isGameOver: true,
+        });
+
+        fireEvent.click(screen.getByRole('button', { name: 'Back to home' }));
+
+        expect(onBackToHome).toHaveBeenCalledOnce();
     });
 
     it('unsubscribes from Shot events when unmounted', () => {
