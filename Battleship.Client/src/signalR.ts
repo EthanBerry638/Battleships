@@ -46,7 +46,6 @@ export type Coordinate = {
 }
 
 export type PlaceShipRequest = {
-    playerId: string;
     type: ShipType;
     coordinates: Coordinate[];
 }
@@ -137,20 +136,21 @@ export async function startConnection(
     }
 }
 
-export function clearBoard(playerId: string): Promise<void> {
-    return connection.invoke('ClearBoard', { playerId });
+// In-game calls don't send a player ID: the server works out the player from this connection.
+export function clearBoard(): Promise<void> {
+    return connection.invoke('ClearBoard');
 }
 
-export function validateFleet(playerId: string): Promise<FleetValidationResult> {
-    return connection.invoke<FleetValidationResult>("ValidateFleet", { playerId })
+export function validateFleet(): Promise<FleetValidationResult> {
+    return connection.invoke<FleetValidationResult>("ValidateFleet")
 }
 
-export function tryStartGame(playerId: string): Promise<void> {
-    return connection.invoke('TryStartGame', { playerId });
+export function tryStartGame(): Promise<void> {
+    return connection.invoke('TryStartGame');
 }
 
-export function shoot(playerId: string, coordinate: Coordinate): Promise<void> {
-    return connection.invoke('Shoot', { playerId, coordinate });
+export function shoot(coordinate: Coordinate): Promise<void> {
+    return connection.invoke('Shoot', { coordinate });
 }
 
 export function onShot(handler: (message: ShotMessage) => void) {

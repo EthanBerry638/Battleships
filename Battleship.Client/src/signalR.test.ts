@@ -4,13 +4,17 @@ import type {
     GameCreatedMessage,
 } from './signalR';
 import {
+    clearBoard,
     onGameCreated,
     onGameNotStarted,
     onGameStarted,
     onShot,
+    placeShip,
+    ShipType,
     shoot,
     startConnection,
     tryStartGame,
+    validateFleet,
 } from './signalR';
 
 const signalRMock = vi.hoisted(() => {
@@ -260,29 +264,55 @@ describe.each([
 });
 
 describe('tryStartGame', () => {
-    it('invokes TryStartGame with the player ID', async () => {
+    it('invokes TryStartGame without sending a player ID', async () => {
         signalRMock.connection.invoke.mockClear();
 
-        await tryStartGame('player-1');
+        await tryStartGame();
 
-        expect(signalRMock.connection.invoke).toHaveBeenCalledOnce();
-        expect(signalRMock.connection.invoke).toHaveBeenCalledWith(
-            'TryStartGame',
-            { playerId: 'player-1' },
-        );
+        expect(signalRMock.connection.invoke).toHaveBeenCalledExactlyOnceWith('TryStartGame');
+    });
+});
+
+describe('validateFleet', () => {
+    it('invokes ValidateFleet without sending a player ID', async () => {
+        signalRMock.connection.invoke.mockClear();
+
+        await validateFleet();
+
+        expect(signalRMock.connection.invoke).toHaveBeenCalledExactlyOnceWith('ValidateFleet');
+    });
+});
+
+describe('clearBoard', () => {
+    it('invokes ClearBoard without sending a player ID', async () => {
+        signalRMock.connection.invoke.mockClear();
+
+        await clearBoard();
+
+        expect(signalRMock.connection.invoke).toHaveBeenCalledExactlyOnceWith('ClearBoard');
+    });
+});
+
+describe('placeShip', () => {
+    it('invokes PlaceShip with only the ship type and coordinates', async () => {
+        signalRMock.connection.invoke.mockClear();
+        const request = { type: ShipType.PatrolBoat, coordinates: [{ x: 0, y: 0 }, { x: 1, y: 0 }] };
+
+        await placeShip(request);
+
+        expect(signalRMock.connection.invoke).toHaveBeenCalledExactlyOnceWith('PlaceShip', request);
     });
 });
 
 describe('shoot', () => {
-    it('invokes Shoot with the player ID and coordinate', async () => {
+    it('invokes Shoot with only the coordinate', async () => {
         signalRMock.connection.invoke.mockClear();
 
-        await shoot('player-1', { x: 3, y: 1 });
+        await shoot({ x: 3, y: 1 });
 
-        expect(signalRMock.connection.invoke).toHaveBeenCalledOnce();
-        expect(signalRMock.connection.invoke).toHaveBeenCalledWith(
+        expect(signalRMock.connection.invoke).toHaveBeenCalledExactlyOnceWith(
             'Shoot',
-            { playerId: 'player-1', coordinate: { x: 3, y: 1 } },
+            { coordinate: { x: 3, y: 1 } },
         );
     });
 });
