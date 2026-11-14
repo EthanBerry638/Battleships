@@ -52,17 +52,6 @@ public class GameService (IGameRepository gameRepository) : IGameService
         }
     }
 
-    public Player? GetWinner(string gameCode)
-    {
-        if (!_gameRepository.TryGetGameByCode(gameCode, out GameSession? session))
-            throw new GameNotFoundException($"Game by game code: {gameCode} not found.");
-
-        lock (session!.Lock)
-        {
-            return session.Engine.GetWinner();
-        }
-    }
-    
     public FleetValidationResult ValidateFleet(Guid playerId)
     {
         if (!_gameRepository.TryFindKeyByPlayerId(playerId, out string? gameCode))
@@ -96,7 +85,8 @@ public class GameService (IGameRepository gameRepository) : IGameService
             
             ShotOutcome outcome = session.Engine.Shoot(player, coordinate);
 
-            return new ShotResponse(outcome.Result, gameCode!, playerId, coordinate, outcome.SunkCoordinates);
+            return new ShotResponse(outcome.Result, gameCode!, playerId, coordinate, outcome.SunkCoordinates,
+                outcome.IsGameOver);
         }
     }
 
