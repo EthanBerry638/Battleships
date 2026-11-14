@@ -100,6 +100,9 @@ public class GameService (IGameRepository gameRepository) : IGameService
         
         lock (session!.Lock)
         {
+            if (session.IsPlayerReady(playerId))
+                throw new FleetLockedException("You can't clear the board after readying.");
+
             session.Engine.ClearBoard(playerId);
         }
     }

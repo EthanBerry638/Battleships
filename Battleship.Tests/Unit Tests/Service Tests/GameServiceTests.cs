@@ -658,7 +658,22 @@ public class GameServiceTests
             r => r.TryGetGameByCode(gameCode, out session),
             Times.Once);
     }
-    
+
+    [Fact]
+    public void ClearBoard_ShouldThrowFleetLockedException_WhenPlayerTriesToClearBoardAfterReadying()
+    {
+        var (session, player1, _, board1Mock, _) = CreateSession();
+        string gameCode = "GAME1";
+        SetupPlayerFoundInGame(player1.Id, gameCode, session);
+        _gameService.ValidateFleet(player1.Id);
+
+        var act = () => _gameService.ClearBoard(player1.Id);
+
+        act.Should().Throw<FleetLockedException>()
+            .WithMessage("You can't clear the board after readying.");
+        board1Mock.Verify(b => b.ClearBoard(), Times.Never);
+    }
+
     [Fact]
     public void ClearBoard_ShouldThrowPlayerNotFoundException_WhenPlayerIsNotInAnyActiveGame()
     {
