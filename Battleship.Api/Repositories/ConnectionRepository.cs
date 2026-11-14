@@ -7,11 +7,16 @@ public class ConnectionRepository : IConnectionRepository
 {
     private readonly ConcurrentDictionary<string, Guid> _connections = new();
 
-    public bool TryAddConnection(string connectionId, Guid playerId)
+    public void SetConnection(string connectionId, Guid playerId)
     {
-        return _connections.TryAdd(connectionId, playerId);
+        _connections[connectionId] = playerId;
     }
-    
+
+    public bool TryGetPlayerId(string connectionId, out Guid playerId)
+    {
+        return _connections.TryGetValue(connectionId, out playerId);
+    }
+
     public bool TryRemoveConnection(string connectionId, out Guid playerId)
     {
         return _connections.TryRemove(connectionId, out playerId);
