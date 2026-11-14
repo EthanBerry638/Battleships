@@ -1,6 +1,6 @@
 # Battleships 
 
-A real-time, multiplayer implementation of the classic Battleship game, built on ASP.NET Core and SignalR, with a React front end in active development. The server can host multiple independent game lobbies and active matches.
+A real-time, multiplayer implementation of the classic Battleship game, built on ASP.NET Core and SignalR, with a React front end. The server can host multiple independent game lobbies and active matches.
 
 ---
 
@@ -8,7 +8,7 @@ A real-time, multiplayer implementation of the classic Battleship game, built on
 
 This project provides a game server for playing Battleship live against another player. It handles lobby creation and joining, ship placement and validation, turn-based shooting, win detection, and disconnect handling.
 
-A React client is being built alongside the server. It connects to the SignalR hub and currently supports creating and joining lobbies and placing ships on the board. The rest of the game flow is still being built.
+A React client connects to the SignalR hub and supports a full game from start to finish: creating and joining lobbies, placing ships, taking turns shooting, and a game-over screen with a way back to the home screen.
 
 ---
 
@@ -37,7 +37,7 @@ The repository is organised into three projects:
 
 - **Battleship.Api**: the game server, including SignalR hubs, services, repositories, game sessions, validation, and core game logic
 - **Battleship.Tests**: unit and integration tests covering the application from individual domain behaviour through to a complete multiplayer game
-- **Battleship.Client**: the React front end, *in active development*
+- **Battleship.Client**: the React front end
 
 ### Client
 
@@ -47,8 +47,11 @@ The client is a single-page React app made up of screens that `App` switches bet
 - **`CreateGame`**: create a lobby and share the game code
 - **`JoinGame`**: join an existing lobby using a game code
 - **`Setup`**: place your fleet on the board, with drag-and-drop and horizontal/vertical orientation
+- **`Game`**: take turns shooting at the opponent's board, then see the result on the `GameOver` screen
 
 The shared `Board` component renders the 10×10 grid. `signalR.ts` manages the hub connection and its status, and wraps the hub methods and server events the screens use.
+
+The client generates a random player ID (`crypto.randomUUID()`) and sends it only when creating or joining a lobby. In-game calls (`PlaceShip`, `ValidateFleet`, `TryStartGame`, `Shoot`, `ClearBoard`) don't send an ID at all, because the server works out the player from the connection.
 
 ### Core Components
 
@@ -64,6 +67,7 @@ It exposes operations including:
 - `ValidateFleet`
 - `TryStartGame`
 - `Shoot`
+- `ClearBoard`
 
 It also handles player disconnects and broadcasts game events to connected clients.
 
@@ -76,7 +80,7 @@ It also handles player disconnects and broadcasts game events to connected clien
 
 - **`SessionService`**: handles lobby creation and joining
 - **`GameService`**: orchestrates active game operations such as fleet placement, readiness, starting games, and shooting
-- **`ConnectionService`**: tracks connections and manages disconnect handling
+- **`ConnectionService`**: links each connection to its player, resolves the calling player for in-game requests, and manages disconnect handling
 - **`GameSession`**: owns the active `BattleshipEngine`, player readiness state, and the per-game lock used to serialise state-changing operations within a match
 
 #### Repositories
@@ -121,9 +125,9 @@ Requests include:
 - `CreateLobbyRequest`
 - `JoinLobbyRequest`
 - `PlaceShipRequest`
-- `ValidateFleetRequest`
-- `TryStartGameRequest`
 - `ShootRequest`
+
+Only `CreateLobbyRequest` and `JoinLobbyRequest` carry a `PlayerId`. `ValidateFleet`, `TryStartGame` and `ClearBoard` take no arguments.
 
 Messages and responses include:
 
@@ -137,14 +141,13 @@ Messages and responses include:
 
 ## How It Works 
 
-1. Player 1 creates a lobby and receives a game code
-2. Player 2 joins using that code. An active game session is created and both clients are notified
+1. Player 1 creates a lobby and receives a game code. Their connection is linked to their player ID
+2. Player 2 joins using that code, and their connection is linked the same way. An active game session is created and both clients are notified. From here on the server identifies each player by their connection
 3. Both players place their fleets. Ship shape, size, position and placement rules are validated before placement is accepted
 4. Each player validates their fleet. If valid they are marked as ready which prevents ship placement whilst waiting for other player
 5. The game starts once both players are ready. The server transitions the engine from setup into playing and notifies both clients
 6. By default, player 1 starts. Players alternate shots and are notified of the result after each shot
 7. When a shot sinks the opponent's last ship, the engine marks the game as finished and the `Shot` broadcast has `IsGameOver` set to true. The shooter (`ShooterId`) is the winner
-
 
 ---
 
