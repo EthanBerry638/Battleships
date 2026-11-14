@@ -1,8 +1,8 @@
 ﻿import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {cleanup, render, screen} from '@testing-library/react';
+import {cleanup, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import CreateGame from './CreateGame';
-import { connection } from '../signalR';
+import { connection, leaveLobby } from '../signalR';
 
 afterEach(() => {
     cleanup();
@@ -12,9 +12,38 @@ vi.mock('../signalR', () => ({
     connection: {
         invoke: vi.fn(),
     },
+    leaveLobby: vi.fn(),
 }));
 
 const invokeMock = vi.mocked(connection.invoke);
+const leaveLobbyMock = vi.mocked(leaveLobby);
+
+function createDeferred<T>() {
+    let resolve!: (value: T) => void;
+    let reject!: (reason: unknown) => void;
+    const promise = new Promise<T>((res, rej) => {
+        resolve = res;
+        reject = rej;
+    });
+
+    return { promise, resolve, reject };
+}
+
+function renderCreateGame(onBack = vi.fn()) {
+    render(
+        <CreateGame
+            playerId="player-123"
+            playerName="Alice"
+            onBack={onBack}
+            connectionStatus="connected"
+        />
+    );
+
+    return {
+        generateButton: () => screen.getByRole('button', { name: 'Generate Game Code' }),
+        backButton: () => screen.getByRole('button', { name: 'Back' }),
+    };
+}
 
 describe('CreateGame', () => {
     beforeEach(() => {
@@ -185,42 +214,107 @@ describe('CreateGame', () => {
         ).not.toBeInTheDocument();
     });
 
-    it('removes an existing game code when a later request fails', async () => {
+    it('disables Generate Game Code once a game code is shown', async () => {
         const user = userEvent.setup();
+        invokeMock.mockResolvedValue('GAME123');
+        const { generateButton } = renderCreateGame();
 
-        invokeMock
-            .mockResolvedValueOnce('GAME123')
-            .mockRejectedValueOnce(new Error('Generation failed'));
+        await user.click(generateButton());
 
-        render(
-            <CreateGame
-                playerId="player-123"
-                playerName="Alice"
-                onBack={vi.fn()}
-                connectionStatus="connected"
-            />
-        );
+        expect(await screen.findByText('GAME123')).toBeInTheDocument();
+        expect(generateButton()).toBeDisabled();
+    });
 
-        const generateButton = screen.getByRole('button', {
-            name: 'Generate Game Code',
-        });
+    it('re-enables Generate Game Code after a failed request so the user can retry', async () => {
+        const user = userEvent.setup();
+        invokeMock.mockRejectedValue(new Error('Generation failed'));
+        const { generateButton } = renderCreateGame();
 
-        await user.click(generateButton);
+        await user.click(generateButton());
 
         expect(
-            await screen.findByText('GAME123')
+            await screen.findByText('Unable to generate a game code. Please try again.')
         ).toBeInTheDocument();
+        expect(generateButton()).toBeEnabled();
+    });
 
-        await user.click(generateButton);
+    it('disables Generate Game Code and Back while the request is in progress', async () => {
+        const user = userEvent.setup();
+        const deferred = createDeferred<string>();
+        invokeMock.mockReturnValue(deferred.promise);
+        const { generateButton, backButton } = renderCreateGame();
 
-        expect(
-            await screen.findByText(
-                'Unable to generate a game code. Please try again.'
-            )
-        ).toBeInTheDocument();
+        await user.click(generateButton());
 
-        expect(
-            screen.queryByText('GAME123')
-        ).not.toBeInTheDocument();
+        expect(generateButton()).toBeDisabled();
+        expect(backButton()).toBeDisabled();
+
+        deferred.reject(new Error('Generation failed'));
+
+        await waitFor(() => expect(generateButton()).toBeEnabled());
+        expect(backButton()).toBeEnabled();
+    });
+
+    it('does not leave a lobby when Back is clicked before a game code exists', async () => {
+        const user = userEvent.setup();
+        const onBack = vi.fn();
+        const { backButton } = renderCreateGame(onBack);
+
+        await user.click(backButton());
+
+        expect(leaveLobbyMock).not.toHaveBeenCalled();
+        expect(onBack).toHaveBeenCalledOnce();
+    });
+
+    it('leaves the lobby before going back when a game code exists', async () => {
+        const user = userEvent.setup();
+        const onBack = vi.fn();
+        invokeMock.mockResolvedValue('GAME123');
+        leaveLobbyMock.mockResolvedValue(undefined);
+        const { generateButton, backButton } = renderCreateGame(onBack);
+
+        await user.click(generateButton());
+        await screen.findByText('GAME123');
+        await user.click(backButton());
+
+        expect(leaveLobbyMock).toHaveBeenCalledOnce();
+        expect(onBack).toHaveBeenCalledOnce();
+        expect(leaveLobbyMock.mock.invocationCallOrder[0])
+            .toBeLessThan(onBack.mock.invocationCallOrder[0]);
+    });
+
+    it('still goes back when leaving the lobby fails', async () => {
+        const user = userEvent.setup();
+        const onBack = vi.fn();
+        invokeMock.mockResolvedValue('GAME123');
+        leaveLobbyMock.mockRejectedValue(new Error('Connection lost'));
+        const { generateButton, backButton } = renderCreateGame(onBack);
+
+        await user.click(generateButton());
+        await screen.findByText('GAME123');
+        await user.click(backButton());
+
+        expect(leaveLobbyMock).toHaveBeenCalledOnce();
+        await waitFor(() => expect(onBack).toHaveBeenCalledOnce());
+    });
+
+    it('disables Back while leaving the lobby is in progress', async () => {
+        const user = userEvent.setup();
+        const onBack = vi.fn();
+        const deferred = createDeferred<void>();
+        invokeMock.mockResolvedValue('GAME123');
+        leaveLobbyMock.mockReturnValue(deferred.promise);
+        const { generateButton, backButton } = renderCreateGame(onBack);
+
+        await user.click(generateButton());
+        await screen.findByText('GAME123');
+        await user.click(backButton());
+
+        expect(backButton()).toBeDisabled();
+        expect(onBack).not.toHaveBeenCalled();
+
+        deferred.resolve();
+
+        await waitFor(() => expect(onBack).toHaveBeenCalledOnce());
     });
 });

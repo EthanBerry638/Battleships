@@ -5,6 +5,7 @@ import type {
 } from './signalR';
 import {
     clearBoard,
+    leaveLobby,
     onGameCreated,
     onGameNotStarted,
     onGameStarted,
@@ -292,6 +293,16 @@ describe('clearBoard', () => {
         await clearBoard();
 
         expect(signalRMock.connection.invoke).toHaveBeenCalledExactlyOnceWith('ClearBoard');
+    });
+});
+
+describe('leaveLobby', () => {
+    it('invokes LeaveLobby without sending a player ID', async () => {
+        signalRMock.connection.invoke.mockClear();
+
+        await leaveLobby();
+
+        expect(signalRMock.connection.invoke).toHaveBeenCalledExactlyOnceWith('LeaveLobby');
     });
 });
 

@@ -1,5 +1,5 @@
 ﻿import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {cleanup, render, screen} from '@testing-library/react';
+import {cleanup, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import JoinGame from './JoinGame';
 
@@ -210,6 +210,51 @@ describe('JoinGame', () => {
             await user.click(joinButton);
 
             expect(invokeMock).not.toHaveBeenCalled();
+        }
+    );
+
+    it.each([
+        { scenario: 'succeeds', settle: (resolve: (value: boolean) => void) => resolve(false) },
+        { scenario: 'fails', settle: (_: (value: boolean) => void, reject: (reason: unknown) => void) =>
+            reject(new Error('Failed to connect to the SignalR hub.')) },
+    ])(
+        'disables Join while the request is in progress and re-enables it after it $scenario',
+        async ({ settle }) => {
+            const user = userEvent.setup();
+            let resolve!: (value: boolean) => void;
+            let reject!: (reason: unknown) => void;
+            invokeMock.mockReturnValueOnce(new Promise<boolean>((res, rej) => {
+                resolve = res;
+                reject = rej;
+            }));
+
+            render(
+                <JoinGame
+                    playerId="player-1"
+                    playerName="Bob"
+                    onBack={vi.fn()}
+                    connectionStatus="connected"
+                />
+            );
+
+            await user.type(
+                screen.getByPlaceholderText('Game code'),
+                'GAME123'
+            );
+
+            const joinButton = screen.getByRole('button', { name: 'Join' });
+
+            await user.click(joinButton);
+
+            expect(joinButton).toBeDisabled();
+
+            await user.click(joinButton);
+
+            expect(invokeMock).toHaveBeenCalledOnce();
+
+            settle(resolve, reject);
+
+            await waitFor(() => expect(joinButton).toBeEnabled());
         }
     );
 
