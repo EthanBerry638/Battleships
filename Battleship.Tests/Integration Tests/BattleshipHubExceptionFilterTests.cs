@@ -39,6 +39,8 @@ public class BattleshipHubExceptionFilterTests : IAsyncLifetime
             .Build();
 
         await _connection.StartAsync();
+        
+        await _connection.InvokeAsync<string>("CreateLobby", new CreateLobbyRequest(Guid.NewGuid(), "Player 1"));
     }
 
     public async Task DisposeAsync()
@@ -54,8 +56,7 @@ public class BattleshipHubExceptionFilterTests : IAsyncLifetime
             .Setup(s => s.TryStartGame(It.IsAny<Guid>()))
             .Throws(new NotYourTurnException("It is not your turn."));
 
-        var request = new TryStartGameRequest(Guid.NewGuid());
-        Func<Task> act = () => _connection.InvokeAsync("TryStartGame", request);
+        Func<Task> act = () => _connection.InvokeAsync("TryStartGame");
 
         var exception = await act.Should().ThrowAsync<HubException>();
         exception.Which.Message.Should().Contain("It is not your turn.");
@@ -68,8 +69,7 @@ public class BattleshipHubExceptionFilterTests : IAsyncLifetime
             .Setup(s => s.TryStartGame(It.IsAny<Guid>()))
             .Throws(new InvalidOperationException("boom"));
 
-        var request = new TryStartGameRequest(Guid.NewGuid());
-        Func<Task> act = () => _connection.InvokeAsync("TryStartGame", request);
+        Func<Task> act = () => _connection.InvokeAsync("TryStartGame");
 
         var exception = await act.Should().ThrowAsync<HubException>();
         exception.Which.Message.Should().NotContain("boom");
