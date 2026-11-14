@@ -84,8 +84,15 @@ public class GameService (IGameRepository gameRepository) : IGameService
             
             ShotOutcome outcome = session.Engine.Shoot(player, coordinate);
 
+            if (!outcome.IsGameOver)
+                return new ShotResponse(outcome.Result, gameCode!, playerId, coordinate, outcome.SunkCoordinates,
+                    outcome.IsGameOver);
+            
+            _gameRepository.TryRemoveGame(gameCode!);
+            var playerIds = session.Engine.Players.Select(p => p.Id).ToList();
+
             return new ShotResponse(outcome.Result, gameCode!, playerId, coordinate, outcome.SunkCoordinates,
-                outcome.IsGameOver);
+                outcome.IsGameOver, playerIds);
         }
     }
 
