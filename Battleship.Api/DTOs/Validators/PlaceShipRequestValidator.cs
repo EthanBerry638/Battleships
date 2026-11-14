@@ -7,10 +7,6 @@ public class PlaceShipRequestValidator : AbstractValidator<PlaceShipRequest>
 {
     public PlaceShipRequestValidator()
     {
-        RuleFor(x => x.PlayerId)
-            .NotEmpty()
-            .WithMessage("PlayerId is required.");
-
         RuleFor(x => x.Type)
             .IsInEnum()
             .WithMessage("Ship type must be a valid ship type.");

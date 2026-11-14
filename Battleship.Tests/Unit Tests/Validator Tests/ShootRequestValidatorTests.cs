@@ -8,22 +8,10 @@ namespace Battleship.Tests.Unit_Tests.Validator_Tests;
 public class ShootRequestValidatorTests
 {
     private readonly ShootRequestValidator _validator = new();
-
-    [Fact]
-    public void Should_HaveError_When_PlayerIdIsEmpty()
-    {
-        var request = new ShootRequest (Guid.Empty, new Coordinate(0, 0) );
-
-        var result = _validator.TestValidate(request);
-
-        result.ShouldHaveValidationErrorFor(x => x.PlayerId)
-            .WithErrorMessage("PlayerId is required.");
-    }
-
     [Fact]
     public void Should_HaveError_When_CoordinateIsNull()
     {
-        var request = new ShootRequest (Guid.NewGuid(), null!);
+        var request = new ShootRequest(null!);
 
         var result = _validator.TestValidate(request);
 
@@ -34,7 +22,7 @@ public class ShootRequestValidatorTests
     [Fact]
     public void Should_NotHaveError_When_RequestIsValid()
     {
-        var request = new ShootRequest (Guid.NewGuid(),new Coordinate(0, 0));
+        var request = new ShootRequest(new Coordinate(0, 0));
 
         var result = _validator.TestValidate(request);
 
