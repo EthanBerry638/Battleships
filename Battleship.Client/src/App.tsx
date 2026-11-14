@@ -17,7 +17,7 @@ type Screen = 'home' | 'create' | 'join' | 'setup' | 'game';
 
 function App() {
     const [screen, setScreen] = useState<Screen>('home');
-    const [playerId] = useState(() => crypto.randomUUID());
+    const [playerId, setPlayerId] = useState(() => crypto.randomUUID());
     const [playerName, setPlayerName] = useState<string>('Player');
     const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('connecting');
     
@@ -48,7 +48,16 @@ function App() {
             unsubscribeGameNotStarted();
         };
     }, []);
-    
+
+    const handleBackToHome = () => {
+        // Finished games stay on the server, so the old ID can't start a new one.
+        setPlayerId(crypto.randomUUID());
+        setFleetCells([]);
+        setStartingPlayerId(null);
+        setWaitingForOpponent(false);
+        setScreen('home');
+    };
+
     const renderCurrentScreen = () => {
         switch (screen) {
             case 'create':
@@ -86,6 +95,7 @@ function App() {
                         connectionStatus={connectionStatus}
                         startingPlayerId={startingPlayerId}
                         fleetCells={fleetCells}
+                        onBackToHome={handleBackToHome}
                     />
                 );
             default:
