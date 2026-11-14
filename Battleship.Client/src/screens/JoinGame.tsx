@@ -12,12 +12,14 @@ interface JoinGameProps {
 function JoinGame({ playerId, playerName, onBack, connectionStatus }: JoinGameProps) {
     const [joinCode, setJoinCode] = useState('');
     const [message, setMessage] = useState<string | null>(null);
+    const [isJoining, setIsJoining] = useState(false);
 
     const canJoin = joinCode.trim().length > 0;
-    const canClick = canJoin && connectionStatus === 'connected';
+    const canClick = canJoin && connectionStatus === 'connected' && !isJoining;
 
     async function joinGame() {
         setMessage(null);
+        setIsJoining(true);
 
         try {
             const joined = await connection.invoke<boolean>(
@@ -44,6 +46,8 @@ function JoinGame({ playerId, playerName, onBack, connectionStatus }: JoinGamePr
             else {
                 setMessage('An error occurred while joining the game.');
             }
+        } finally {
+            setIsJoining(false);
         }
     }
 
