@@ -1,5 +1,4 @@
 ﻿using Battleship.Api.GamePieces.Data;
-using Battleship.Api.DTOs.Requests;
 using Battleship.Api.DTOs.Responses;
 using Battleship.Api.GamePieces.Entities;
 
@@ -7,7 +6,7 @@ namespace Battleship.Api.Services;
 
 public interface IGameService
 {
-    PlacementResult PlaceShip(PlaceShipRequest request);
+    PlacementResult PlaceShip(Guid playerId, ShipType type, List<Coordinate> coordinates);
     StartGameResponse TryStartGame(Guid playerId);
     FleetValidationResult ValidateFleet(Guid playerId);
     ShotResponse Shoot(Guid playerId, Coordinate coordinate);
