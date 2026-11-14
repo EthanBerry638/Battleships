@@ -155,6 +155,10 @@ export function tryStartGame(): Promise<void> {
     return connection.invoke('TryStartGame');
 }
 
+export function leaveLobby(): Promise<void> {
+    return connection.invoke('LeaveLobby');
+}
+
 export function shoot(coordinate: Coordinate): Promise<void> {
     return connection.invoke('Shoot', { coordinate });
 }
