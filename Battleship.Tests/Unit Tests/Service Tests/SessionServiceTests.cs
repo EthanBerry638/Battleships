@@ -183,4 +183,45 @@ public class SessionServiceTests
         _mockLobbyRepository.Verify(r => r.TryRemoveLobby(It.IsAny<string>(), out It.Ref<Player?>.IsAny), Times.Once);
         _mockGameRepository.Verify(r => r.TryAddGame(It.IsAny<string>(), It.IsAny<GameSession>()), Times.Once);
     }
+
+    [Fact]
+    public void LeaveLobby_ShouldReturnGameCode_WhenLobbyFoundAndRemoved()
+    {
+        string? gameCode = "ABC123";
+        Player? removedPlayer = _dummyPlayer1;
+        _mockLobbyRepository.Setup(r => r.TryFindCodeByPlayer(_dummyPlayer1.Id, out gameCode)).Returns(true);
+        _mockLobbyRepository.Setup(r => r.TryRemoveLobby("ABC123", out removedPlayer)).Returns(true);
+
+        string? result = _sessionService.LeaveLobby(_dummyPlayer1.Id);
+
+        result.Should().Be("ABC123");
+        _mockLobbyRepository.Verify(r => r.TryFindCodeByPlayer(_dummyPlayer1.Id, out It.Ref<string?>.IsAny), Times.Once);
+        _mockLobbyRepository.Verify(r => r.TryRemoveLobby("ABC123", out It.Ref<Player?>.IsAny), Times.Once);
+    }
+
+    [Fact]
+    public void LeaveLobby_ShouldReturnNullAndNotRemoveLobby_WhenPlayerHasNoLobby()
+    {
+        string? nullCode = null;
+        _mockLobbyRepository.Setup(r => r.TryFindCodeByPlayer(_dummyPlayer1.Id, out nullCode)).Returns(false);
+
+        string? result = _sessionService.LeaveLobby(_dummyPlayer1.Id);
+
+        result.Should().BeNull();
+        _mockLobbyRepository.Verify(r => r.TryRemoveLobby(It.IsAny<string>(), out It.Ref<Player?>.IsAny), Times.Never);
+    }
+
+    [Fact]
+    public void LeaveLobby_ShouldReturnNull_WhenLobbyRemovedBeforeLeaveCompletes()
+    {
+        string? gameCode = "ABC123";
+        Player? nullPlayer = null;
+        _mockLobbyRepository.Setup(r => r.TryFindCodeByPlayer(_dummyPlayer1.Id, out gameCode)).Returns(true);
+        _mockLobbyRepository.Setup(r => r.TryRemoveLobby("ABC123", out nullPlayer)).Returns(false);
+
+        string? result = _sessionService.LeaveLobby(_dummyPlayer1.Id);
+
+        result.Should().BeNull();
+        _mockLobbyRepository.Verify(r => r.TryRemoveLobby("ABC123", out It.Ref<Player?>.IsAny), Times.Once);
+    }
 }

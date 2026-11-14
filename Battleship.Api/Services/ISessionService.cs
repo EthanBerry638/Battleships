@@ -8,4 +8,5 @@ public interface ISessionService
     string CreateLobby(Player player1);
     BattleshipEngine? GetGame(string gameCode);
     BattleshipEngine? JoinLobby(string gameCode, Player player2);
+    string? LeaveLobby(Guid playerId);
 }

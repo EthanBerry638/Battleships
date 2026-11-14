@@ -50,4 +50,12 @@ public class SessionService (ILobbyRepository lobbyRepository, IGameRepository g
 
         return session.Engine;
     }
+
+    public string? LeaveLobby(Guid playerId)
+    {
+        if (!_lobbyRepository.TryFindCodeByPlayer(playerId, out string? gameCode) || gameCode is null)
+            return null;
+
+        return _lobbyRepository.TryRemoveLobby(gameCode, out _) ? gameCode : null;
+    }
 }

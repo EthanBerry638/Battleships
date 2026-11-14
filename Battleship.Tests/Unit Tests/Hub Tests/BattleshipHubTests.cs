@@ -425,4 +425,31 @@ public class BattleshipHubTests
 
         _mockGameService.Verify(g => g.ClearBoard(playerId), Times.Once);
     }
+
+    [Fact]
+    public async Task LeaveLobby_ShouldRemoveCallerFromGroup_WhenLobbyLeft()
+    {
+        var playerId = SetupCallerPlayer();
+        _mockSessionService.Setup(s => s.LeaveLobby(playerId)).Returns("ABC123");
+
+        await CreateHub().LeaveLobby();
+
+        _mockSessionService.Verify(s => s.LeaveLobby(playerId), Times.Once);
+        _mockGroups.Verify(g => g.RemoveFromGroupAsync(ConnectionId, "ABC123", It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task LeaveLobby_ShouldNotRemoveCallerFromGroup_WhenNoLobbyLeft()
+    {
+        var playerId = SetupCallerPlayer();
+        _mockSessionService.Setup(s => s.LeaveLobby(playerId)).Returns((string?)null);
+
+        await CreateHub().LeaveLobby();
+
+        _mockSessionService.Verify(s => s.LeaveLobby(playerId), Times.Once);
+        _mockGroups.Verify(
+            g => g.RemoveFromGroupAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
 }

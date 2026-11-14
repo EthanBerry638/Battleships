@@ -58,6 +58,14 @@ public class BattleshipHub(IGameService gameService, IConnectionService connecti
         return true;
     }
 
+    public async Task LeaveLobby()
+    {
+        string? gameCode = _sessionService.LeaveLobby(CallerPlayerId);
+
+        if (gameCode is not null)
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, gameCode);
+    }
+
     public PlacementResult PlaceShip(PlaceShipRequest request)
     {
         return _gameService.PlaceShip(CallerPlayerId, request.Type, request.Coordinates);
