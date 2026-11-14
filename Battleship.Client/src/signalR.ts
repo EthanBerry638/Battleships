@@ -13,7 +13,7 @@ export type Player = {
 }
 
 export type GameCreatedMessage = {
-    player: Player;
+    startingPlayer: Player;
     player1Id: string;
     player2Id: string;
 }

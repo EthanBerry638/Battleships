@@ -205,7 +205,7 @@ describe('startConnection', () => {
         it('forwards a received response to the handler', () => {
             const handler = vi.fn<(response: GameCreatedMessage) => void>();
             const response: GameCreatedMessage = {
-                player: {
+                startingPlayer: {
                     id: crypto.randomUUID(),
                     name: 'Alice',
                 },
