@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.AspNetCore.Http.Connections;
+using Microsoft.AspNetCore.SignalR;
 using Battleship.Api.DTOs.Requests;
 using Battleship.Api.DTOs.Responses;
 using Battleship.Api.GamePieces.Data;
@@ -46,7 +47,7 @@ public class BattleshipFullGameFlowIntegrationTests : IAsyncLifetime
     private static List<Coordinate> FleetRow(int row, int length) =>
         Enumerable.Range(0, length).Select(x => new Coordinate(x, row)).ToList();
 
-    private async Task PlaceFleet(HubConnection connection, Guid playerId, string label)
+    private async Task PlaceFleet(HubConnection connection, string label)
     {
         (ShipType Type, List<Coordinate> Coordinates)[] fleet =
         [
@@ -60,7 +61,7 @@ public class BattleshipFullGameFlowIntegrationTests : IAsyncLifetime
         foreach (var (type, coordinates) in fleet)
         {
             var result = await connection.InvokeAsync<PlacementResult>(
-                "PlaceShip", new PlaceShipRequest(playerId, type, coordinates));
+                "PlaceShip", new PlaceShipRequest(type, coordinates));
 
             result.IsSuccessful.Should().BeTrue($"{label}'s {type} placement should succeed");
         }
@@ -90,7 +91,7 @@ public class BattleshipFullGameFlowIntegrationTests : IAsyncLifetime
     {
         await shooterConnection.InvokeAsync(
             "Shoot",
-            new ShootRequest(shooterId, coordinate));
+            new ShootRequest(coordinate));
 
         ShotMessage p1Message = await ReadShotAsync(p1Shots);
         ShotMessage p2Message = await ReadShotAsync(p2Shots);
@@ -163,16 +164,12 @@ public class BattleshipFullGameFlowIntegrationTests : IAsyncLifetime
 
         joined.Should().BeTrue();
         
-        await PlaceFleet(_p1Conn, p1Id, "Player 1");
-        await PlaceFleet(_p2Conn, p2Id, "Player 2");
-        
-        await _p1Conn.InvokeAsync(
-            "ValidateFleet",
-            new ValidateFleetRequest(p1Id));
+        await PlaceFleet(_p1Conn, "Player 1");
+        await PlaceFleet(_p2Conn, "Player 2");
 
-        await _p1Conn.InvokeAsync(
-            "TryStartGame",
-            new TryStartGameRequest(p1Id));
+        await _p1Conn.InvokeAsync<FleetValidationResult>("ValidateFleet");
+
+        await _p1Conn.InvokeAsync("TryStartGame");
 
         Task p1WaitResult =
             await Task.WhenAny(p1WaitingTcs.Task, Task.Delay(5000));
@@ -184,13 +181,9 @@ public class BattleshipFullGameFlowIntegrationTests : IAsyncLifetime
         StartGameMessage waitMessage = await p1WaitingTcs.Task;
         waitMessage.IsStarted.Should().BeFalse();
 
-        await _p2Conn.InvokeAsync(
-            "ValidateFleet",
-            new ValidateFleetRequest(p2Id));
+        await _p2Conn.InvokeAsync<FleetValidationResult>("ValidateFleet");
 
-        await _p2Conn.InvokeAsync(
-            "TryStartGame",
-            new TryStartGameRequest(p2Id));
+        await _p2Conn.InvokeAsync("TryStartGame");
 
         Task gameStartedForBoth =
             Task.WhenAll(
@@ -294,5 +287,38 @@ public class BattleshipFullGameFlowIntegrationTests : IAsyncLifetime
                 p1Shots.Reader,
                 p2Shots.Reader);
         }
+
+        // The finished game is still in the repository, so the connection is still
+        // in a game and can't start another one, even with a fresh player id.
+        Func<Task> createAgain = () => _p1Conn.InvokeAsync<string>(
+            "CreateLobby",
+            new CreateLobbyRequest(Guid.NewGuid(), "Player 1"));
+
+        var exception = await createAgain.Should().ThrowAsync<HubException>();
+        exception.Which.Message.Should().Contain("This connection is already in a lobby or game.");
+    }
+
+    private async Task StartGameAsync(Guid p1Id, Guid p2Id)
+    {
+        var gameStartedTcs =
+            new TaskCompletionSource<StartGameMessage>(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+
+        _p1Conn.On<StartGameMessage>("GameStarted", res => gameStartedTcs.TrySetResult(res));
+
+        string gameCode = await _p1Conn.InvokeAsync<string>(
+            "CreateLobby", new CreateLobbyRequest(p1Id, "Player 1"));
+        await _p2Conn.InvokeAsync<bool>(
+            "JoinLobby", new JoinLobbyRequest(gameCode, p2Id, "Player 2"));
+
+        await PlaceFleet(_p1Conn, "Player 1");
+        await PlaceFleet(_p2Conn, "Player 2");
+
+        await _p1Conn.InvokeAsync<FleetValidationResult>("ValidateFleet");
+        await _p2Conn.InvokeAsync<FleetValidationResult>("ValidateFleet");
+        await _p2Conn.InvokeAsync("TryStartGame");
+
+        Task completed = await Task.WhenAny(gameStartedTcs.Task, Task.Delay(5000));
+        completed.Should().Be(gameStartedTcs.Task, "the game should start once both players are ready");
     }
 }
