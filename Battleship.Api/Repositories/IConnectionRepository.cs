@@ -9,4 +9,5 @@ public interface IConnectionRepository
     bool TryRemoveConnection(string connectionId, out Guid playerId);
     bool ContainsConnection(string connectionId);
     bool ContainsPlayer(Guid playerId);
+    IReadOnlyList<string> GetConnectionIds(Guid playerId);
 }

@@ -31,4 +31,12 @@ public class ConnectionRepository : IConnectionRepository
     {
         return _connections.Values.Contains(playerId);
     }
+
+    public IReadOnlyList<string> GetConnectionIds(Guid playerId)
+    {
+        return _connections
+            .Where(c => c.Value == playerId)
+            .Select(c => c.Key)
+            .ToList();
+    }
 }
