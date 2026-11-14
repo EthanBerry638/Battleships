@@ -5,8 +5,10 @@ import {
     onGameCreated,
     onGameNotStarted,
     onGameStarted,
+    onOpponentDisconnected,
     type Coordinate,
 } from './signalR';
+import OpponentDisconnected from './components/OpponentDisconnected';
 import JoinGame from './screens/JoinGame';
 import CreateGame from './screens/CreateGame';
 import Home from './screens/Home';
@@ -24,9 +26,11 @@ function App() {
     const [waitingForOpponent, setWaitingForOpponent] = useState(false);
     const [fleetCells, setFleetCells] = useState<Coordinate[]>([]);
     const [startingPlayerId, setStartingPlayerId] = useState<string | null>(null);
+    const [opponentDisconnected, setOpponentDisconnected] = useState(false);
 
     useEffect(() => {
         const unsubscribeGameCreated = onGameCreated(() => {
+            setOpponentDisconnected(false);
             setScreen('setup');
         });
 
@@ -40,12 +44,17 @@ function App() {
             setWaitingForOpponent(true);
         });
 
+        const unsubscribeOpponentDisconnected = onOpponentDisconnected(() => {
+            setOpponentDisconnected(true);
+        });
+
         void startConnection(setConnectionStatus);
 
         return () => {
             unsubscribeGameCreated();
             unsubscribeGameStarted();
             unsubscribeGameNotStarted();
+            unsubscribeOpponentDisconnected();
         };
     }, []);
 
@@ -53,10 +62,17 @@ function App() {
         setFleetCells([]);
         setStartingPlayerId(null);
         setWaitingForOpponent(false);
+        setOpponentDisconnected(false);
         setScreen('home');
     };
 
+    const isInGame = screen === 'setup' || screen === 'game';
+
     const renderCurrentScreen = () => {
+        if (opponentDisconnected && isInGame) {
+            return <OpponentDisconnected onBackToHome={handleBackToHome} />;
+        }
+
         switch (screen) {
             case 'create':
                 return (
