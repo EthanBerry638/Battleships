@@ -6,4 +6,5 @@ public record ShotMessage(
     ShotResult Result,
     Guid ShooterId,
     Coordinate Coordinate,
-    IReadOnlyList<Coordinate>? SunkCoordinates);
+    IReadOnlyList<Coordinate>? SunkCoordinates,
+    bool IsGameOver);
