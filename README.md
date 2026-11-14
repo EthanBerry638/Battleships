@@ -79,7 +79,7 @@ It also handles player disconnects and broadcasts game events to connected clien
 #### Services
 
 - **`SessionService`**: handles lobby creation and joining
-- **`GameService`**: orchestrates active game operations such as fleet placement, readiness, starting games, and shooting
+- **`GameService`**: orchestrates active game operations such as fleet placement, readiness, starting games, and shooting, and removes a game once it is finished
 - **`ConnectionService`**: links each connection to its player, resolves the calling player for in-game requests, and manages disconnect handling
 - **`GameSession`**: owns the active `BattleshipEngine`, player readiness state, and the per-game lock used to serialise state-changing operations within a match
 
@@ -92,6 +92,8 @@ Game state is currently stored in memory using `ConcurrentDictionary`-backed rep
 - `ConnectionRepository`
 
 The repositories manage application-level state mappings while each active `GameSession` controls access to mutable game state.
+
+A lobby is removed when it is joined or when its player disconnects. A game is removed when it finishes or when a player disconnects mid-game.
 
 #### Engine
 
@@ -148,6 +150,7 @@ Messages and responses include:
 5. The game starts once both players are ready. The server transitions the engine from setup into playing and notifies both clients
 6. By default, player 1 starts. Players alternate shots and are notified of the result after each shot
 7. When a shot sinks the opponent's last ship, the engine marks the game as finished and the `Shot` broadcast has `IsGameOver` set to true. The shooter (`ShooterId`) is the winner
+8. As soon as the game is finished, the server removes it from memory and takes both players out of its SignalR group. Both players can then return home and create or join a new game on the same connection
 
 ---
 

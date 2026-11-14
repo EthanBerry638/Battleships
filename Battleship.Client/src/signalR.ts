@@ -135,8 +135,6 @@ export async function startConnection(
         }
     }
 }
-
-// In-game calls don't send a player ID: the server works out the player from this connection.
 export function clearBoard(): Promise<void> {
     return connection.invoke('ClearBoard');
 }

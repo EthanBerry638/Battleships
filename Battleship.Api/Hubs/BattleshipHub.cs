@@ -88,6 +88,12 @@ public class BattleshipHub(IGameService gameService, IConnectionService connecti
             response.IsGameOver);
         
         await Clients.Group(response.GameCode).SendAsync("Shot", message);
+
+        if (response is { IsGameOver: true, PlayerIds: not null })
+        {
+            foreach (string connectionId in _connectionService.GetConnectionIds(response.PlayerIds))
+                await Groups.RemoveFromGroupAsync(connectionId, response.GameCode);
+        }
     }
 
     public void ClearBoard()

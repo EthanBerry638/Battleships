@@ -32,6 +32,13 @@ public class ConnectionService (IConnectionRepository connectionRepository, IGam
         return playerId;
     }
 
+    public IReadOnlyList<string> GetConnectionIds(IEnumerable<Guid> playerIds)
+    {
+        return playerIds
+            .SelectMany(_connectionRepository.GetConnectionIds)
+            .ToList();
+    }
+
     public async Task<string?> HandleDisconnectAsync(string connectionId, TimeSpan delay = default)
     {
         if (!_connectionRepository.TryRemoveConnection(connectionId, out Guid playerId))

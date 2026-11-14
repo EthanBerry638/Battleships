@@ -148,4 +148,38 @@ public class ConnectionRepositoryTests
 
         result.Should().BeTrue();
     }
+
+    [Fact]
+    public void GetConnectionIds_ShouldReturnEmpty_WhenPlayerHasNoConnections()
+    {
+        _connectionRepository.SetConnection(Connection, Guid.NewGuid());
+
+        var result = _connectionRepository.GetConnectionIds(Guid.NewGuid());
+
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void GetConnectionIds_ShouldReturnOnlyThatPlayersConnection_WhenOtherPlayersAreConnected()
+    {
+        var playerId = Guid.NewGuid();
+        _connectionRepository.SetConnection(Connection, playerId);
+        _connectionRepository.SetConnection("connection-2", Guid.NewGuid());
+
+        var result = _connectionRepository.GetConnectionIds(playerId);
+
+        result.Should().Equal(Connection);
+    }
+
+    [Fact]
+    public void GetConnectionIds_ShouldReturnAllConnections_WhenPlayerHasMultipleConnections()
+    {
+        var playerId = Guid.NewGuid();
+        _connectionRepository.SetConnection(Connection, playerId);
+        _connectionRepository.SetConnection("connection-2", playerId);
+
+        var result = _connectionRepository.GetConnectionIds(playerId);
+
+        result.Should().BeEquivalentTo([Connection, "connection-2"]);
+    }
 }

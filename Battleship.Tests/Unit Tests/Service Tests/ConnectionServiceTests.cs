@@ -56,6 +56,21 @@ public class ConnectionServiceTests
     }
 
     [Fact]
+    public void GetConnectionIds_ShouldReturnEveryConnectionForEveryPlayer()
+    {
+        Guid player1 = Guid.NewGuid();
+        Guid player2 = Guid.NewGuid();
+        Guid player3 = Guid.NewGuid();
+        _connectionRepositoryMock.Setup(r => r.GetConnectionIds(player1)).Returns(["conn-1a", "conn-1b"]);
+        _connectionRepositoryMock.Setup(r => r.GetConnectionIds(player2)).Returns(["conn-2"]);
+        _connectionRepositoryMock.Setup(r => r.GetConnectionIds(player3)).Returns([]);
+
+        var result = _connectionService.GetConnectionIds([player1, player2, player3]);
+
+        result.Should().BeEquivalentTo(["conn-1a", "conn-1b", "conn-2"]);
+    }
+
+    [Fact]
     public void EnsureConnectionIsFree_ShouldNotThrow_WhenConnectionIsNotRegistered()
     {
         Guid id = Guid.Empty;

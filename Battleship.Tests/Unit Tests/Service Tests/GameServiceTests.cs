@@ -621,6 +621,8 @@ public class GameServiceTests
         var result = _gameService.Shoot(player1.Id, new Coordinate(0, 0));
 
         result.IsGameOver.Should().BeFalse();
+        result.PlayerIds.Should().BeNull();
+        _gameRepositoryMock.Verify(r => r.TryRemoveGame(It.IsAny<string>()), Times.Never);
     }
 
     [Fact]
@@ -637,6 +639,22 @@ public class GameServiceTests
         result.IsGameOver.Should().BeTrue();
         result.ShooterId.Should().Be(player1.Id);
         session.Engine.GameState.Should().Be(GameState.Finished);
+    }
+
+    [Fact]
+    public void Shoot_ShouldRemoveGameAndReturnBothPlayerIds_WhenShotEndsTheGame()
+    {
+        var (session, player1, player2, _, board2Mock) = CreateSession();
+        string gameCode = "GAME1";
+        SetupPlayerFoundInGame(player1.Id, gameCode, session);
+        session.Engine.StartGame();
+        board2Mock.Setup(b => b.AreAllShipsSunk()).Returns(true);
+
+        var result = _gameService.Shoot(player1.Id, new Coordinate(0, 0));
+
+        result.GameCode.Should().Be(gameCode);
+        result.PlayerIds.Should().BeEquivalentTo([player1.Id, player2.Id]);
+        _gameRepositoryMock.Verify(r => r.TryRemoveGame(gameCode), Times.Once);
     }
 
     [Fact]

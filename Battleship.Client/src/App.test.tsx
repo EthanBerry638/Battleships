@@ -238,7 +238,7 @@ describe('App', () => {
         expect(screen.getByText('Fleet cells: 2')).toBeInTheDocument();
     });
 
-    it('returns to home with a fresh player ID and a cleared game when Back to home is clicked', async () => {
+    it('returns to home with the same player ID and a cleared game when Back to home is clicked', async () => {
         const user = userEvent.setup();
 
         render(<App />);
@@ -247,7 +247,7 @@ describe('App', () => {
         await user.click(screen.getByRole('button', { name: 'Lock fleet' }));
         emit(onGameNotStartedMock);
         emit(onGameStartedMock, { isStarted: true, startingPlayerId: 'opponent-id', playerIds: null });
-
+        
         vi.mocked(crypto.randomUUID).mockReturnValue('fresh-player-id-0-0');
         await user.click(screen.getByRole('button', { name: 'Back to home' }));
 
@@ -259,7 +259,7 @@ describe('App', () => {
 
         emit(onGameStartedMock, { isStarted: true, startingPlayerId: null, playerIds: null });
 
-        expect(screen.getByText('Player ID: fresh-player-id-0-0')).toBeInTheDocument();
+        expect(screen.getByText('Player ID: test-player-id')).toBeInTheDocument();
         expect(screen.getByText('Starting player:')).toBeInTheDocument();
         expect(screen.getByText('Fleet cells: 0')).toBeInTheDocument();
     });
