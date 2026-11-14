@@ -2,4 +2,5 @@
 
 public record ShotOutcome(
     ShotResult Result,
-    IReadOnlyList<Coordinate>? SunkCoordinates = null);
+    IReadOnlyList<Coordinate>? SunkCoordinates = null,
+    bool IsGameOver = false);

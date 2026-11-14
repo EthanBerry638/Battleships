@@ -35,6 +35,14 @@ public class BattleshipEngineTests
         _battleshipEngine.StartGame();
     }
 
+    private void FinishGame()
+    {
+        StartGame();
+        _mockGameBoard2.Setup(x => x.GetTile(It.IsAny<Coordinate>())).Returns(new Tile());
+        _mockGameBoard2.Setup(x => x.AreAllShipsSunk()).Returns(true);
+        _battleshipEngine.Shoot(_player1, new Coordinate(0, 0));
+    }
+
     [Fact]
     public void Shoot_ReturnsHit_WhenTileHasShip()
     {
@@ -289,7 +297,6 @@ public class BattleshipEngineTests
     }
 
     [Theory]
-    [InlineData(true, false)]
     [InlineData(false, true)]
     [InlineData(true, true)]
     public void Shoot_ShouldThrowGameOverException_WhenTryingToShootAfterGameIsOver(bool playerOneSunk,
@@ -383,36 +390,56 @@ public class BattleshipEngineTests
     }
 
     [Fact]
-    public void GetWinner_ShouldReturnNull_WhenGameIsNotOver()
-    {
-        var result = _battleshipEngine.GetWinner();
-
-        result.Should().BeNull();
-        _battleshipEngine.GameState.Should().NotBe(GameState.Finished);
-    }
-
-    [Theory]
-    [MemberData(nameof(WinnerTestData))]
-    public void GetWinner_ShouldReturnCorrectPlayer_WhenGameIsOver(bool board1Sunk, bool board2Sunk,
-        Player expectedWinner)
+    public void Shoot_ShouldReturnIsGameOverFalse_WhenOpponentFleetIsNotSunk()
     {
         StartGame();
-        _mockGameBoard1.Setup(x => x.AreAllShipsSunk()).Returns(board1Sunk);
-        _mockGameBoard2.Setup(x => x.AreAllShipsSunk()).Returns(board2Sunk);
+        var coordinate = new Coordinate(0, 0);
+        _mockGameBoard2.Setup(x => x.GetTile(coordinate)).Returns(new Tile());
+        _mockGameBoard2.Setup(x => x.AreAllShipsSunk()).Returns(false);
 
-        var result = _battleshipEngine.GetWinner();
+        var result = _battleshipEngine.Shoot(_player1, coordinate);
 
-        result.Should().Be(expectedWinner);
-        _battleshipEngine.GameState.Should().Be(GameState.Finished);
+        result.IsGameOver.Should().BeFalse();
+        _battleshipEngine.GameState.Should().Be(GameState.Playing);
+        _battleshipEngine.CurrentPlayer.Should().Be(_player2);
     }
 
-    public static IEnumerable<object[]> WinnerTestData()
+    [Fact]
+    public void Shoot_ShouldReturnIsGameOverTrue_WhenPlayer1SinksPlayer2sLastShip()
     {
-        return
-        [
-            [true, false, StaticPlayer2],
-            [false, true, StaticPlayer1]
-        ];
+        StartGame();
+        var coordinate = new Coordinate(0, 0);
+        List<Coordinate> shipCoordinates = [coordinate];
+        _mockShip.Setup(s => s.IsSunk()).Returns(true);
+        _mockShip.Setup(s => s.Coordinates).Returns(shipCoordinates);
+        _mockGameBoard2.Setup(x => x.GetTile(coordinate)).Returns(new Tile { OccupyingShip = _mockShip.Object });
+        _mockGameBoard2.Setup(x => x.AreAllShipsSunk()).Returns(true);
+
+        var result = _battleshipEngine.Shoot(_player1, coordinate);
+
+        result.Result.Should().Be(ShotResult.Sunk);
+        result.SunkCoordinates.Should().BeEquivalentTo(shipCoordinates);
+        result.IsGameOver.Should().BeTrue();
+        _battleshipEngine.GameState.Should().Be(GameState.Finished);
+        _battleshipEngine.CurrentPlayer.Should().Be(_player1);
+    }
+
+    [Fact]
+    public void Shoot_ShouldReturnIsGameOverTrue_WhenPlayer2SinksPlayer1sLastShip()
+    {
+        StartGame();
+        var player1Coordinate = new Coordinate(0, 0);
+        var player2Coordinate = new Coordinate(1, 1);
+        _mockGameBoard2.Setup(x => x.GetTile(player1Coordinate)).Returns(new Tile());
+        _mockGameBoard1.Setup(x => x.GetTile(player2Coordinate)).Returns(new Tile());
+        _mockGameBoard1.Setup(x => x.AreAllShipsSunk()).Returns(true);
+
+        _battleshipEngine.Shoot(_player1, player1Coordinate);
+        var result = _battleshipEngine.Shoot(_player2, player2Coordinate);
+
+        result.IsGameOver.Should().BeTrue();
+        _battleshipEngine.GameState.Should().Be(GameState.Finished);
+        _battleshipEngine.CurrentPlayer.Should().Be(_player2);
     }
 
     [Fact]
@@ -463,9 +490,7 @@ public class BattleshipEngineTests
     {
         var testShip = new Ship(ShipType.PatrolBoat, [new Coordinate(0, 0), new Coordinate(0, 1)]);
 
-        StartGame();
-        _mockGameBoard1.Setup(x => x.AreAllShipsSunk()).Returns(true);
-        _battleshipEngine.GetWinner();
+        FinishGame();
 
         var act = () => _battleshipEngine.PlaceShip(_player1.Id, testShip);
 
@@ -542,9 +567,7 @@ public class BattleshipEngineTests
     [Fact]
     public void ValidateFleet_ShouldThrowGameNotInSetupException_WhenGameIsFinished()
     {
-        StartGame();
-        _mockGameBoard1.Setup(x => x.AreAllShipsSunk()).Returns(true);
-        _battleshipEngine.GetWinner();
+        FinishGame();
 
         var act = () => _battleshipEngine.ValidateFleet(_player1.Id);
 
@@ -568,9 +591,7 @@ public class BattleshipEngineTests
     [Fact]
     public void ClearBoard_ShouldThrowGameNotInSetupException_WhenGameIsFinished()
     {
-        StartGame();
-        _mockGameBoard1.Setup(x => x.AreAllShipsSunk()).Returns(true);
-        _battleshipEngine.GetWinner();
+        FinishGame();
 
         var act = () => _battleshipEngine.ClearBoard(_player1.Id);
 

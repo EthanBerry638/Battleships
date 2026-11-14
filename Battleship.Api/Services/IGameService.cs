@@ -9,7 +9,6 @@ public interface IGameService
 {
     PlacementResult PlaceShip(PlaceShipRequest request);
     StartGameResponse TryStartGame(Guid playerId);
-    Player? GetWinner(string gameCode);
     FleetValidationResult ValidateFleet(Guid playerId);
     ShotResponse Shoot(Guid playerId, Coordinate coordinate);
     void ClearBoard(Guid playerId);

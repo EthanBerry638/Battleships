@@ -244,29 +244,6 @@ public class BattleshipHubTests
     }
     
     [Fact]
-    public void GetWinner_ShouldDelegateToService_WhenGameCodeIsValid()
-    {
-        var player = new Player(Guid.NewGuid(), "winner");
-        _mockGameService.Setup(g => g.GetWinner(It.IsAny<string>())).Returns(player);
-        
-        var result = CreateHub().GetWinner(new GetWinnerRequest("validGameCode"));
-
-        result.Should().Be(player);
-        _mockGameService.Verify(g => g.GetWinner(It.IsAny<string>()), Times.Once);
-    }
-    
-    [Fact]
-    public void GetWinner_ShouldReturnNull_WhenGameServiceReturnsNull()
-    {
-        _mockGameService.Setup(g => g.GetWinner(It.IsAny<string>())).Returns((Player?)null);
-    
-        var result = CreateHub().GetWinner(new GetWinnerRequest("validGameCode"));
-
-        result.Should().BeNull();
-        _mockGameService.Verify(g => g.GetWinner(It.IsAny<string>()), Times.Once);
-    }
-
-    [Fact]
     public void ValidateFleet_ShouldReturnValidResult_WhenGameServiceReturnsValid()
     {
         var playerId = Guid.NewGuid();
@@ -293,14 +270,16 @@ public class BattleshipHubTests
     }
     
     [Theory]
-    [InlineData(ShotResult.Hit, 3, 5)]
-    [InlineData(ShotResult.Miss, 0, 0)]
-    [InlineData(ShotResult.Duplicate,0, 0)]
-    [InlineData(ShotResult.Sunk, 0, 0)]
+    [InlineData(ShotResult.Hit, 3, 5, false)]
+    [InlineData(ShotResult.Miss, 0, 0, false)]
+    [InlineData(ShotResult.Duplicate,0, 0, false)]
+    [InlineData(ShotResult.Sunk, 0, 0, false)]
+    [InlineData(ShotResult.Sunk, 0, 0, true)]
     public async Task Shoot_ShouldSendMessageToGroup_WhenShotIsProcessed(
-        ShotResult expectedResult, 
-        int x, 
-        int y)
+        ShotResult expectedResult,
+        int x,
+        int y,
+        bool isGameOver)
     {
         var playerId = Guid.NewGuid();
         string gameCode = "ABC123";
@@ -311,7 +290,8 @@ public class BattleshipHubTests
             ? new List<Coordinate> { coordinate, new Coordinate(x + 1, y) }
             : null;
         
-        var response = new ShotResponse(expectedResult, gameCode, playerId, coordinate, sunkShipCoordinates);
+        var response = new ShotResponse(expectedResult, gameCode, playerId, coordinate, sunkShipCoordinates,
+            isGameOver);
 
         _mockGameService.Setup(g => g.Shoot(playerId, coordinate)).Returns(response);
         _mockClients.Setup(c => c.Group(gameCode)).Returns(_mockClientProxy.Object);
@@ -329,7 +309,8 @@ public class BattleshipHubTests
                     ((ShotMessage)args[0]).Result == expectedResult &&
                     ((ShotMessage)args[0]).ShooterId == playerId &&
                     ((ShotMessage)args[0]).Coordinate == coordinate &&
-                    ((ShotMessage)args[0]).SunkCoordinates == sunkShipCoordinates),
+                    ((ShotMessage)args[0]).SunkCoordinates == sunkShipCoordinates &&
+                    ((ShotMessage)args[0]).IsGameOver == isGameOver),
                 CancellationToken.None),
             Times.Once);
     }

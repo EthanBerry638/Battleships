@@ -69,11 +69,6 @@ public class BattleshipHub(IGameService gameService, IConnectionService connecti
             await Clients.Caller.SendAsync("GameNotStarted", message);
     }
 
-    public Player? GetWinner(GetWinnerRequest request)
-    {
-        return _gameService.GetWinner(request.GameCode);
-    }
-
     public FleetValidationResult ValidateFleet(ValidateFleetRequest request)
     {
         return _gameService.ValidateFleet(request.PlayerId);
@@ -83,7 +78,8 @@ public class BattleshipHub(IGameService gameService, IConnectionService connecti
     {
         ShotResponse response = _gameService.Shoot(request.PlayerId, request.Coordinate);
         
-        ShotMessage message = new(response.Result, response.ShooterId, response.Coordinate, response.SunkCoordinates);
+        ShotMessage message = new(response.Result, response.ShooterId, response.Coordinate, response.SunkCoordinates,
+            response.IsGameOver);
         
         await Clients.Group(response.GameCode).SendAsync("Shot", message);
     }

@@ -64,7 +64,6 @@ It exposes operations including:
 - `ValidateFleet`
 - `TryStartGame`
 - `Shoot`
-- `GetWinner`
 
 It also handles player disconnects and broadcasts game events to connected clients.
 
@@ -76,7 +75,7 @@ It also handles player disconnects and broadcasts game events to connected clien
 #### Services
 
 - **`SessionService`**: handles lobby creation and joining
-- **`GameService`**: orchestrates active game operations such as fleet placement, readiness, starting games, shooting, and winner lookup
+- **`GameService`**: orchestrates active game operations such as fleet placement, readiness, starting games, and shooting
 - **`ConnectionService`**: tracks connections and manages disconnect handling
 - **`GameSession`**: owns the active `BattleshipEngine`, player readiness state, and the per-game lock used to serialise state-changing operations within a match
 
@@ -125,7 +124,6 @@ Requests include:
 - `ValidateFleetRequest`
 - `TryStartGameRequest`
 - `ShootRequest`
-- `GetWinnerRequest`
 
 Messages and responses include:
 
@@ -145,8 +143,7 @@ Messages and responses include:
 4. Each player validates their fleet. If valid they are marked as ready which prevents ship placement whilst waiting for other player
 5. The game starts once both players are ready. The server transitions the engine from setup into playing and notifies both clients
 6. By default, player 1 starts. Players alternate shots and are notified of the result after each shot
-7. The engine detects when a fleet has been destroyed and records the winnning player
-8. Clients can call GetWinner to retrieve the winner once the game has finished
+7. When a shot sinks the opponent's last ship, the engine marks the game as finished and the `Shot` broadcast has `IsGameOver` set to true. The shooter (`ShooterId`) is the winner
 
 
 ---
