@@ -17,6 +17,8 @@ const {
     unsubscribeGameStartedMock,
     onGameNotStartedMock,
     unsubscribeGameNotStartedMock,
+    onOpponentDisconnectedMock,
+    unsubscribeOpponentDisconnectedMock,
 } = vi.hoisted(() => ({
     startConnectionMock: vi.fn(),
     onGameCreatedMock: vi.fn<(handler: unknown) => () => void>(),
@@ -25,6 +27,8 @@ const {
     unsubscribeGameStartedMock: vi.fn<() => void>(),
     onGameNotStartedMock: vi.fn<(handler: unknown) => () => void>(),
     unsubscribeGameNotStartedMock: vi.fn<() => void>(),
+    onOpponentDisconnectedMock: vi.fn<(handler: unknown) => () => void>(),
+    unsubscribeOpponentDisconnectedMock: vi.fn<() => void>(),
 }));
 
 vi.mock('./signalR', () => ({
@@ -32,6 +36,7 @@ vi.mock('./signalR', () => ({
     onGameCreated: onGameCreatedMock,
     onGameStarted: onGameStartedMock,
     onGameNotStarted: onGameNotStartedMock,
+    onOpponentDisconnected: onOpponentDisconnectedMock,
 }));
 
 function emit(mock: typeof onGameCreatedMock, message: unknown = {}) {
@@ -151,6 +156,10 @@ describe('App', () => {
         onGameNotStartedMock.mockReset();
         unsubscribeGameNotStartedMock.mockReset();
         onGameNotStartedMock.mockReturnValue(unsubscribeGameNotStartedMock);
+
+        onOpponentDisconnectedMock.mockReset();
+        unsubscribeOpponentDisconnectedMock.mockReset();
+        onOpponentDisconnectedMock.mockReturnValue(unsubscribeOpponentDisconnectedMock);
 
         startConnectionMock.mockImplementation(
             async (onStatusChange: (status: ConnectionStatus) => void) => {
@@ -286,6 +295,91 @@ describe('App', () => {
 
         expect(unsubscribeGameStartedMock).toHaveBeenCalledOnce();
         expect(unsubscribeGameNotStartedMock).toHaveBeenCalledOnce();
+    });
+
+    describe('opponent disconnect', () => {
+        it('subscribes to OpponentDisconnected when the app mounts', () => {
+            render(<App />);
+
+            expect(onOpponentDisconnectedMock).toHaveBeenCalledOnce();
+            expect(onOpponentDisconnectedMock).toHaveBeenCalledWith(expect.any(Function));
+        });
+
+        it('unsubscribes from OpponentDisconnected when the app unmounts', () => {
+            const { unmount } = render(<App />);
+
+            unmount();
+
+            expect(unsubscribeOpponentDisconnectedMock).toHaveBeenCalledOnce();
+        });
+
+        it('replaces setup with the disconnect notice when the opponent disconnects', () => {
+            render(<App />);
+
+            emit(onGameCreatedMock);
+            emit(onOpponentDisconnectedMock);
+
+            expect(
+                screen.getByRole('heading', { name: 'Your opponent disconnected' }),
+            ).toBeInTheDocument();
+            expect(
+                screen.queryByRole('heading', { name: 'Setup screen' }),
+            ).not.toBeInTheDocument();
+        });
+
+        it('replaces the game screen with the disconnect notice when the opponent disconnects', () => {
+            render(<App />);
+
+            emit(onGameCreatedMock);
+            emit(onGameStartedMock, { isStarted: true, startingPlayerId: 'test-player-id', playerIds: null });
+            emit(onOpponentDisconnectedMock);
+
+            expect(
+                screen.getByRole('heading', { name: 'Your opponent disconnected' }),
+            ).toBeInTheDocument();
+            expect(
+                screen.queryByRole('heading', { name: 'Game screen' }),
+            ).not.toBeInTheDocument();
+        });
+
+        it('returns home and starts the next game cleanly when Back to home is clicked', async () => {
+            const user = userEvent.setup();
+
+            render(<App />);
+
+            emit(onGameCreatedMock);
+            await user.click(screen.getByRole('button', { name: 'Lock fleet' }));
+            emit(onGameNotStartedMock);
+            emit(onOpponentDisconnectedMock);
+
+            await user.click(screen.getByRole('button', { name: 'Back to home' }));
+
+            expect(screen.getByRole('heading', { name: 'Home screen' })).toBeInTheDocument();
+
+            emit(onGameCreatedMock);
+
+            expect(screen.getByRole('heading', { name: 'Setup screen' })).toBeInTheDocument();
+            expect(screen.getByText('Waiting: false')).toBeInTheDocument();
+
+            emit(onGameStartedMock, { isStarted: true, startingPlayerId: null, playerIds: null });
+
+            expect(screen.getByText('Fleet cells: 0')).toBeInTheDocument();
+        });
+
+        it('ignores the event outside a game and does not carry it into the next game', () => {
+            render(<App />);
+
+            emit(onOpponentDisconnectedMock);
+
+            expect(screen.getByRole('heading', { name: 'Home screen' })).toBeInTheDocument();
+            expect(
+                screen.queryByRole('heading', { name: 'Your opponent disconnected' }),
+            ).not.toBeInTheDocument();
+
+            emit(onGameCreatedMock);
+
+            expect(screen.getByRole('heading', { name: 'Setup screen' })).toBeInTheDocument();
+        });
     });
 
     it('renders Home when connected', () => {

@@ -8,6 +8,7 @@ import {
     onGameCreated,
     onGameNotStarted,
     onGameStarted,
+    onOpponentDisconnected,
     onShot,
     placeShip,
     ShipType,
@@ -238,6 +239,7 @@ describe.each([
     ['GameStarted', onGameStarted],
     ['GameNotStarted', onGameNotStarted],
     ['Shot', onShot],
+    ['OpponentDisconnected', onOpponentDisconnected],
 ] as const)('%s listener', (eventName, subscribe) => {
     beforeEach(() => {
         signalRMock.connection.on.mockClear();
