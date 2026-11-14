@@ -15,7 +15,6 @@ public class BattleshipEngine(IGameBoard playerOneBoard, IGameBoard playerTwoBoa
     private int OpponentIndex => (_currentPlayerIndex + 1) % 2;
     private IGameBoard OpponentBoard => _gameBoards[OpponentIndex];
     private GameState _gameState;
-    private Player? _winner;
     public GameState GameState => _gameState;
     public Player CurrentPlayer => _players[_currentPlayerIndex];
     public IReadOnlyList<Player> Players => _players;
@@ -28,7 +27,10 @@ public class BattleshipEngine(IGameBoard playerOneBoard, IGameBoard playerTwoBoa
         
         CheckGameState();
 
-        if (_gameState is not GameState.Finished) SwitchTurns();
+        if (_gameState is GameState.Finished)
+            return shotOutcome with { IsGameOver = true };
+
+        SwitchTurns();
 
         return shotOutcome;
     }
@@ -68,18 +70,8 @@ public class BattleshipEngine(IGameBoard playerOneBoard, IGameBoard playerTwoBoa
 
     private void CheckGameState()
     {
-        if (_gameState is GameState.Setup) return;
-
-        if (_gameBoards[0].AreAllShipsSunk())
-        {
+        if (OpponentBoard.AreAllShipsSunk())
             _gameState = GameState.Finished;
-            _winner = _players[1];
-        }
-        else if (_gameBoards[1].AreAllShipsSunk())
-        {
-            _gameState = GameState.Finished;
-            _winner = _players[0];
-        }
     }
 
     public void StartGame()
@@ -88,13 +80,6 @@ public class BattleshipEngine(IGameBoard playerOneBoard, IGameBoard playerTwoBoa
             throw new GameNotInSetupException("You can't start a game when it's already in progress/finished.");
 
         _gameState = GameState.Playing;
-    }
-
-    public Player? GetWinner()
-    {
-        CheckGameState();
-
-        return _gameState is not GameState.Finished ? null : _winner;
     }
 
     public PlacementResult PlaceShip(Guid playerId, IShip ship)
