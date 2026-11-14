@@ -13,7 +13,6 @@ import {
 } from '../signalR.ts';
 
 interface SetupProps {
-    playerId: string;
     playerName: string;
     connectionStatus: ConnectionStatus;
     waitingForOpponent?: boolean;
@@ -50,7 +49,7 @@ function formatShipTypes(types: ShipType[]): string {
         .join(', ');
 }
 
-function Setup({ playerId, connectionStatus, waitingForOpponent = false, onFleetLocked }: SetupProps) {
+function Setup({ connectionStatus, waitingForOpponent = false, onFleetLocked }: SetupProps) {
     const [isReady, setIsReady] = useState(false);
     const [orientation, setOrientation] = useState<Orientation>('horizontal');
     const [placedCells, setPlacedCells] = useState<Coordinate[]>([]);
@@ -141,7 +140,6 @@ function Setup({ playerId, connectionStatus, waitingForOpponent = false, onFleet
 
         try {
             const result = await placeShip({
-                playerId,
                 type: ship.type,
                 coordinates: targetCells,
             });
@@ -184,7 +182,7 @@ function Setup({ playerId, connectionStatus, waitingForOpponent = false, onFleet
         let result;
 
         try {
-            result = await validateFleet(playerId);
+            result = await validateFleet();
         } catch {
             setError('Failed to validate your fleet. Please try again.');
             setIsBusy(false);
@@ -194,7 +192,7 @@ function Setup({ playerId, connectionStatus, waitingForOpponent = false, onFleet
         try {
             if (result.isValid) {
                 onFleetLocked?.(placedCells);
-                await tryStartGame(playerId);
+                await tryStartGame();
                 setIsReady(true);
                 return;
             }
@@ -226,7 +224,7 @@ function Setup({ playerId, connectionStatus, waitingForOpponent = false, onFleet
         setIsBusy(true);
 
         try {
-            await clearBoard(playerId);
+            await clearBoard();
             setPlacedShips([]);
             setPlacedCells([]);
         } catch {

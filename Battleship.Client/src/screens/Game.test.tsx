@@ -63,7 +63,7 @@ describe('Game', () => {
 
         fireEvent.click(opponentBoard().getByTitle('B4'));
 
-        expect(shoot).toHaveBeenCalledExactlyOnceWith(me, { x: 3, y: 1 });
+        expect(shoot).toHaveBeenCalledExactlyOnceWith({ x: 3, y: 1 });
     });
 
     it('dims the opponent board and blocks shooting when it is not your turn', () => {

@@ -80,8 +80,7 @@ function App() {
                 );
             case 'setup':
                 return (
-                    <Setup 
-                        playerId={playerId}
+                    <Setup
                         playerName={playerName}
                         connectionStatus={connectionStatus}
                         waitingForOpponent={waitingForOpponent}

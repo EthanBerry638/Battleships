@@ -88,7 +88,7 @@ function Game({ playerId, connectionStatus, startingPlayerId, fleetCells, onBack
         setIsBusy(true);
 
         try {
-            await shoot(playerId, coordinate);
+            await shoot(coordinate);
         } catch (e) {
             setError(describeError(e));
         } finally {
