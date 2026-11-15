@@ -209,8 +209,10 @@ describe('startConnection', () => {
                     id: crypto.randomUUID(),
                     name: 'Alice',
                 },
-                player1Id: crypto.randomUUID(),
-                player2Id: crypto.randomUUID(),
+                players: [
+                    { id: crypto.randomUUID(), name: 'Alice' },
+                    { id: crypto.randomUUID(), name: 'Bob' },
+                ],
             };
 
             onGameCreated(handler);
