@@ -73,6 +73,32 @@ public class BattleshipHubTests
     }
 
     [Theory]
+    [InlineData("abc123")]
+    [InlineData("  ABC123  ")]
+    [InlineData(" aBc123")]
+    public async Task JoinLobby_ShouldTrimAndUpperCaseTheGameCode_BeforeUsingIt(string rawGameCode)
+    {
+        var request = new JoinLobbyRequest(rawGameCode, Guid.NewGuid(), "Player 2");
+        _mockSessionService.Setup(s => s.JoinLobby("ABC123", It.IsAny<Player>()))
+            .Returns(CreateEngine());
+        _mockContext.Setup(c => c.ConnectionId).Returns("test-connection-id");
+        _mockGroups
+            .Setup(g => g.AddToGroupAsync(It.IsAny<string>(), It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+        _mockClients.Setup(c => c.Group("ABC123")).Returns(_mockClientProxy.Object);
+
+        bool result = await CreateHub().JoinLobby(request);
+
+        result.Should().BeTrue();
+        _mockSessionService.Verify(s => s.JoinLobby("ABC123", It.IsAny<Player>()), Times.Once);
+        _mockGroups.Verify(g => g.AddToGroupAsync(
+            "test-connection-id", "ABC123",
+            It.IsAny<CancellationToken>()), Times.Once);
+        _mockClients.Verify(c => c.Group("ABC123"), Times.Once);
+    }
+
+    [Theory]
     [InlineData("ABC123")]
     [InlineData("XYZ789")]
     [InlineData("123ABC")]
@@ -107,8 +133,8 @@ public class BattleshipHubTests
                     args.Length == 1 &&
                     args[0] is GameCreatedResponse &&
                     ((GameCreatedResponse)args[0]).StartingPlayer == expectedEngine.CurrentPlayer &&
-                    ((GameCreatedResponse)args[0]).Player1Id == expectedEngine.Players[0].Id &&
-                    ((GameCreatedResponse)args[0]).Player2Id == expectedEngine.Players[1].Id),
+                    ((GameCreatedResponse)args[0]).Players.SequenceEqual(
+                        expectedEngine.Players.Select(p => new PlayerSummary(p.Id, p.Name)))),
                 CancellationToken.None),
             Times.Once);
     }

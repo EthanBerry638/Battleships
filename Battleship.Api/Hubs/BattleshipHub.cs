@@ -45,15 +45,17 @@ public class BattleshipHub(IGameService gameService, IConnectionService connecti
         _connectionService.EnsureConnectionIsFree(Context.ConnectionId);
 
         var player = new Player(request.PlayerId, request.PlayerName);
-        BattleshipEngine? engine = _sessionService.JoinLobby(request.GameCode, player);
+        string gameCode = request.GameCode.Trim().ToUpperInvariant();
+        BattleshipEngine? engine = _sessionService.JoinLobby(gameCode, player);
 
         if (engine is null) return false;
 
         _connectionService.RegisterConnection(Context.ConnectionId, player.Id);
-        await Groups.AddToGroupAsync(Context.ConnectionId, request.GameCode);
+        await Groups.AddToGroupAsync(Context.ConnectionId, gameCode);
         
-        var message = new GameCreatedResponse(engine.CurrentPlayer, engine.Players[0].Id, engine.Players[1].Id);
-        await Clients.Group(request.GameCode).SendAsync("GameCreated", message);
+        var players = engine.Players.Select(p => new PlayerSummary(p.Id, p.Name)).ToList();
+        var message = new GameCreatedResponse(engine.CurrentPlayer, players);
+        await Clients.Group(gameCode).SendAsync("GameCreated", message);
 
         return true;
     }
