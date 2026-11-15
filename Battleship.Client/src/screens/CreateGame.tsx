@@ -54,13 +54,21 @@ function CreateGame({ playerId, playerName, onBack, connectionStatus }: CreateGa
 
         setIsLeaving(true);
 
+        let hasLeft: boolean;
+
         try {
-            await leaveLobby();
+            hasLeft = await leaveLobby();
         } catch {
-            // If the connection dropped, the server's disconnect handling cleans up the lobby.
-        } finally {
             onBack();
+            return;
         }
+
+        if (!hasLeft) {
+            setIsLeaving(false);
+            return;
+        }
+
+        onBack();
     }
 
     return (

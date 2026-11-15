@@ -270,7 +270,7 @@ describe('CreateGame', () => {
         const user = userEvent.setup();
         const onBack = vi.fn();
         invokeMock.mockResolvedValue('GAME123');
-        leaveLobbyMock.mockResolvedValue(undefined);
+        leaveLobbyMock.mockResolvedValue(true);
         const { generateButton, backButton } = renderCreateGame(onBack);
 
         await user.click(generateButton());
@@ -281,6 +281,22 @@ describe('CreateGame', () => {
         expect(onBack).toHaveBeenCalledOnce();
         expect(leaveLobbyMock.mock.invocationCallOrder[0])
             .toBeLessThan(onBack.mock.invocationCallOrder[0]);
+    });
+
+    it('stays on the screen when the lobby was not left because an opponent joined first', async () => {
+        const user = userEvent.setup();
+        const onBack = vi.fn();
+        invokeMock.mockResolvedValue('GAME123');
+        leaveLobbyMock.mockResolvedValue(false);
+        const { generateButton, backButton } = renderCreateGame(onBack);
+
+        await user.click(generateButton());
+        await screen.findByText('GAME123');
+        await user.click(backButton());
+
+        expect(leaveLobbyMock).toHaveBeenCalledOnce();
+        await waitFor(() => expect(backButton()).toBeEnabled());
+        expect(onBack).not.toHaveBeenCalled();
     });
 
     it('still goes back when leaving the lobby fails', async () => {
@@ -301,7 +317,7 @@ describe('CreateGame', () => {
     it('disables Back while leaving the lobby is in progress', async () => {
         const user = userEvent.setup();
         const onBack = vi.fn();
-        const deferred = createDeferred<void>();
+        const deferred = createDeferred<boolean>();
         invokeMock.mockResolvedValue('GAME123');
         leaveLobbyMock.mockReturnValue(deferred.promise);
         const { generateButton, backButton } = renderCreateGame(onBack);
@@ -313,7 +329,7 @@ describe('CreateGame', () => {
         expect(backButton()).toBeDisabled();
         expect(onBack).not.toHaveBeenCalled();
 
-        deferred.resolve();
+        deferred.resolve(true);
 
         await waitFor(() => expect(onBack).toHaveBeenCalledOnce());
     });
