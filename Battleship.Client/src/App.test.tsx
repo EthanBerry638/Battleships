@@ -57,6 +57,18 @@ function emit(mock: typeof onGameCreatedMock, message: unknown = {}) {
     });
 }
 
+function setConnectionStatus(status: ConnectionStatus) {
+    const onStatusChange = startConnectionMock.mock.calls[0]?.[0] as
+        | ((status: ConnectionStatus) => void)
+        | undefined;
+
+    expect(onStatusChange).toEqual(expect.any(Function));
+
+    act(() => {
+        onStatusChange!(status);
+    });
+}
+
 vi.mock('./screens/Game', () => ({
     default: ({
                   playerId,
@@ -458,7 +470,7 @@ describe('App', () => {
         ).toBeInTheDocument();
     });
 
-    it('displays an error when disconnected', () => {
+    it('asks the player to try again later when the connection could not be made', () => {
         startConnectionMock.mockImplementation(
             async (onStatusChange: (status: ConnectionStatus) => void) => {
                 onStatusChange('disconnected');
@@ -468,12 +480,89 @@ describe('App', () => {
         render(<App />);
 
         expect(screen.getByRole('alert')).toHaveTextContent(
-            'Unable to connect to the API',
+            'Could not connect. Please try again later.',
         );
-        
+        expect(screen.queryByRole('status')).not.toBeInTheDocument();
         expect(
-            screen.queryByRole('heading', { name: 'Home screen' }),
+            screen.getByRole('heading', { name: 'Home screen' }),
         ).toBeInTheDocument();
+    });
+
+    describe('connection lost', () => {
+        it.each<ConnectionStatus>(['reconnecting', 'disconnected'])(
+            'replaces the game with the connection lost notice when the status becomes %s',
+            (status) => {
+                render(<App />);
+
+                emit(onGameCreatedMock, gameCreated);
+                emit(onGameStartedMock);
+                setConnectionStatus(status);
+
+                expect(
+                    screen.getByRole('heading', { name: 'Connection lost' }),
+                ).toBeInTheDocument();
+                expect(
+                    screen.queryByRole('heading', { name: 'Game screen' }),
+                ).not.toBeInTheDocument();
+            },
+        );
+
+        it('keeps showing the notice after the connection is restored', () => {
+            render(<App />);
+
+            emit(onGameCreatedMock, gameCreated);
+            setConnectionStatus('reconnecting');
+            setConnectionStatus('connected');
+
+            expect(
+                screen.getByRole('heading', { name: 'Connection lost' }),
+            ).toBeInTheDocument();
+        });
+
+        it('replaces the create screen with the notice', async () => {
+            const user = userEvent.setup();
+
+            render(<App />);
+
+            await user.click(screen.getByRole('button', { name: 'Create game' }));
+            setConnectionStatus('reconnecting');
+
+            expect(
+                screen.getByRole('heading', { name: 'Connection lost' }),
+            ).toBeInTheDocument();
+        });
+
+        it('stays on home when the connection drops there', () => {
+            render(<App />);
+
+            setConnectionStatus('reconnecting');
+            setConnectionStatus('connected');
+
+            expect(screen.getByRole('heading', { name: 'Home screen' })).toBeInTheDocument();
+            expect(
+                screen.queryByRole('heading', { name: 'Connection lost' }),
+            ).not.toBeInTheDocument();
+        });
+
+        it('returns home and starts the next game cleanly when Back to home is clicked', async () => {
+            const user = userEvent.setup();
+
+            render(<App />);
+
+            emit(onGameCreatedMock, gameCreated);
+            await user.click(screen.getByRole('button', { name: 'Lock fleet' }));
+            setConnectionStatus('reconnecting');
+            setConnectionStatus('connected');
+
+            await user.click(screen.getByRole('button', { name: 'Back to home' }));
+
+            expect(screen.getByRole('heading', { name: 'Home screen' })).toBeInTheDocument();
+
+            emit(onGameCreatedMock, gameCreated);
+            emit(onGameStartedMock, { isStarted: true, startingPlayerId: null, playerIds: null });
+
+            expect(screen.getByText('Fleet cells: 0')).toBeInTheDocument();
+        });
     });
 
     it('switches from home to create when Create game is clicked', async () => {

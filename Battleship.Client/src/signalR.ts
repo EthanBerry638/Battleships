@@ -2,6 +2,8 @@
 
 export type ConnectionStatus = 'connecting' | 'connected' | 'reconnecting' | 'disconnected';
 
+const startDelaysMs = [0, 2000, 10000, 30000];
+
 export const connection = new signalR.HubConnectionBuilder()
     .withUrl('https://localhost:7146/gameHub')
     .withAutomaticReconnect()
@@ -117,6 +119,8 @@ export function onOpponentDisconnected(handler: () => void) {
     };
 }
 
+let isConnecting = false;
+
 export async function startConnection(
     onStatusChange: (status: ConnectionStatus) => void) {
     connection.onreconnecting(() => {
@@ -131,18 +135,34 @@ export async function startConnection(
         onStatusChange('disconnected');
     });
 
-    if (connection.state === signalR.HubConnectionState.Disconnected) {
-        try {
-            onStatusChange('connecting');
+    if (isConnecting || connection.state !== signalR.HubConnectionState.Disconnected) return;
 
-            await connection.start();
+    isConnecting = true;
+    onStatusChange('connecting');
 
-            onStatusChange('connected');
-        } catch {
-            onStatusChange('disconnected');
+    try {
+        for (const delayMs of startDelaysMs) {
+            await wait(delayMs);
+
+            try {
+                await connection.start();
+                onStatusChange('connected');
+                return;
+            } catch {
+                // Try again after the next delay.
+            }
         }
+
+        onStatusChange('disconnected');
+    } finally {
+        isConnecting = false;
     }
 }
+
+function wait(ms: number) {
+    return new Promise<void>((resolve) => setTimeout(resolve, ms));
+}
+
 export function clearBoard(): Promise<void> {
     return connection.invoke('ClearBoard');
 }
