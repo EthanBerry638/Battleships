@@ -458,8 +458,9 @@ public class BattleshipHubTests
         var playerId = SetupCallerPlayer();
         _mockSessionService.Setup(s => s.LeaveLobby(playerId)).Returns("ABC123");
 
-        await CreateHub().LeaveLobby();
+        bool result = await CreateHub().LeaveLobby();
 
+        result.Should().BeTrue();
         _mockSessionService.Verify(s => s.LeaveLobby(playerId), Times.Once);
         _mockGroups.Verify(g => g.RemoveFromGroupAsync(ConnectionId, "ABC123", It.IsAny<CancellationToken>()),
             Times.Once);
@@ -471,8 +472,9 @@ public class BattleshipHubTests
         var playerId = SetupCallerPlayer();
         _mockSessionService.Setup(s => s.LeaveLobby(playerId)).Returns((string?)null);
 
-        await CreateHub().LeaveLobby();
+        bool result = await CreateHub().LeaveLobby();
 
+        result.Should().BeFalse();
         _mockSessionService.Verify(s => s.LeaveLobby(playerId), Times.Once);
         _mockGroups.Verify(
             g => g.RemoveFromGroupAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),

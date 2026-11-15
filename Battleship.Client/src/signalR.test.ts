@@ -306,6 +306,12 @@ describe('leaveLobby', () => {
 
         expect(signalRMock.connection.invoke).toHaveBeenCalledExactlyOnceWith('LeaveLobby');
     });
+
+    it.each([true, false])('resolves with whether the lobby was left (%s)', async (hasLeft) => {
+        signalRMock.connection.invoke.mockResolvedValueOnce(hasLeft);
+
+        await expect(leaveLobby()).resolves.toBe(hasLeft);
+    });
 });
 
 describe('placeShip', () => {
