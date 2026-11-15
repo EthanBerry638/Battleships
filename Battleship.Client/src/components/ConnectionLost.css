@@ -1,0 +1,8 @@
+.connection-lost {
+    margin: 8px 0;
+}
+
+.connection-lost h2 {
+    margin: 0;
+    font-size: 1.5rem;
+}
