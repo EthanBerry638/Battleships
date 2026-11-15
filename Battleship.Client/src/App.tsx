@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
     type ConnectionStatus,
     startConnection,
@@ -9,13 +9,14 @@ import {
     type Coordinate,
 } from './signalR';
 import OpponentDisconnected from './components/OpponentDisconnected';
+import ConnectionLost from './components/ConnectionLost';
 import JoinGame from './screens/JoinGame';
 import CreateGame from './screens/CreateGame';
 import Home from './screens/Home';
 import Setup from './screens/Setup';
 import Game from './screens/Game';
 
-type Screen = 'home' | 'create' | 'join' | 'setup' | 'game';
+type Screen = 'home' | 'create' | 'join' | 'setup' | 'game' | 'connectionLost';
 
 const defaultOpponentName = 'Opponent';
 
@@ -30,6 +31,16 @@ function App() {
     const [startingPlayerId, setStartingPlayerId] = useState<string | null>(null);
     const [opponentDisconnected, setOpponentDisconnected] = useState(false);
     const [opponentName, setOpponentName] = useState(defaultOpponentName);
+
+    // The server ties a player to a connection ID, and a reconnect gets a new one, so any
+    // lobby or game is unrecoverable as soon as the connection drops (until #30 is done).
+    const handleStatusChange = useCallback((status: ConnectionStatus) => {
+        setConnectionStatus(status);
+
+        if (status === 'reconnecting' || status === 'disconnected') {
+            setScreen((current) => (current === 'home' ? current : 'connectionLost'));
+        }
+    }, []);
 
     useEffect(() => {
         const unsubscribeGameCreated = onGameCreated((message) => {
@@ -54,7 +65,7 @@ function App() {
             setOpponentDisconnected(true);
         });
 
-        void startConnection(setConnectionStatus);
+        void startConnection(handleStatusChange);
 
         return () => {
             unsubscribeGameCreated();
@@ -62,7 +73,7 @@ function App() {
             unsubscribeGameNotStarted();
             unsubscribeOpponentDisconnected();
         };
-    }, [playerId]);
+    }, [playerId, handleStatusChange]);
 
     const handleBackToHome = () => {
         setFleetCells([]);
@@ -113,6 +124,8 @@ function App() {
                         onFleetLocked={setFleetCells}
                     />
                 );
+            case 'connectionLost':
+                return <ConnectionLost onBackToHome={handleBackToHome} />;
             case 'game':
                 return (
                     <Game
@@ -140,16 +153,19 @@ function App() {
     return (
         <>
             <div>
-                {connectionStatus === 'connecting' && (
-                    <h2 role="status">Connecting to API</h2>
-                )}
-
-                {connectionStatus === 'reconnecting' && (
-                    <h2 role="status">Reconnecting to API</h2>
-                )}
-
                 {connectionStatus === 'disconnected' && (
-                    <h2 role="alert">Unable to connect to the API</h2>
+                    <h2 role="alert" className="connection-banner">
+                        Could not connect. Please try again later.
+                    </h2>
+                )}
+
+                {(connectionStatus === 'connecting' || connectionStatus === 'reconnecting') && (
+                    <h2 role="status" className="connection-banner">
+                        <span className="spinner" aria-hidden="true" />
+                        {connectionStatus === 'connecting'
+                            ? 'Connecting to API'
+                            : 'Reconnecting to API'}
+                    </h2>
                 )}
             </div>
 
