@@ -25,7 +25,7 @@ function JoinGame({ playerId, playerName, onBack, connectionStatus }: JoinGamePr
             const joined = await connection.invoke<boolean>(
                 'JoinLobby',
                 {
-                    gameCode: joinCode.trim(),
+                    gameCode: joinCode.trim().toUpperCase(),
                     playerId,
                     playerName: playerName.trim(),
                 }
