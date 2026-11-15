@@ -1,4 +1,4 @@
-﻿import { beforeEach, describe, expect, it, vi } from 'vitest';
+﻿import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type {
     ConnectionStatus,
     GameCreatedMessage,
@@ -123,20 +123,6 @@ describe('startConnection', () => {
         ]);
     });
 
-    it('reports disconnected when starting the connection fails', async () => {
-        signalRMock.connection.start.mockRejectedValueOnce(
-            new Error('Connection failed'),
-        );
-        const onStatusChange = vi.fn<(status: ConnectionStatus) => void>();
-
-        await startConnection(onStatusChange);
-
-        expect(onStatusChange.mock.calls).toEqual([
-            ['connecting'],
-            ['disconnected'],
-        ]);
-    });
-
     it('reports reconnecting when SignalR starts reconnecting', async () => {
         const onStatusChange = vi.fn<(status: ConnectionStatus) => void>();
 
@@ -171,6 +157,85 @@ describe('startConnection', () => {
 
         expect(onStatusChange).toHaveBeenCalledOnce();
         expect(onStatusChange).toHaveBeenCalledWith('disconnected');
+    });
+
+    describe('when starting the connection fails', () => {
+        beforeEach(() => {
+            vi.useFakeTimers();
+        });
+
+        afterEach(() => {
+            vi.useRealTimers();
+        });
+
+        it('keeps reporting connecting and retries until the connection starts', async () => {
+            signalRMock.connection.start
+                .mockRejectedValueOnce(new Error('Connection failed'))
+                .mockRejectedValueOnce(new Error('Connection failed'));
+            const onStatusChange = vi.fn<(status: ConnectionStatus) => void>();
+
+            const started = startConnection(onStatusChange);
+
+            await vi.advanceTimersByTimeAsync(0);
+            expect(signalRMock.connection.start).toHaveBeenCalledTimes(1);
+
+            await vi.advanceTimersByTimeAsync(2000);
+            expect(signalRMock.connection.start).toHaveBeenCalledTimes(2);
+            expect(onStatusChange.mock.calls).toEqual([['connecting']]);
+
+            await vi.advanceTimersByTimeAsync(10000);
+            await started;
+
+            expect(signalRMock.connection.start).toHaveBeenCalledTimes(3);
+            expect(onStatusChange.mock.calls).toEqual([
+                ['connecting'],
+                ['connected'],
+            ]);
+        });
+
+        it('reports disconnected after the last retry fails and then stops trying', async () => {
+            signalRMock.connection.start.mockRejectedValue(new Error('Connection failed'));
+            const onStatusChange = vi.fn<(status: ConnectionStatus) => void>();
+
+            const started = startConnection(onStatusChange);
+
+            await vi.advanceTimersByTimeAsync(12000);
+            expect(signalRMock.connection.start).toHaveBeenCalledTimes(3);
+            expect(onStatusChange.mock.calls).toEqual([['connecting']]);
+
+            await vi.advanceTimersByTimeAsync(30000);
+            await started;
+
+            expect(signalRMock.connection.start).toHaveBeenCalledTimes(4);
+            expect(onStatusChange.mock.calls).toEqual([
+                ['connecting'],
+                ['disconnected'],
+            ]);
+
+            await vi.advanceTimersByTimeAsync(120000);
+            expect(signalRMock.connection.start).toHaveBeenCalledTimes(4);
+        });
+
+        it('does not start a second retry loop while one is running', async () => {
+            signalRMock.connection.start.mockRejectedValueOnce(
+                new Error('Connection failed'),
+            );
+            const onStatusChange = vi.fn<(status: ConnectionStatus) => void>();
+
+            const started = startConnection(onStatusChange);
+            await vi.advanceTimersByTimeAsync(0);
+
+            await startConnection(onStatusChange);
+
+            await vi.advanceTimersByTimeAsync(2000);
+            await started;
+
+            expect(signalRMock.connection.start).toHaveBeenCalledTimes(2);
+            expect(onStatusChange.mock.calls).toEqual([
+                ['connecting'],
+                ['connected'],
+            ]);
+        });
     });
 
     it('registers all connection lifecycle handlers', async () => {
