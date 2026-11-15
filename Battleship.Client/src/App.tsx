@@ -17,6 +17,8 @@ import Game from './screens/Game';
 
 type Screen = 'home' | 'create' | 'join' | 'setup' | 'game';
 
+const defaultOpponentName = 'Opponent';
+
 function App() {
     const [screen, setScreen] = useState<Screen>('home');
     const [playerId] = useState(() => crypto.randomUUID());
@@ -27,9 +29,13 @@ function App() {
     const [fleetCells, setFleetCells] = useState<Coordinate[]>([]);
     const [startingPlayerId, setStartingPlayerId] = useState<string | null>(null);
     const [opponentDisconnected, setOpponentDisconnected] = useState(false);
+    const [opponentName, setOpponentName] = useState(defaultOpponentName);
 
     useEffect(() => {
-        const unsubscribeGameCreated = onGameCreated(() => {
+        const unsubscribeGameCreated = onGameCreated((message) => {
+            const opponent = message.players.find((player) => player.id !== playerId);
+
+            setOpponentName(opponent?.name ?? defaultOpponentName);
             setOpponentDisconnected(false);
             setScreen('setup');
         });
@@ -56,13 +62,14 @@ function App() {
             unsubscribeGameNotStarted();
             unsubscribeOpponentDisconnected();
         };
-    }, []);
+    }, [playerId]);
 
     const handleBackToHome = () => {
         setFleetCells([]);
         setStartingPlayerId(null);
         setWaitingForOpponent(false);
         setOpponentDisconnected(false);
+        setOpponentName(defaultOpponentName);
         setScreen('home');
     };
 
@@ -70,7 +77,12 @@ function App() {
 
     const renderCurrentScreen = () => {
         if (opponentDisconnected && isInGame) {
-            return <OpponentDisconnected onBackToHome={handleBackToHome} />;
+            return (
+                <OpponentDisconnected
+                    opponentName={opponentName}
+                    onBackToHome={handleBackToHome}
+                />
+            );
         }
 
         switch (screen) {
@@ -105,6 +117,7 @@ function App() {
                 return (
                     <Game
                         playerId={playerId}
+                        opponentName={opponentName}
                         connectionStatus={connectionStatus}
                         startingPlayerId={startingPlayerId}
                         fleetCells={fleetCells}

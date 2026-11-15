@@ -58,7 +58,7 @@ describe('JoinGame', () => {
 
         await user.type(
             screen.getByPlaceholderText('Game code'),
-            'GAME123'
+            'GAME12'
         );
 
         await user.click(
@@ -68,7 +68,7 @@ describe('JoinGame', () => {
         expect(invokeMock).toHaveBeenCalledOnce();
 
         expect(invokeMock).toHaveBeenCalledWith("JoinLobby", {
-            gameCode: "GAME123",
+            gameCode: "GAME12",
             playerId: "player-1",
             playerName: "Bob",
         });
@@ -128,7 +128,7 @@ describe('JoinGame', () => {
 
         await user.type(
             screen.getByPlaceholderText('Game code'),
-            'GAME123'
+            'GAME12'
         );
 
         await user.click(
@@ -162,7 +162,7 @@ describe('JoinGame', () => {
 
         await user.type(
             screen.getByPlaceholderText('Game code'),
-            'GAME123'
+            'GAME12'
         );
 
         await user.click(
@@ -239,7 +239,7 @@ describe('JoinGame', () => {
 
             await user.type(
                 screen.getByPlaceholderText('Game code'),
-                'GAME123'
+                'GAME12'
             );
 
             const joinButton = screen.getByRole('button', { name: 'Join' });
@@ -278,7 +278,7 @@ describe('JoinGame', () => {
 
             await user.type(
                 screen.getByPlaceholderText('Game code'),
-                'GAME123'
+                'GAME12'
             );
 
             const joinButton = screen.getByRole('button', {

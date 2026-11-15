@@ -18,7 +18,7 @@ public class SessionService (ILobbyRepository lobbyRepository, IGameRepository g
         string gameCode;
         do
         {
-            gameCode = Guid.NewGuid().ToString("N")[..6].ToUpperInvariant();
+            gameCode = Guid.NewGuid().ToString("N")[..GameLimits.GameCodeLength].ToUpperInvariant();
         } while (_gameRepository.TryGetGameByCode(gameCode, out _) ||
                  !_lobbyRepository.TryAddLobby(gameCode, player1));
 
@@ -44,7 +44,7 @@ public class SessionService (ILobbyRepository lobbyRepository, IGameRepository g
     {
         CheckLobbyAndGame(player2.Id);
 
-        if (!_lobbyRepository.TryRemoveLobby(gameCode.Trim().ToUpperInvariant(), out Player? player1)) return null;
+        if (!_lobbyRepository.TryRemoveLobby(gameCode, out Player? player1)) return null;
         
         var session = new GameSession(new BattleshipEngine(new GameBoard(), new GameBoard(), player1!, player2));
         _gameRepository.TryAddGame(gameCode, session);

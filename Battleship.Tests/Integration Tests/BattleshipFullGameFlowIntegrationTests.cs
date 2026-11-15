@@ -148,6 +148,14 @@ public class BattleshipFullGameFlowIntegrationTests : IAsyncLifetime
             "GameNotStarted",
             res => p1WaitingTcs.TrySetResult(res));
 
+        var p1GameCreatedTcs =
+            new TaskCompletionSource<GameCreatedResponse>(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+
+        _p1Conn.On<GameCreatedResponse>(
+            "GameCreated",
+            res => p1GameCreatedTcs.TrySetResult(res));
+
         _p1Conn.On<ShotMessage>("Shot", message => { p1Shots.Writer.TryWrite(message); });
 
         _p2Conn.On<ShotMessage>("Shot", message => { p2Shots.Writer.TryWrite(message); });
@@ -163,7 +171,19 @@ public class BattleshipFullGameFlowIntegrationTests : IAsyncLifetime
             new JoinLobbyRequest(gameCode, p2Id, "Player 2"));
 
         joined.Should().BeTrue();
-        
+
+        Task gameCreatedCompleted =
+            await Task.WhenAny(p1GameCreatedTcs.Task, Task.Delay(5000));
+
+        gameCreatedCompleted.Should().Be(
+            p1GameCreatedTcs.Task,
+            "Player 1 should receive GameCreated");
+
+        GameCreatedResponse createdMessage = await p1GameCreatedTcs.Task;
+        createdMessage.Players.Should().Equal(
+            new PlayerSummary(p1Id, "Player 1"),
+            new PlayerSummary(p2Id, "Player 2"));
+
         await PlaceFleet(_p1Conn, "Player 1");
         await PlaceFleet(_p2Conn, "Player 2");
 

@@ -14,8 +14,7 @@ export type Player = {
 
 export type GameCreatedMessage = {
     startingPlayer: Player;
-    player1Id: string;
-    player2Id: string;
+    players: Player[];
 }
 
 export type StartGameMessage = {

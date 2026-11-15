@@ -18,6 +18,7 @@ function renderGame(props: Partial<Parameters<typeof Game>[0]> = {}) {
     return render(
         <Game
             playerId={me}
+            opponentName="Alice"
             connectionStatus="connected"
             startingPlayerId={me}
             fleetCells={[{ x: 0, y: 0 }, { x: 1, y: 0 }]}
@@ -34,7 +35,7 @@ function emitShot(message: Omit<ShotMessage, 'isGameOver'> & Partial<ShotMessage
 }
 
 const ownBoard = () => within(screen.getByRole('region', { name: 'Your fleet' }));
-const opponentBoard = () => within(screen.getByRole('region', { name: 'Opponent waters' }));
+const opponentBoard = () => within(screen.getByRole('region', { name: "Alice's waters" }));
 const turn = () => screen.getAllByRole('status')[0];
 
 describe('Game', () => {
@@ -69,7 +70,7 @@ describe('Game', () => {
     it('dims the opponent board and blocks shooting when it is not your turn', () => {
         renderGame({ startingPlayerId: opponent });
 
-        expect(turn()).toHaveTextContent("Opponent's turn");
+        expect(turn()).toHaveTextContent("Alice's turn");
         expect(opponentBoard().getByTitle('B4').closest('.board')).toHaveClass('board-dimmed');
         expect(ownBoard().getByTitle('B4').closest('.board')).not.toHaveClass('board-dimmed');
 
@@ -96,7 +97,7 @@ describe('Game', () => {
 
         expect(opponentBoard().getByTitle('B4')).toHaveClass('cell-hit');
         expect(ownBoard().getByTitle('B4')).not.toHaveClass('cell-hit');
-        expect(turn()).toHaveTextContent("Opponent's turn");
+        expect(turn()).toHaveTextContent("Alice's turn");
         expect(screen.getByText('You hit a ship at B4.')).toBeInTheDocument();
 
         fireEvent.click(opponentBoard().getByTitle('C1'));
@@ -121,7 +122,7 @@ describe('Game', () => {
         emitShot({ result: ShotResult.Sunk, shooterId: opponent, coordinate: { x: 0, y: 0 } });
 
         expect(ownBoard().getByTitle('A1')).toHaveClass('cell-occupied', 'cell-hit');
-        expect(screen.getByText('Opponent sank a ship at A1.')).toBeInTheDocument();
+        expect(screen.getByText('Alice sank a ship at A1.')).toBeInTheDocument();
     });
 
     it('does not shoot at a cell that has already been shot', () => {
@@ -182,7 +183,7 @@ describe('Game', () => {
 
         expect(gameOver.getByRole('heading', { name: 'You win!' })).toBeInTheDocument();
         expect(opponentBoard().getByTitle('B4')).toHaveClass('cell-hit');
-        expect(screen.queryByText("Opponent's turn")).toBeNull();
+        expect(screen.queryByText("Alice's turn")).toBeNull();
     });
 
     it('announces a loss when the opponent shot ends the game', () => {
@@ -197,7 +198,7 @@ describe('Game', () => {
 
         const gameOver = within(screen.getByRole('region', { name: 'Game over' }));
 
-        expect(gameOver.getByRole('heading', { name: 'Opponent wins!' })).toBeInTheDocument();
+        expect(gameOver.getByRole('heading', { name: 'Alice wins!' })).toBeInTheDocument();
         expect(ownBoard().getByTitle('A1')).toHaveClass('cell-hit');
         expect(screen.queryByText('Your turn')).toBeNull();
     });
