@@ -19,7 +19,8 @@ public class SessionService (ILobbyRepository lobbyRepository, IGameRepository g
         do
         {
             gameCode = Guid.NewGuid().ToString("N")[..6].ToUpperInvariant();
-        } while (!_lobbyRepository.TryAddLobby(gameCode, player1));
+        } while (_gameRepository.TryGetGameByCode(gameCode, out _) ||
+                 !_lobbyRepository.TryAddLobby(gameCode, player1));
 
         return gameCode;
     }
