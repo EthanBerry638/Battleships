@@ -73,6 +73,14 @@ button.cell[aria-disabled="true"]:hover {
     background: #7a3b46;
 }
 
+.cell-sunk {
+    background: #b9bec6;
+}
+
+.cell-occupied.cell-sunk {
+    background: #3a3f47;
+}
+
 .shot-marker {
     width: 1.1rem;
     height: 1.1rem;
@@ -86,4 +94,10 @@ button.cell[aria-disabled="true"]:hover {
 
 .shot-marker-hit {
     background: #d62839;
+}
+
+.shot-marker-sunk {
+    border: 2px solid #d62839;
+    box-sizing: border-box;
+    background: #15171a;
 }
