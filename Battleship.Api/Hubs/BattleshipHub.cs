@@ -14,12 +14,16 @@ public class BattleshipHub(IGameService gameService, IConnectionService connecti
     private readonly IConnectionService _connectionService = connectionService;
     private readonly ISessionService _sessionService = sessionService;
 
+    // Temporary until reconnection is supported (#30): a dropped player cannot rejoin, so
+    // waiting longer only delays telling the opponent.
+    private static readonly TimeSpan DisconnectGracePeriod = TimeSpan.FromSeconds(0);
+
     private Guid CallerPlayerId => _connectionService.GetPlayerId(Context.ConnectionId);
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
         string? gameCode =
-            await _connectionService.HandleDisconnectAsync(Context.ConnectionId, TimeSpan.FromSeconds(30));
+            await _connectionService.HandleDisconnectAsync(Context.ConnectionId, DisconnectGracePeriod);
 
         if (gameCode is not null)
             await Clients.Group(gameCode).SendAsync("OpponentDisconnected");
