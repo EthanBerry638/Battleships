@@ -2,7 +2,7 @@
 import { formatCoordinate, isSameCoordinate, rowLabels, type Coordinate } from '../signalR.ts';
 import "./Board.css";
 
-export type ShotMark = 'hit' | 'miss';
+export type ShotMark = 'hit' | 'miss' | 'sunk';
 
 export type ShotMarks = Record<string, ShotMark>;
 

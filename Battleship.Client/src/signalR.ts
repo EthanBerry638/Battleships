@@ -67,6 +67,7 @@ export type ShotMessage = {
     result: ShotResult;
     shooterId: string;
     coordinate: Coordinate;
+    sunkCoordinates: Coordinate[] | null;
     isGameOver: boolean;
 }
 

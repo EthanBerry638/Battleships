@@ -28,10 +28,12 @@ function renderGame(props: Partial<Parameters<typeof Game>[0]> = {}) {
     );
 }
 
-function emitShot(message: Omit<ShotMessage, 'isGameOver'> & Partial<ShotMessage>) {
+function emitShot(
+    message: Omit<ShotMessage, 'isGameOver' | 'sunkCoordinates'> & Partial<ShotMessage>,
+) {
     const handler = vi.mocked(onShot).mock.calls[0]![0];
 
-    act(() => handler({ isGameOver: false, ...message }));
+    act(() => handler({ isGameOver: false, sunkCoordinates: null, ...message }));
 }
 
 const ownBoard = () => within(screen.getByRole('region', { name: 'Your fleet' }));
@@ -123,6 +125,43 @@ describe('Game', () => {
 
         expect(ownBoard().getByTitle('A1')).toHaveClass('cell-occupied', 'cell-hit');
         expect(screen.getByText('Alice sank a ship at A1.')).toBeInTheDocument();
+    });
+
+    it('marks every cell of a ship I sank on the opponent board as sunk', () => {
+        renderGame();
+
+        emitShot({ result: ShotResult.Hit, shooterId: me, coordinate: { x: 3, y: 1 } });
+        emitShot({ result: ShotResult.Miss, shooterId: opponent, coordinate: { x: 5, y: 5 } });
+        emitShot({
+            result: ShotResult.Sunk,
+            shooterId: me,
+            coordinate: { x: 4, y: 1 },
+            sunkCoordinates: [{ x: 3, y: 1 }, { x: 4, y: 1 }],
+        });
+
+        expect(opponentBoard().getByTitle('B4')).toHaveClass('cell-sunk');
+        expect(opponentBoard().getByTitle('B4')).not.toHaveClass('cell-hit');
+        expect(opponentBoard().getByTitle('B5')).toHaveClass('cell-sunk');
+        expect(opponentBoard().getByTitle('B5').querySelector('.shot-marker-sunk')).not.toBeNull();
+        expect(ownBoard().getByTitle('B4')).not.toHaveClass('cell-sunk');
+        expect(ownBoard().getByTitle('F6')).toHaveClass('cell-miss');
+    });
+
+    it('marks my ship as sunk on my board when the opponent sinks it', () => {
+        renderGame({ startingPlayerId: opponent });
+
+        emitShot({ result: ShotResult.Hit, shooterId: opponent, coordinate: { x: 0, y: 0 } });
+        emitShot({ result: ShotResult.Miss, shooterId: me, coordinate: { x: 5, y: 5 } });
+        emitShot({
+            result: ShotResult.Sunk,
+            shooterId: opponent,
+            coordinate: { x: 1, y: 0 },
+            sunkCoordinates: [{ x: 0, y: 0 }, { x: 1, y: 0 }],
+        });
+
+        expect(ownBoard().getByTitle('A1')).toHaveClass('cell-occupied', 'cell-sunk');
+        expect(ownBoard().getByTitle('A2')).toHaveClass('cell-occupied', 'cell-sunk');
+        expect(document.querySelectorAll('.cell-hit')).toHaveLength(0);
     });
 
     it('does not shoot at a cell that has already been shot', () => {

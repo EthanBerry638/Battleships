@@ -72,9 +72,16 @@ function Game({
                 const mark = message.result === ShotResult.Miss ? 'miss' : 'hit';
                 const setShots = isMine ? setOutgoingShots : setIncomingShots;
 
+                const sunkMarks = Object.fromEntries(
+                    (message.sunkCoordinates ?? []).map(
+                        (coordinate) => [formatCoordinate(coordinate), 'sunk'] as const,
+                    ),
+                );
+
                 setShots((previous) => ({
                     ...previous,
                     [formatCoordinate(message.coordinate)]: mark,
+                    ...sunkMarks,
                 }));
             }
             
