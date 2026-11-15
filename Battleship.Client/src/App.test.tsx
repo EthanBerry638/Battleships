@@ -39,6 +39,14 @@ vi.mock('./signalR', () => ({
     onOpponentDisconnected: onOpponentDisconnectedMock,
 }));
 
+const gameCreated = {
+    startingPlayer: { id: 'test-player-id', name: 'Player' },
+    players: [
+        { id: 'test-player-id', name: 'Player' },
+        { id: 'opponent-id', name: 'Alice' },
+    ],
+};
+
 function emit(mock: typeof onGameCreatedMock, message: unknown = {}) {
     const handler = mock.mock.calls[0]?.[0] as ((message: unknown) => void) | undefined;
 
@@ -52,11 +60,13 @@ function emit(mock: typeof onGameCreatedMock, message: unknown = {}) {
 vi.mock('./screens/Game', () => ({
     default: ({
                   playerId,
+                  opponentName,
                   startingPlayerId,
                   fleetCells,
                   onBackToHome,
               }: {
         playerId: string;
+        opponentName: string;
         startingPlayerId: string | null;
         fleetCells: unknown[];
         onBackToHome: () => void;
@@ -64,6 +74,7 @@ vi.mock('./screens/Game', () => ({
         <div>
             <h1>Game screen</h1>
             <p>Player ID: {playerId}</p>
+            <p>Opponent: {opponentName}</p>
             <p>Starting player: {startingPlayerId}</p>
             <p>Fleet cells: {fleetCells.length}</p>
             <button onClick={onBackToHome}>Back to home</button>
@@ -187,13 +198,13 @@ describe('App', () => {
         render(<App />);
 
         const gameCreatedHandler = onGameCreatedMock.mock.calls[0]?.[0] as
-            | (() => void)
+            | ((message: unknown) => void)
             | undefined;
 
         expect(gameCreatedHandler).toEqual(expect.any(Function));
 
         act(() => {
-            gameCreatedHandler!();
+            gameCreatedHandler!(gameCreated);
         });
 
         expect(
@@ -221,7 +232,7 @@ describe('App', () => {
     it('switches to the game screen when the GameStarted event is received', () => {
         render(<App />);
 
-        emit(onGameCreatedMock);
+        emit(onGameCreatedMock, gameCreated);
         emit(onGameStartedMock);
 
         expect(
@@ -234,7 +245,7 @@ describe('App', () => {
 
         render(<App />);
 
-        emit(onGameCreatedMock);
+        emit(onGameCreatedMock, gameCreated);
         await user.click(screen.getByRole('button', { name: 'Lock fleet' }));
         emit(onGameStartedMock, {
             isStarted: true,
@@ -247,12 +258,36 @@ describe('App', () => {
         expect(screen.getByText('Fleet cells: 2')).toBeInTheDocument();
     });
 
+    it('passes the name of the other player to the game screen', () => {
+        render(<App />);
+
+        emit(onGameCreatedMock, gameCreated);
+        emit(onGameStartedMock);
+
+        expect(screen.getByText('Opponent: Alice')).toBeInTheDocument();
+    });
+
+    it('forgets the opponent name once the player goes back to home', async () => {
+        const user = userEvent.setup();
+
+        render(<App />);
+
+        emit(onGameCreatedMock, gameCreated);
+        emit(onGameStartedMock);
+        await user.click(screen.getByRole('button', { name: 'Back to home' }));
+
+        emit(onGameCreatedMock, { ...gameCreated, players: [] });
+        emit(onGameStartedMock);
+
+        expect(screen.getByText('Opponent: Opponent')).toBeInTheDocument();
+    });
+
     it('returns to home with the same player ID and a cleared game when Back to home is clicked', async () => {
         const user = userEvent.setup();
 
         render(<App />);
 
-        emit(onGameCreatedMock);
+        emit(onGameCreatedMock, gameCreated);
         await user.click(screen.getByRole('button', { name: 'Lock fleet' }));
         emit(onGameNotStartedMock);
         emit(onGameStartedMock, { isStarted: true, startingPlayerId: 'opponent-id', playerIds: null });
@@ -262,7 +297,7 @@ describe('App', () => {
 
         expect(screen.getByRole('heading', { name: 'Home screen' })).toBeInTheDocument();
 
-        emit(onGameCreatedMock);
+        emit(onGameCreatedMock, gameCreated);
 
         expect(screen.getByText('Waiting: false')).toBeInTheDocument();
 
@@ -276,7 +311,7 @@ describe('App', () => {
     it('stays on setup and marks the player as waiting when GameNotStarted is received', () => {
         render(<App />);
 
-        emit(onGameCreatedMock);
+        emit(onGameCreatedMock, gameCreated);
 
         expect(screen.getByText('Waiting: false')).toBeInTheDocument();
 
@@ -316,11 +351,11 @@ describe('App', () => {
         it('replaces setup with the disconnect notice when the opponent disconnects', () => {
             render(<App />);
 
-            emit(onGameCreatedMock);
+            emit(onGameCreatedMock, gameCreated);
             emit(onOpponentDisconnectedMock);
 
             expect(
-                screen.getByRole('heading', { name: 'Your opponent disconnected' }),
+                screen.getByRole('heading', { name: 'Alice disconnected' }),
             ).toBeInTheDocument();
             expect(
                 screen.queryByRole('heading', { name: 'Setup screen' }),
@@ -330,12 +365,12 @@ describe('App', () => {
         it('replaces the game screen with the disconnect notice when the opponent disconnects', () => {
             render(<App />);
 
-            emit(onGameCreatedMock);
+            emit(onGameCreatedMock, gameCreated);
             emit(onGameStartedMock, { isStarted: true, startingPlayerId: 'test-player-id', playerIds: null });
             emit(onOpponentDisconnectedMock);
 
             expect(
-                screen.getByRole('heading', { name: 'Your opponent disconnected' }),
+                screen.getByRole('heading', { name: 'Alice disconnected' }),
             ).toBeInTheDocument();
             expect(
                 screen.queryByRole('heading', { name: 'Game screen' }),
@@ -347,7 +382,7 @@ describe('App', () => {
 
             render(<App />);
 
-            emit(onGameCreatedMock);
+            emit(onGameCreatedMock, gameCreated);
             await user.click(screen.getByRole('button', { name: 'Lock fleet' }));
             emit(onGameNotStartedMock);
             emit(onOpponentDisconnectedMock);
@@ -356,7 +391,7 @@ describe('App', () => {
 
             expect(screen.getByRole('heading', { name: 'Home screen' })).toBeInTheDocument();
 
-            emit(onGameCreatedMock);
+            emit(onGameCreatedMock, gameCreated);
 
             expect(screen.getByRole('heading', { name: 'Setup screen' })).toBeInTheDocument();
             expect(screen.getByText('Waiting: false')).toBeInTheDocument();
@@ -373,10 +408,10 @@ describe('App', () => {
 
             expect(screen.getByRole('heading', { name: 'Home screen' })).toBeInTheDocument();
             expect(
-                screen.queryByRole('heading', { name: 'Your opponent disconnected' }),
+                screen.queryByRole('heading', { name: 'Alice disconnected' }),
             ).not.toBeInTheDocument();
 
-            emit(onGameCreatedMock);
+            emit(onGameCreatedMock, gameCreated);
 
             expect(screen.getByRole('heading', { name: 'Setup screen' })).toBeInTheDocument();
         });

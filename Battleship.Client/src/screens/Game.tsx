@@ -14,14 +14,15 @@ import './Game.css';
 
 interface GameProps {
     playerId: string;
+    opponentName: string;
     connectionStatus: ConnectionStatus;
     startingPlayerId: string | null;
     fleetCells: Coordinate[];
     onBackToHome: () => void;
 }
 
-function describeShot({ result, coordinate }: ShotMessage, isMine: boolean): string {
-    const who = isMine ? 'You' : 'Opponent';
+function describeShot({ result, coordinate }: ShotMessage, shooterName: string | null): string {
+    const who = shooterName ?? 'You';
     const cell = formatCoordinate(coordinate);
 
     switch (result) {
@@ -43,7 +44,14 @@ function describeError(error: unknown): string {
     return serverMessage ?? 'Failed to reach the server. Please try again.';
 }
 
-function Game({ playerId, connectionStatus, startingPlayerId, fleetCells, onBackToHome }: GameProps) {
+function Game({
+    playerId,
+    opponentName,
+    connectionStatus,
+    startingPlayerId,
+    fleetCells,
+    onBackToHome,
+}: GameProps) {
     const [isMyTurn, setIsMyTurn] = useState(startingPlayerId === playerId);
     const [incomingShots, setIncomingShots] = useState<ShotMarks>({});
     const [outgoingShots, setOutgoingShots] = useState<ShotMarks>({});
@@ -71,13 +79,13 @@ function Game({ playerId, connectionStatus, startingPlayerId, fleetCells, onBack
             }
             
             setIsMyTurn(!isMine);
-            setLastShot(describeShot(message, isMine));
-            
+            setLastShot(describeShot(message, isMine ? null : opponentName));
+
             if (message.isGameOver) {
                 setWinnerId(message.shooterId);
             }
         });
-    }, [playerId]);
+    }, [playerId, opponentName]);
 
     const handleShoot = async (coordinate: Coordinate) => {
         if (!canShoot || outgoingShots[formatCoordinate(coordinate)]) {
@@ -101,10 +109,14 @@ function Game({ playerId, connectionStatus, startingPlayerId, fleetCells, onBack
             <div className="game">
                 <h1>Battleships</h1>
                 {isGameOver ? (
-                    <GameOver isWinner={winnerId === playerId} onBackToHome={onBackToHome} />
+                    <GameOver
+                        isWinner={winnerId === playerId}
+                        opponentName={opponentName}
+                        onBackToHome={onBackToHome}
+                    />
                 ) : (
                     <p role="status" className="game-turn">
-                        {isMyTurn ? 'Your turn' : "Opponent's turn"}
+                        {isMyTurn ? 'Your turn' : `${opponentName}'s turn`}
                     </p>
                 )}
                 {!isConnected && (
@@ -117,8 +129,8 @@ function Game({ playerId, connectionStatus, startingPlayerId, fleetCells, onBack
                         <h2>Your fleet</h2>
                         <Board placedCells={fleetCells} shots={incomingShots} />
                     </section>
-                    <section aria-label="Opponent waters">
-                        <h2>Opponent waters</h2>
+                    <section aria-label={`${opponentName}'s waters`}>
+                        <h2>{opponentName}'s waters</h2>
                         <Board
                             shots={outgoingShots}
                             dimmed={!canShoot}

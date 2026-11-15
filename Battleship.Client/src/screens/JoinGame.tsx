@@ -59,6 +59,7 @@ function JoinGame({ playerId, playerName, onBack, connectionStatus }: JoinGamePr
                     value={joinCode}
                     onChange={(e) => setJoinCode(e.target.value)}
                     placeholder="Game code"
+                    maxLength={10}
                 />
     
                 <button

@@ -20,6 +20,7 @@ function Home({ playerName, setPlayerName, onCreateGame, onJoinGame, connectionS
                     value={playerName}
                     onChange={(e) => setPlayerName(e.target.value)}
                     placeholder="Player Name"
+                    maxLength={20}
                 />
                 <button 
                     onClick={onCreateGame}
