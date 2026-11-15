@@ -9,7 +9,9 @@ public class JoinLobbyRequestValidator : AbstractValidator<JoinLobbyRequest>
     {
         RuleFor(x => x.GameCode)
             .NotEmpty()
-            .WithMessage("Game code is required.");
+            .WithMessage("Game code is required.")
+            .Must(code => code is null || code.Trim().Length <= GameLimits.GameCodeLength)
+            .WithMessage($"Game code must be {GameLimits.GameCodeLength} characters or fewer.");
         
         RuleFor(x => x.PlayerId)
             .NotEmpty()
@@ -17,6 +19,8 @@ public class JoinLobbyRequestValidator : AbstractValidator<JoinLobbyRequest>
 
         RuleFor(x => x.PlayerName)
             .NotEmpty()
-            .WithMessage("Player name is required.");
+            .WithMessage("Player name is required.")
+            .MaximumLength(GameLimits.MaxPlayerNameLength)
+            .WithMessage($"Player name must be {GameLimits.MaxPlayerNameLength} characters or fewer.");
     }
 }

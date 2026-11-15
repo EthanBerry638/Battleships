@@ -1,4 +1,5 @@
 ﻿using FluentValidation.TestHelper;
+using Battleship.Api;
 using Battleship.Api.DTOs;
 using Battleship.Api.DTOs.Requests;
 using Battleship.Api.DTOs.Validators;
@@ -36,6 +37,26 @@ public class CreateLobbyRequestValidatorTests
     public void ShouldHaveError_WhenPlayerNameIsNullOrWhitespace(string? playerName)
     {
         var request = new CreateLobbyRequest(Guid.NewGuid(), playerName!);
+
+        var result = _validator.TestValidate(request);
+
+        result.ShouldHaveValidationErrorFor(x => x.PlayerName);
+    }
+
+    [Fact]
+    public void ShouldNotHaveError_WhenPlayerNameIsAtMaxLength()
+    {
+        var request = new CreateLobbyRequest(Guid.NewGuid(), new string('a', GameLimits.MaxPlayerNameLength));
+
+        var result = _validator.TestValidate(request);
+
+        result.ShouldNotHaveValidationErrorFor(x => x.PlayerName);
+    }
+
+    [Fact]
+    public void ShouldHaveError_WhenPlayerNameIsTooLong()
+    {
+        var request = new CreateLobbyRequest(Guid.NewGuid(), new string('a', GameLimits.MaxPlayerNameLength + 1));
 
         var result = _validator.TestValidate(request);
 
